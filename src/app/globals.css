@@ -1,0 +1,35 @@
+body{
+margin:0;
+font-family:Inter, sans-serif;
+background:#F5EFE6;
+color:#1D1D1D;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+padding:60px 20px;
+}
+
+.btn{
+background:#8B5A2B;
+color:white;
+padding:12px 24px;
+border-radius:10px;
+border:none;
+cursor:pointer;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:25px;
+}
+
+.card{
+background:white;
+padding:30px;
+border-radius:14px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+cursor:pointer;
+}
