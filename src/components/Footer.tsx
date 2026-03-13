@@ -1,14 +1,14 @@
 export default function Footer(){
-  return(
-    <footer style={{
-      background:"#1D1D1D",
-      color:"white",
-      padding:"40px"
-    }}>
 
-      <h3>BUKHT</h3>
-      <p>China Mongolia Platform</p>
+return(
 
-    </footer>
-  )
+<footer style={{padding:"126px 0 40px"}}>
+  <div className="container" style={{borderTop:"1px solid #d8cdbb",paddingTop:400,display:"flex",justifyContent:"space-between",gap:14,flexWrap:"wrap"}}>
+    <p style={{margin:0,color:"#514b43"}}>BUKHT • Brandbook + Web/App Design Brief</p>
+    <p style={{margin:0,color:"#514b43"}}>Холбоо: +976 9989 8938</p>
+  </div>
+</footer>
+
+)
+
 }

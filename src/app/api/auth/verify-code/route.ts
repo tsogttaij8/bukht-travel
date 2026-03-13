@@ -1,0 +1,42 @@
+import { NextResponse } from "next/server"
+import { sessionConfig, createSessionToken } from "../../../../lib/server/session"
+import { findUserByEmail } from "../../../../lib/server/user-store"
+import { verifyAndConsumeLoginCode } from "../../../../lib/server/login-code-store"
+
+type VerifyBody = {
+  email?: string
+  code?: string
+}
+
+export async function POST(request: Request): Promise<NextResponse> {
+  const body = (await request.json()) as VerifyBody
+  const email = body.email?.trim().toLowerCase() ?? ""
+  const code = body.code?.trim() ?? ""
+
+  if (!email || !code) {
+    return NextResponse.json({ message: "Имэйл болон код оруулна уу" }, { status: 400 })
+  }
+
+  const isValid = await verifyAndConsumeLoginCode(email, code)
+
+  if (!isValid) {
+    return NextResponse.json({ message: "Код буруу эсвэл хугацаа дууссан" }, { status: 401 })
+  }
+
+  const user = await findUserByEmail(email)
+
+  if (!user) {
+    return NextResponse.json({ message: "Хэрэглэгч олдсонгүй" }, { status: 404 })
+  }
+
+  const response = NextResponse.json({ user: { name: user.name, email: user.email, role: user.role } }, { status: 200 })
+  response.cookies.set(sessionConfig.name, createSessionToken(user.name, user.email, user.role), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: sessionConfig.maxAge,
+  })
+
+  return response
+}

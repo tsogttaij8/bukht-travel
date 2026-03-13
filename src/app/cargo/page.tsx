@@ -1,51 +1,31 @@
-"use client"
-
-import { useState } from "react"
+import Navbar from "../../components/Navbar"
+import CargoTracker from "../../components/CargoTrecker"
+import Footer from "../../components/Footer"
 
 export default function CargoPage(){
 
-const [code,setCode] = useState("")
-const [result,setResult] = useState("")
-
-function track(){
-
-setResult("Таны илгээмж Бээжин агуулахад байна")
-
-}
-
 return(
+
+<>
+
+<Navbar/>
 
 <div className="container">
 
-<h1>Cargo Tracking</h1>
+<section className="section">
+<h1 className="section-title">Карго / Тээвэр</h1>
+<p className="section-subtitle" style={{marginBottom:24}}>
+Хятадаас таталт, нэгтгэл, ачилт, хүргэлтийн процессыг ил тод tracking-р хянана.
+</p>
 
-<input
-
-placeholder="Tracking code"
-
-value={code}
-
-onChange={(e)=>setCode(e.target.value)}
-
-style={{
-padding:"10px",
-marginRight:"10px"
-}}
-
-/>
-
-<button
-className="btn"
-onClick={track}
->
-
-Шалгах
-
-</button>
-
-<p>{result}</p>
+<CargoTracker/>
+</section>
 
 </div>
+
+<Footer/>
+
+</>
 
 )
 

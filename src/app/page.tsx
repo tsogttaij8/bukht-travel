@@ -5,15 +5,26 @@ import WhyUs from "../components/WhyUs"
 import Features from "../components/Features"
 import Footer from "../components/Footer"
 
-export default function Home() {
-  return (
-    <>
-      <Navbar />
-      <Hero />
-      <Services />
-      <WhyUs />
-      <Features />
-      <Footer />
-    </>
-  )
+export default function Home(){
+
+return(
+
+<>
+
+<Navbar/>
+
+<Hero/>
+
+<Services/>
+
+<WhyUs/>
+
+<Features/>
+
+<Footer/>
+
+</>
+
+)
+
 }
