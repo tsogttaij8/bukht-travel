@@ -8,6 +8,10 @@
   --warm-gray: #e6e6e6;
   --paper: #f4efe8;
   --white: #ffffff;
+  --glass-white: rgba(255, 251, 245, 0.66);
+  --glass-strong: rgba(255, 251, 245, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 24px 60px rgba(107, 81, 54, 0.12);
 }
 
 * {
@@ -24,9 +28,25 @@ body {
   font-family: var(--font-body), sans-serif;
   color: var(--charcoal);
   background:
-    radial-gradient(circle at 10% 0%, #f1e5d4 0%, transparent 35%),
-    radial-gradient(circle at 90% 100%, #efe2d0 0%, transparent 40%),
+    radial-gradient(circle at 10% 0%, rgba(241, 229, 212, 0.95) 0%, transparent 35%),
+    radial-gradient(circle at 90% 100%, rgba(239, 226, 208, 0.9) 0%, transparent 40%),
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.55) 0%, transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(216, 185, 138, 0.14)),
     #f7f3ed;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.18), transparent 36%),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 28%),
+    radial-gradient(circle at 80% 18%, rgba(216, 185, 138, 0.16), transparent 22%);
+  opacity: 0.8;
+  z-index: -1;
 }
 
 a {
@@ -57,8 +77,9 @@ a {
 
 .navbar-toggle {
   display: none;
-  border: 1px solid #beb3a4;
-  background: var(--white);
+  border: 1px solid rgba(190, 179, 164, 0.7);
+  background: rgba(255, 251, 245, 0.72);
+  backdrop-filter: blur(14px);
   color: var(--charcoal);
   border-radius: 10px;
   padding: 8px 12px;
@@ -92,12 +113,14 @@ a {
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(14px);
 }
 
 .btn-primary {
-  background: var(--brown);
+  background: linear-gradient(135deg, rgba(138, 90, 60, 0.95), rgba(170, 116, 79, 0.86));
   color: var(--white);
+  box-shadow: 0 16px 34px rgba(138, 90, 60, 0.2);
 }
 
 .btn-primary:hover {
@@ -106,22 +129,25 @@ a {
 }
 
 .btn-secondary {
-  background: transparent;
+  background: rgba(255, 252, 247, 0.45);
   color: var(--charcoal);
-  border-color: #beb3a4;
+  border-color: rgba(190, 179, 164, 0.75);
 }
 
 .btn-secondary:hover {
   border-color: var(--charcoal);
+  background: rgba(255, 252, 247, 0.65);
 }
 
 .admin-input {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid #d7cfbf;
+  border: 1px solid rgba(215, 207, 191, 0.8);
   font-size: 15px;
-  background: var(--white);
+  background: rgba(255, 252, 247, 0.62);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .card-grid {
@@ -135,10 +161,12 @@ a {
 }
 
 .card {
-  border: 1px solid #e5ddcf;
-  background: var(--white);
+  border: 1px solid rgba(229, 221, 207, 0.7);
+  background: linear-gradient(180deg, var(--glass-strong), rgba(255, 249, 241, 0.48));
   border-radius: 16px;
   padding: 24px;
+  backdrop-filter: blur(18px);
+  box-shadow: var(--glass-shadow);
 }
 
 .card h3 {
@@ -150,6 +178,32 @@ a {
   margin: 0;
   color: #4c4c4c;
   line-height: 1.55;
+}
+
+.glass-panel {
+  background: linear-gradient(180deg, rgba(255, 248, 239, 0.74), rgba(255, 249, 243, 0.46));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(22px);
+}
+
+.glass-panel-dark {
+  background: linear-gradient(180deg, rgba(29, 29, 29, 0.84), rgba(29, 29, 29, 0.68));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 26px 70px rgba(17, 17, 17, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.glass-card-dark {
+  background: linear-gradient(180deg, rgba(45, 45, 45, 0.82), rgba(34, 34, 34, 0.7));
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-inset {
+  background: rgba(255, 251, 245, 0.48);
+  border: 1px solid rgba(228, 216, 198, 0.7);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .fade-up {
