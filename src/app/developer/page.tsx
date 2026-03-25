@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Footer from "../../components/Footer"
 import Navbar from "../../components/Navbar"
-import { getShipmentTracking, listShipments } from "../../lib/server/shipment-store"
+import { listShipmentsWithEvents } from "../../lib/server/shipment-store"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 import { readUsers } from "../../lib/server/user-store"
 
@@ -21,7 +21,7 @@ export default async function DeveloperPage() {
     redirect("/login")
   }
 
-  const shipments = await listShipments()
+  const shipments = await listShipmentsWithEvents()
 
   return (
     <>
@@ -35,15 +35,10 @@ export default async function DeveloperPage() {
 
           <DeveloperDashboard
             users={await readUsers()}
-            shipments={await Promise.all(
-              shipments.map(async (shipment) => {
-                const tracking = await getShipmentTracking(shipment.trackingCode)
-                return {
-                  ...shipment,
-                  events: tracking?.events ?? [],
-                }
-              })
-            )}
+            shipments={shipments.map((tracking) => ({
+              ...tracking.shipment,
+              events: tracking.events,
+            }))}
           />
         </div>
       </main>

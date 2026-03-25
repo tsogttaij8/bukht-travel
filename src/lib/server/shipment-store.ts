@@ -77,6 +77,11 @@ function mapShipmentEvent(row: ShipmentEventRow): ShipmentEvent {
   }
 }
 
+export type ShipmentTracking = {
+  shipment: StoredShipment
+  events: ShipmentEvent[]
+}
+
 export async function listShipments(): Promise<StoredShipment[]> {
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin()
@@ -330,4 +335,15 @@ export async function getShipmentTracking(trackingCode: string): Promise<{ shipm
     shipment,
     events: await listShipmentEvents(shipment.id),
   }
+}
+
+export async function listShipmentsWithEvents(): Promise<ShipmentTracking[]> {
+  const shipments = await listShipments()
+
+  return Promise.all(
+    shipments.map(async (shipment) => ({
+      shipment,
+      events: await listShipmentEvents(shipment.id),
+    }))
+  )
 }

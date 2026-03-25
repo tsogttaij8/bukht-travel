@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server"
-import { appendShipmentEvent, createShipment, findShipmentByTrackingCode, getShipmentTracking, type ShipmentStatus } from "../../../../lib/server/shipment-store"
+import {
+  appendShipmentEvent,
+  createShipment,
+  findShipmentByTrackingCode,
+  getShipmentTracking,
+  listShipmentsWithEvents,
+  type ShipmentStatus,
+} from "../../../../lib/server/shipment-store"
 import { readSessionFromCookieHeader } from "../../../../lib/server/session"
 
 const validStatuses: ShipmentStatus[] = ["registered", "received", "in_transit", "arrived", "delivered"]
@@ -31,7 +38,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       : NextResponse.json({ message: "Shipment олдсонгүй" }, { status: 404 })
   }
 
-  return NextResponse.json({ message: "trackingCode query шаардлагатай" }, { status: 400 })
+  return NextResponse.json({ shipments: await listShipmentsWithEvents() }, { status: 200 })
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
