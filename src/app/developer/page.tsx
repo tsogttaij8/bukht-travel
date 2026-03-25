@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Footer from "../../components/Footer"
 import Navbar from "../../components/Navbar"
+import { listProducts } from "../../lib/server/product-store"
 import { listShipmentsWithEvents } from "../../lib/server/shipment-store"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 import { readUsers } from "../../lib/server/user-store"
@@ -22,6 +23,7 @@ export default async function DeveloperPage() {
   }
 
   const shipments = await listShipmentsWithEvents()
+  const products = await listProducts()
 
   return (
     <>
@@ -35,6 +37,7 @@ export default async function DeveloperPage() {
 
           <DeveloperDashboard
             users={await readUsers()}
+            products={products}
             shipments={shipments.map((tracking) => ({
               ...tracking.shipment,
               events: tracking.events,

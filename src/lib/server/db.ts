@@ -89,6 +89,22 @@ async function initSchema(db: PGlite): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS shipment_events_shipment_id_idx ON shipment_events (shipment_id);
+
+    CREATE TABLE IF NOT EXISTS products (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      price TEXT NOT NULL,
+      moq TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      lead_time TEXT NOT NULL,
+      badge TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS products_updated_at_idx ON products (updated_at);
   `)
 }
 
@@ -176,6 +192,67 @@ async function seedDemoShipment(db: PGlite): Promise<void> {
   )
 }
 
+async function seedDemoProducts(db: PGlite): Promise<void> {
+  const countResult = await db.query<{ count: number }>("SELECT COUNT(*)::int AS count FROM products")
+
+  if ((countResult.rows[0]?.count ?? 0) > 0) return
+
+  const now = new Date().toISOString()
+  const demoProducts = [
+    {
+      name: "Kitchen Storage Set",
+      category: "Гэр ахуй",
+      price: "29,900 - 69,900 MNT",
+      moq: "MOQ 12",
+      origin: "Guangzhou",
+      leadTime: "7-10 хоног",
+      badge: "Hot deal",
+      summary: "Гэр ахуйн дэлгүүрт шууд тавихад тохиромжтой, савлагаа цэвэрхэн storage багц.",
+    },
+    {
+      name: "Mini Beauty Device",
+      category: "Гоо сайхан",
+      price: "48,000 - 118,000 MNT",
+      moq: "MOQ 6",
+      origin: "Shenzhen",
+      leadTime: "5-8 хоног",
+      badge: "Trending",
+      summary: "Онлайн борлуулалтад тохиромжтой, жижиг овортой beauty gadget.",
+    },
+    {
+      name: "Streetwear Capsule",
+      category: "Хувцас",
+      price: "39,000 - 92,000 MNT",
+      moq: "MOQ 20",
+      origin: "Hangzhou",
+      leadTime: "8-12 хоног",
+      badge: "New arrival",
+      summary: "Залуу хэрэглэгчдэд чиглэсэн oversized загвартай capsule collection.",
+    },
+  ]
+
+  for (const product of demoProducts) {
+    await db.query(
+      `INSERT INTO products (
+        id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        randomUUID(),
+        product.name,
+        product.category,
+        product.price,
+        product.moq,
+        product.origin,
+        product.leadTime,
+        product.badge,
+        product.summary,
+        now,
+        now,
+      ]
+    )
+  }
+}
+
 async function createDb(): Promise<PGlite> {
   await mkdir(DB_DIR, { recursive: true })
 
@@ -185,6 +262,7 @@ async function createDb(): Promise<PGlite> {
   await seedLegacyUsers(db)
   await seedLegacyLoginCodes(db)
   await seedDemoShipment(db)
+  await seedDemoProducts(db)
 
   return db
 }

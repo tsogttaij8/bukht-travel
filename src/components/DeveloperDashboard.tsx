@@ -1,11 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import type { StoredProduct } from "../lib/server/product-store"
 import type { ShipmentEvent, ShipmentStatus, StoredShipment } from "../lib/server/shipment-store"
 import type { StoredUser } from "../lib/server/user-store"
 
 type DashboardProps = {
   users: StoredUser[]
+  products: StoredProduct[]
   shipments: Array<StoredShipment & { events: ShipmentEvent[] }>
 }
 
@@ -26,8 +28,9 @@ function labelForStatus(status: ShipmentStatus): string {
   }
 }
 
-export default function DeveloperDashboard({ users, shipments: initialShipments }: DashboardProps) {
+export default function DeveloperDashboard({ users, products: initialProducts, shipments: initialShipments }: DashboardProps) {
   const [shipments, setShipments] = useState(initialShipments)
+  const [products, setProducts] = useState(initialProducts)
   const [createForm, setCreateForm] = useState({
     trackingCode: "",
     customerName: "",
@@ -39,6 +42,18 @@ export default function DeveloperDashboard({ users, shipments: initialShipments 
   })
   const [createError, setCreateError] = useState("")
   const [createBusy, setCreateBusy] = useState(false)
+  const [productForm, setProductForm] = useState({
+    name: "",
+    category: "",
+    price: "",
+    moq: "",
+    origin: "Guangzhou",
+    leadTime: "7-10 хоног",
+    badge: "New",
+    summary: "",
+  })
+  const [productError, setProductError] = useState("")
+  const [productBusy, setProductBusy] = useState(false)
   const [updateState, setUpdateState] = useState<Record<string, { status: ShipmentStatus; details: string; location: string; busy: boolean; error: string }>>({})
 
   const totalDevelopers = useMemo(() => users.filter((user) => user.role === "developer").length, [users])
@@ -75,6 +90,41 @@ export default function DeveloperDashboard({ users, shipments: initialShipments 
       destination: "Ulaanbaatar",
       currentStatus: "registered",
       notes: "",
+    })
+  }
+
+  async function createProductEntry(): Promise<void> {
+    setProductBusy(true)
+    setProductError("")
+
+    const response = await fetch("/api/admin/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(productForm),
+    })
+
+    const body = (await response.json()) as {
+      product?: StoredProduct
+      message?: string
+    }
+
+    setProductBusy(false)
+
+    if (!response.ok || !body.product) {
+      setProductError(body.message ?? "Бараа нэмэхэд алдаа гарлаа")
+      return
+    }
+
+    setProducts((current) => [body.product!, ...current])
+    setProductForm({
+      name: "",
+      category: "",
+      price: "",
+      moq: "",
+      origin: "Guangzhou",
+      leadTime: "7-10 хоног",
+      badge: "New",
+      summary: "",
     })
   }
 
@@ -145,6 +195,28 @@ export default function DeveloperDashboard({ users, shipments: initialShipments 
           <h3>Shipment</h3>
           <p>{shipments.length} tracking бүртгэл</p>
         </article>
+        <article className="card" style={{ gridColumn: "span 4" }}>
+          <h3>Бараа</h3>
+          <p>{products.length} нийт бүтээгдэхүүн</p>
+        </article>
+      </section>
+
+      <section className="card">
+        <h3 style={{ marginBottom: 16 }}>Shop-д бараа нэмэх</h3>
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+          <input value={productForm.name} onChange={(event) => setProductForm((state) => ({ ...state, name: event.target.value }))} placeholder="Барааны нэр" className="admin-input" />
+          <input value={productForm.category} onChange={(event) => setProductForm((state) => ({ ...state, category: event.target.value }))} placeholder="Category" className="admin-input" />
+          <input value={productForm.price} onChange={(event) => setProductForm((state) => ({ ...state, price: event.target.value }))} placeholder="Үнэ" className="admin-input" />
+          <input value={productForm.moq} onChange={(event) => setProductForm((state) => ({ ...state, moq: event.target.value }))} placeholder="MOQ" className="admin-input" />
+          <input value={productForm.origin} onChange={(event) => setProductForm((state) => ({ ...state, origin: event.target.value }))} placeholder="Origin" className="admin-input" />
+          <input value={productForm.leadTime} onChange={(event) => setProductForm((state) => ({ ...state, leadTime: event.target.value }))} placeholder="Lead time" className="admin-input" />
+          <input value={productForm.badge} onChange={(event) => setProductForm((state) => ({ ...state, badge: event.target.value }))} placeholder="Badge" className="admin-input" />
+        </div>
+        <textarea value={productForm.summary} onChange={(event) => setProductForm((state) => ({ ...state, summary: event.target.value }))} placeholder="Товч тайлбар" className="admin-input" style={{ width: "100%", minHeight: 88, marginTop: 12, resize: "vertical" }} />
+        {productError ? <p style={{ margin: "12px 0 0", color: "#b42318", fontWeight: 700 }}>{productError}</p> : null}
+        <button className="btn btn-primary" type="button" style={{ marginTop: 12 }} onClick={createProductEntry} disabled={productBusy}>
+          {productBusy ? "Нэмж байна..." : "Бараа нэмэх"}
+        </button>
       </section>
 
       <section className="card">
@@ -179,6 +251,29 @@ export default function DeveloperDashboard({ users, shipments: initialShipments 
               <span>{user.email}</span>
               <span style={{ color: "#6b5b4c" }}>{user.role}</span>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <h3 style={{ marginBottom: 16 }}>Shop барааны жагсаалт</h3>
+        <div style={{ display: "grid", gap: 14 }}>
+          {products.map((product) => (
+            <article key={product.id} style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div>
+                  <strong>{product.name}</strong>
+                  <p style={{ margin: "6px 0 0" }}>
+                    {product.category} • {product.origin}
+                  </p>
+                </div>
+                <span style={{ fontWeight: 700, color: "#8a5a3c" }}>{product.badge}</span>
+              </div>
+              <p style={{ margin: "10px 0 0" }}>{product.summary}</p>
+              <p style={{ margin: "10px 0 0", color: "#6b5b4c" }}>
+                {product.price} • {product.moq} • {product.leadTime}
+              </p>
+            </article>
           ))}
         </div>
       </section>

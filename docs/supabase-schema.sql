@@ -40,3 +40,19 @@ create table if not exists public.shipment_events (
 );
 
 create index if not exists shipment_events_shipment_id_idx on public.shipment_events (shipment_id);
+
+create table if not exists public.products (
+  id text primary key,
+  name text not null,
+  category text not null,
+  price text not null,
+  moq text not null,
+  origin text not null,
+  lead_time text not null,
+  badge text not null default 'New',
+  summary text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists products_updated_at_idx on public.products (updated_at);

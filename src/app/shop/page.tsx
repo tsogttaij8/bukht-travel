@@ -1,36 +1,130 @@
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
+import { listProducts } from "../../lib/server/product-store"
 
-const products = [
-  { name: "China Travel eSIM", price: "19,900 - 89,900 MNT", moq: "1 багцаас" },
-  { name: "Гэр ахуйн бараа", price: "25,000 - 95,000 MNT", moq: "MOQ 10" },
-  { name: "Агуулахын хэрэгсэл", price: "18,000 - 140,000 MNT", moq: "MOQ 5" },
-  { name: "Цахилгаан хэрэгсэл", price: "40,000 - 280,000 MNT", moq: "MOQ 3" },
-  { name: "Хувцас, аксессуар", price: "12,000 - 80,000 MNT", moq: "MOQ 20" },
-  { name: "Гоо сайхны бараа", price: "9,000 - 65,000 MNT", moq: "MOQ 12" },
-  { name: "Auto дагалдах", price: "30,000 - 220,000 MNT", moq: "MOQ 4" },
+export const dynamic = "force-dynamic"
+
+const categoryHighlights = ["Гэр ахуй", "Гоо сайхан", "Хувцас", "Электроник"]
+
+const serviceSteps = [
+  { title: "Бараа сонгох", text: "Шүүлтүүр нэмэхэд бэлэн каталогоос үнэ, MOQ, ангиллаа харж сонгоно." },
+  { title: "Нийлүүлэлт баталгаажуулах", text: "Dashboard-оос шинэ бараа нэмж санал болгох урсгалтай." },
+  { title: "Карготой холбох", text: "Сонгосон бараагаа цааш shipment flow-той уяж өргөжүүлж болно." },
 ]
 
-export default function ShopPage(){
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("")
+}
+
+export default async function ShopPage(){
+  const products = await listProducts()
+
   return(
     <>
       <Navbar/>
-      <main className="section">
+      <main className="section shop-page">
         <div className="container">
-          <h1 className="section-title">Худалдаа (Commerce)</h1>
-          <p className="section-subtitle" style={{marginBottom:24}}>
-            Хятадаас бөөний бараа татан авах үйл явцыг хялбарчилсан marketplace. Үнэ, MOQ, хүргэлтийн шат ойлгомжтой.
-          </p>
+          <section className="shop-hero">
+            <div className="shop-hero-copy">
+              <span className="shop-eyebrow">Marketplace Commerce</span>
+              <h1 className="section-title" style={{ marginBottom: 16 }}>Цэвэрхэн, илүү худалдааны мэдрэмжтэй shop</h1>
+              <p className="section-subtitle" style={{ marginBottom: 24 }}>
+                Shoppyhub төрлийн marketplace vibe-тай, бараа үзүүлэлт нь нэг дор харагддаг, admin талаасаа шинэ бараа нэмэхэд бэлэн бүтэц.
+              </p>
+              <div className="shop-chip-row">
+                {categoryHighlights.map((item) => (
+                  <span key={item} className="shop-chip">{item}</span>
+                ))}
+              </div>
+            </div>
 
-          <div className="card-grid">
-            {products.map((item) => (
-              <article key={item.name} className="card" style={{gridColumn:"span 4"}}>
-                <h3>{item.name}</h3>
-                <p style={{marginBottom:8}}>Үнэ: {item.price}</p>
-                <p>{item.moq}</p>
-              </article>
-            ))}
-          </div>
+            <div className="shop-hero-panel">
+              <div className="shop-stat-card">
+                <strong>{products.length}</strong>
+                <span>Идэвхтэй бараа</span>
+              </div>
+              <div className="shop-stat-card">
+                <strong>MOQ</strong>
+                <span>Бөөний болон reseller худалдан авалтад чиглэсэн</span>
+              </div>
+              <div className="shop-stat-card">
+                <strong>Admin</strong>
+                <span>Dashboard-оос бараа шууд нэмэх боломжтой</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="shop-section-block">
+            <div className="shop-section-head">
+              <div>
+                <h2 className="section-title" style={{ marginBottom: 10 }}>Онцлох бараанууд</h2>
+                <p className="section-subtitle">Shop хэсгийн картууд одоо өгөгдлөөс уншигдаж байгаа тул шинэ бараа нэмэхэд шууд энд харагдана.</p>
+              </div>
+              <div className="shop-muted-box">Бараа нэмэх хэсэг: `/developer`</div>
+            </div>
+
+            <div className="shop-product-grid">
+              {products.map((item) => (
+                <article key={item.id} className="shop-product-card">
+                  <div className="shop-product-cover">
+                    <span>{initials(item.name)}</span>
+                  </div>
+                  <div className="shop-product-topline">
+                    <span className="shop-product-category">{item.category}</span>
+                    <span className="shop-product-badge">{item.badge}</span>
+                  </div>
+                  <h3>{item.name}</h3>
+                  <p>{item.summary}</p>
+                  <div className="shop-product-meta">
+                    <strong>{item.price}</strong>
+                    <span>{item.moq}</span>
+                    <span>{item.origin}</span>
+                    <span>{item.leadTime}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="shop-bottom-grid">
+            <article className="shop-info-panel">
+              <h2 className="section-title" style={{ marginBottom: 12 }}>Яаж ажиллах вэ</h2>
+              <div className="shop-steps">
+                {serviceSteps.map((step, index) => (
+                  <div key={step.title} className="shop-step">
+                    <span>{index + 1}</span>
+                    <div>
+                      <strong>{step.title}</strong>
+                      <p>{step.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="shop-info-panel shop-info-panel-warm">
+              <h2 className="section-title" style={{ marginBottom: 12 }}>Яагаад илүү дээр болсон бэ</h2>
+              <div className="shop-benefits">
+                <div>
+                  <strong>Clean listing</strong>
+                  <p>Үнэ, MOQ, гарал үүсэл, хүрэх хугацаа нэг дор харагдана.</p>
+                </div>
+                <div>
+                  <strong>Easy admin flow</strong>
+                  <p>Developer dashboard-оос шууд бараа нэмэхээр код өөрчлөх шаардлагагүй боллоо.</p>
+                </div>
+                <div>
+                  <strong>Scale-ready</strong>
+                  <p>Дараагийн алхамд зураг, filter, search, supplier detail нэмэхэд бэлэн суурьтай.</p>
+                </div>
+              </div>
+            </article>
+          </section>
         </div>
       </main>
       <Footer/>
