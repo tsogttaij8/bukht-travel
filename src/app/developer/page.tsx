@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Footer from "../../components/Footer"
 import Navbar from "../../components/Navbar"
-import { listProducts } from "../../lib/server/product-store"
+import { listProducts, type StoredProduct } from "../../lib/server/product-store"
 import { listShipmentsWithEvents } from "../../lib/server/shipment-store"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 import { readUsers } from "../../lib/server/user-store"
@@ -23,7 +23,15 @@ export default async function DeveloperPage() {
   }
 
   const shipments = await listShipmentsWithEvents()
-  const products = await listProducts()
+  let products: StoredProduct[] = []
+  let productLoadError = ""
+
+  try {
+    products = await listProducts()
+  } catch (error) {
+    productLoadError = error instanceof Error ? error.message : "Барааны мэдээлэл уншихад алдаа гарлаа."
+    console.error("Failed to load developer products", error)
+  }
 
   return (
     <>
@@ -34,6 +42,11 @@ export default async function DeveloperPage() {
           <p className="section-subtitle" style={{ marginBottom: 24 }}>
             Сайн байна уу, {session.name}. Та хөгжүүлэгчийн эрхээр амжилттай нэвтэрлээ.
           </p>
+          {productLoadError ? (
+            <p className="section-subtitle" style={{ marginBottom: 24, color: "#b42318" }}>
+              {productLoadError}
+            </p>
+          ) : null}
 
           <DeveloperDashboard
             users={await readUsers()}

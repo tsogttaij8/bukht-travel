@@ -459,6 +459,720 @@ a {
   line-height: 1.6;
 }
 
+.travel-page {
+  padding-top: 52px;
+}
+
+.travel-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.95fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 30px;
+}
+
+.travel-hero-copy,
+.travel-hero-visual,
+.travel-city-card,
+.travel-info-card {
+  border: 1px solid rgba(229, 221, 207, 0.7);
+  box-shadow: var(--glass-shadow);
+}
+
+.travel-hero-copy {
+  padding: 34px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.82), transparent 38%),
+    linear-gradient(135deg, rgba(255, 250, 244, 0.96), rgba(241, 230, 212, 0.92));
+}
+
+.travel-eyebrow {
+  display: inline-flex;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--brown);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.travel-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.travel-pill {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(216, 185, 138, 0.48);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.travel-hero-visual {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, rgba(28, 31, 39, 0.94), rgba(57, 37, 26, 0.9));
+  color: var(--white);
+}
+
+.travel-hero-photo {
+  position: relative;
+  min-height: 270px;
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 241, 211, 0.95), rgba(255, 241, 211, 0.15) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(29, 70, 130, 0.9), rgba(248, 160, 101, 0.38) 58%, rgba(29, 29, 29, 0.92) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 40%);
+}
+
+.travel-hero-photo::before,
+.travel-hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background:
+    linear-gradient(90deg,
+      rgba(19, 19, 19, 0.98) 0 8%,
+      transparent 8% 12%,
+      rgba(19, 19, 19, 0.96) 12% 18%,
+      transparent 18% 24%,
+      rgba(19, 19, 19, 0.95) 24% 33%,
+      transparent 33% 38%,
+      rgba(19, 19, 19, 0.94) 38% 46%,
+      transparent 46% 52%,
+      rgba(19, 19, 19, 0.96) 52% 63%,
+      transparent 63% 69%,
+      rgba(19, 19, 19, 0.93) 69% 76%,
+      transparent 76% 81%,
+      rgba(19, 19, 19, 0.98) 81% 100%);
+}
+
+.travel-hero-photo::after {
+  inset: auto 0 18% 0;
+  height: 16%;
+  opacity: 0.5;
+  filter: blur(18px);
+}
+
+.travel-hero-stamp {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.travel-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.travel-metric-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.travel-metric-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.5rem;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.travel-metric-card span {
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.travel-section-block {
+  margin-bottom: 30px;
+}
+
+.travel-section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.travel-muted-box {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(255, 252, 247, 0.72);
+  border: 1px solid rgba(216, 185, 138, 0.4);
+  color: #6b5b4c;
+  font-weight: 600;
+}
+
+.travel-city-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.travel-city-card {
+  overflow: hidden;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.94), rgba(255, 248, 240, 0.76));
+}
+
+.travel-city-visual {
+  min-height: 210px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 18px;
+}
+
+.travel-city-visual::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background:
+    linear-gradient(90deg,
+      rgba(18, 18, 18, 0.96) 0 10%,
+      transparent 10% 13%,
+      rgba(18, 18, 18, 0.96) 13% 19%,
+      transparent 19% 24%,
+      rgba(18, 18, 18, 0.95) 24% 31%,
+      transparent 31% 36%,
+      rgba(18, 18, 18, 0.95) 36% 45%,
+      transparent 45% 50%,
+      rgba(18, 18, 18, 0.97) 50% 60%,
+      transparent 60% 65%,
+      rgba(18, 18, 18, 0.95) 65% 72%,
+      transparent 72% 78%,
+      rgba(18, 18, 18, 0.96) 78% 100%);
+}
+
+.travel-city-visual span {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.travel-city-visual-guangzhou {
+  background:
+    radial-gradient(circle at 74% 18%, rgba(255, 241, 205, 0.95), rgba(255, 241, 205, 0.12) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(31, 78, 145, 0.94), rgba(241, 170, 109, 0.45) 62%, rgba(22, 22, 22, 0.92) 100%);
+}
+
+.travel-city-visual-yiwu {
+  background:
+    radial-gradient(circle at 24% 16%, rgba(255, 247, 217, 0.95), rgba(255, 247, 217, 0.12) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(67, 112, 164, 0.92), rgba(237, 196, 126, 0.44) 58%, rgba(27, 27, 27, 0.94) 100%);
+}
+
+.travel-city-visual-shenzhen {
+  background:
+    radial-gradient(circle at 72% 18%, rgba(226, 248, 255, 0.94), rgba(226, 248, 255, 0.14) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(20, 109, 139, 0.96), rgba(94, 199, 209, 0.34) 54%, rgba(21, 21, 21, 0.95) 100%);
+}
+
+.travel-city-copy {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.travel-city-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.travel-city-topline h3 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.travel-city-topline span {
+  display: inline-flex;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(216, 185, 138, 0.18);
+  color: var(--brown);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.travel-city-copy p,
+.travel-benefit-list p,
+.travel-step-item p {
+  margin: 0;
+  color: #58514a;
+  line-height: 1.6;
+}
+
+.travel-city-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.travel-city-tags span {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(216, 185, 138, 0.3);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.travel-split-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.travel-info-card {
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.9), rgba(255, 247, 237, 0.78));
+}
+
+.travel-info-card-accent {
+  background: linear-gradient(180deg, rgba(240, 232, 221, 0.94), rgba(232, 220, 204, 0.82));
+}
+
+.travel-step-list,
+.travel-benefit-list {
+  display: grid;
+  gap: 14px;
+}
+
+.travel-step-item {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.travel-step-item span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(138, 90, 60, 0.12);
+  color: var(--brown);
+  font-weight: 800;
+}
+
+.travel-step-item strong,
+.travel-benefit-list strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.cargo-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+  gap: 20px;
+  align-items: stretch;
+  margin-bottom: 22px;
+}
+
+.cargo-hero-copy,
+.cargo-price-card,
+.cargo-step-card,
+.cargo-tracker-shell {
+  border-radius: 28px;
+  border: 1px solid rgba(143, 183, 196, 0.3);
+  box-shadow: 0 24px 64px rgba(18, 64, 84, 0.08);
+}
+
+.cargo-hero-copy {
+  padding: 34px;
+  background:
+    radial-gradient(circle at top left, rgba(214, 245, 255, 0.92), transparent 34%),
+    linear-gradient(180deg, rgba(246, 252, 255, 0.98), rgba(233, 246, 250, 0.9));
+}
+
+.cargo-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  margin-bottom: 18px;
+  background: rgba(17, 126, 156, 0.08);
+  color: #0d6b86;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cargo-highlight-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.cargo-highlight-list span {
+  display: inline-flex;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(141, 196, 214, 0.34);
+  font-weight: 700;
+  color: #1e4f61;
+}
+
+.cargo-price-card {
+  padding: 30px;
+  color: #fff;
+  background:
+    radial-gradient(circle at top right, rgba(175, 240, 255, 0.26), transparent 28%),
+    linear-gradient(160deg, rgba(14, 47, 63, 0.98), rgba(23, 111, 133, 0.92));
+}
+
+.cargo-price-label {
+  margin: 0 0 12px;
+  color: rgba(227, 246, 250, 0.78);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cargo-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cargo-price-row strong {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2.3rem, 5vw, 3.7rem);
+  line-height: 0.96;
+}
+
+.cargo-price-row span {
+  color: rgba(239, 251, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cargo-price-note {
+  margin: 0;
+  color: rgba(239, 251, 255, 0.82);
+  line-height: 1.65;
+}
+
+.cargo-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cargo-metrics div {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cargo-metrics strong,
+.cargo-metrics span,
+.cargo-step-card span,
+.cargo-step-card h3 {
+  display: block;
+}
+
+.cargo-metrics strong {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.cargo-metrics span {
+  color: rgba(227, 246, 250, 0.76);
+}
+
+.cargo-step-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.cargo-step-card {
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 250, 252, 0.84));
+}
+
+.cargo-step-card span {
+  color: #0d6b86;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.cargo-step-card h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.cargo-step-card p {
+  margin: 0;
+  color: #56707a;
+  line-height: 1.65;
+}
+
+.cargo-tracker-shell {
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(246, 252, 255, 0.94), rgba(233, 246, 250, 0.82));
+}
+
+.cargo-tracker-shell .card {
+  max-width: none !important;
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+.esim-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.esim-hero-copy,
+.esim-hero-panel,
+.esim-plan-card,
+.esim-flow-card,
+.esim-payment-card {
+  border-radius: 28px;
+  border: 1px solid rgba(143, 183, 196, 0.3);
+  box-shadow: 0 24px 64px rgba(18, 64, 84, 0.08);
+}
+
+.esim-hero-copy {
+  padding: 34px;
+  background:
+    radial-gradient(circle at top left, rgba(214, 245, 255, 0.92), transparent 34%),
+    linear-gradient(180deg, rgba(246, 252, 255, 0.98), rgba(233, 246, 250, 0.9));
+}
+
+.esim-eyebrow {
+  display: inline-flex;
+  padding: 9px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(17, 126, 156, 0.08);
+  color: #0d6b86;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.esim-perk-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.esim-perk-list span {
+  display: inline-flex;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(141, 196, 214, 0.34);
+  color: #1e4f61;
+  font-weight: 700;
+}
+
+.esim-hero-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(175, 240, 255, 0.26), transparent 28%),
+    linear-gradient(160deg, rgba(14, 47, 63, 0.98), rgba(23, 111, 133, 0.92));
+  color: #fff;
+}
+
+.esim-signal-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.esim-signal-card p,
+.esim-hero-chip,
+.esim-plan-card p,
+.esim-step-item p {
+  margin: 0;
+}
+
+.esim-signal-card p {
+  color: rgba(227, 246, 250, 0.78);
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.esim-signal-card strong {
+  font-size: 1.4rem;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.esim-hero-chip {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(239, 251, 255, 0.94);
+  font-weight: 700;
+}
+
+.esim-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.esim-plan-card {
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 250, 252, 0.84));
+}
+
+.esim-plan-badge {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+  background: rgba(17, 126, 156, 0.09);
+  color: #0d6b86;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.esim-plan-card h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.esim-plan-price {
+  margin-bottom: 10px;
+  color: #113c4f;
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.esim-plan-card p {
+  color: #56707a;
+  line-height: 1.65;
+}
+
+.esim-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+}
+
+.esim-flow-card,
+.esim-payment-card {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.esim-flow-card h3,
+.esim-payment-card h3 {
+  margin-top: 0;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.esim-step-list {
+  display: grid;
+  gap: 12px;
+}
+
+.esim-step-item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.esim-step-item span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: rgba(17, 126, 156, 0.1);
+  color: #0d6b86;
+  font-weight: 800;
+}
+
+.esim-step-item p {
+  color: #47616c;
+  line-height: 1.55;
+}
+
+.esim-payment-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 18px;
+  align-items: center;
+}
+
+.esim-qr-shell {
+  display: flex;
+  justify-content: center;
+  padding: 18px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(213, 243, 251, 0.86), transparent 40%),
+    linear-gradient(180deg, rgba(239, 249, 252, 0.96), rgba(228, 242, 247, 0.86));
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -484,14 +1198,27 @@ a {
   }
 
   .shop-hero,
+  .travel-hero,
   .shop-bottom-grid,
-  .shop-product-grid {
+  .shop-product-grid,
+  .travel-city-grid,
+  .travel-split-grid,
+  .cargo-hero,
+  .cargo-step-grid,
+  .esim-hero,
+  .esim-plan-grid,
+  .esim-bottom-grid {
     grid-template-columns: 1fr;
   }
 
-  .shop-section-head {
+  .shop-section-head,
+  .travel-section-head {
     align-items: start;
     flex-direction: column;
+  }
+
+  .travel-hero-metrics {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -535,12 +1262,44 @@ a {
 
   .shop-hero-copy,
   .shop-hero-panel,
-  .shop-info-panel {
+  .shop-info-panel,
+  .travel-hero-copy,
+  .travel-hero-visual,
+  .travel-info-card,
+  .cargo-hero-copy,
+  .cargo-price-card,
+  .cargo-step-card,
+  .cargo-tracker-shell,
+  .esim-hero-copy,
+  .esim-hero-panel,
+  .esim-plan-card,
+  .esim-flow-card,
+  .esim-payment-card {
     padding: 20px;
     border-radius: 22px;
   }
 
-  .shop-product-card {
+  .shop-product-card,
+  .travel-city-card {
     border-radius: 20px;
+  }
+
+  .travel-hero-photo,
+  .travel-city-visual {
+    min-height: 190px;
+  }
+
+  .cargo-price-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cargo-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .esim-hero-panel,
+  .esim-payment-card {
+    grid-template-columns: 1fr;
   }
 }

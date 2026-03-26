@@ -16,7 +16,12 @@ export async function GET(request: Request): Promise<NextResponse> {
   const denied = ensureDeveloper(request)
   if (denied) return denied
 
-  return NextResponse.json({ products: await listProducts() }, { status: 200 })
+  try {
+    return NextResponse.json({ products: await listProducts() }, { status: 200 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Барааны жагсаалт уншихад алдаа гарлаа"
+    return NextResponse.json({ message }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -46,16 +51,21 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ message: "Шаардлагатай талбарууд дутуу байна" }, { status: 400 })
   }
 
-  const product = await createProduct({
-    name,
-    category,
-    price,
-    moq,
-    origin,
-    leadTime,
-    badge: body.badge?.trim(),
-    summary,
-  })
+  try {
+    const product = await createProduct({
+      name,
+      category,
+      price,
+      moq,
+      origin,
+      leadTime,
+      badge: body.badge?.trim(),
+      summary,
+    })
 
-  return NextResponse.json({ product }, { status: 201 })
+    return NextResponse.json({ product }, { status: 201 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Бараа нэмэхэд алдаа гарлаа"
+    return NextResponse.json({ message }, { status: 500 })
+  }
 }

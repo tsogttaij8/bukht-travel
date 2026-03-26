@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { generateLoginCode, saveLoginCode } from "../../../../lib/server/login-code-store"
 import { sendLoginCodeEmail } from "../../../../lib/server/mailer"
+import { ensureUserProfile } from "../../../../lib/server/customer-store"
 import { findUserByEmail, isAdminEmail, upsertUserByEmail } from "../../../../lib/server/user-store"
 
 type SendCodeBody = {
@@ -37,19 +38,24 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({ message: "Энэ имэйл бүртгэлтэй байна. Нэвтрэхийг сонгоно уу." }, { status: 409 })
     }
 
-    await upsertUserByEmail({ email, name })
+    const user = await upsertUserByEmail({ email, name })
+    await ensureUserProfile(user)
   } else {
     const existing = await findUserByEmail(email)
 
     if (!existing) {
       if (isAdminEmail(email)) {
         // Admin email is auto-provisioned as developer account.
-        await upsertUserByEmail({ email })
+        const user = await upsertUserByEmail({ email })
+        await ensureUserProfile(user)
       } else {
         return NextResponse.json({ message: "Эхлээд бүртгүүлнэ үү" }, { status: 404 })
       }
     } else if (isAdminEmail(email)) {
-      await upsertUserByEmail({ email, name: existing.name })
+      const user = await upsertUserByEmail({ email, name: existing.name })
+      await ensureUserProfile(user)
+    } else {
+      await ensureUserProfile(existing)
     }
   }
 

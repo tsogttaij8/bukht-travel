@@ -30,6 +30,49 @@ type ProductRow = {
   updated_at: string
 }
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  if (error && typeof error === "object") {
+    const maybeError = error as {
+      message?: unknown
+      details?: unknown
+      hint?: unknown
+      code?: unknown
+    }
+
+    const parts = [
+      typeof maybeError.message === "string" ? maybeError.message : "",
+      typeof maybeError.details === "string" ? maybeError.details : "",
+      typeof maybeError.hint === "string" ? maybeError.hint : "",
+      typeof maybeError.code === "string" ? `code: ${maybeError.code}` : "",
+    ].filter(Boolean)
+
+    if (parts.length > 0) return parts.join(" | ")
+  }
+  return "Unknown error"
+}
+
+function mapProductStoreError(error: unknown): Error {
+  const message = toErrorMessage(error)
+
+  if (
+    message.includes(`relation "products" does not exist`) ||
+    message.includes(`Could not find the table 'public.products'`)
+  ) {
+    return new Error("Supabase deer `products` husnegt alga baina. `docs/supabase-schema.sql`-iin schema-g ajilluulna uu.")
+  }
+
+  if (
+    message.includes(`column products.lead_time does not exist`) ||
+    message.includes(`Could not find the 'lead_time' column of 'products'`)
+  ) {
+    return new Error("Supabase deer `products.lead_time` bagana dutuu baina. `docs/supabase-schema.sql` schema shinechleh heregtei.")
+  }
+
+  return error instanceof Error ? error : new Error(message)
+}
+
 function mapProduct(row: ProductRow): StoredProduct {
   return {
     id: row.id,
@@ -54,7 +97,7 @@ export async function listProducts(): Promise<StoredProduct[]> {
       .select("id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at")
       .order("updated_at", { ascending: false })
 
-    if (error) throw error
+    if (error) throw mapProductStoreError(error)
     return (data ?? []).map((product) => mapProduct(product as ProductRow))
   }
 
@@ -110,7 +153,7 @@ export async function createProduct(input: {
       updated_at: payload.updatedAt,
     })
 
-    if (error) throw error
+    if (error) throw mapProductStoreError(error)
 
     return {
       id: payload.id,

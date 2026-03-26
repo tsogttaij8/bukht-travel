@@ -1,6 +1,6 @@
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
-import { listProducts } from "../../lib/server/product-store"
+import { listProducts, type StoredProduct } from "../../lib/server/product-store"
 
 export const dynamic = "force-dynamic"
 
@@ -22,7 +22,15 @@ function initials(name: string): string {
 }
 
 export default async function ShopPage(){
-  const products = await listProducts()
+  let products: StoredProduct[] = []
+  let loadError = ""
+
+  try {
+    products = await listProducts()
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Барааны мэдээлэл уншихад алдаа гарлаа."
+    console.error("Failed to load shop products", error)
+  }
 
   return(
     <>
@@ -64,6 +72,7 @@ export default async function ShopPage(){
               <div>
                 <h2 className="section-title" style={{ marginBottom: 10 }}>Онцлох бараанууд</h2>
                 <p className="section-subtitle">Shop хэсгийн картууд одоо өгөгдлөөс уншигдаж байгаа тул шинэ бараа нэмэхэд шууд энд харагдана.</p>
+                {loadError ? <p className="section-subtitle" style={{ marginTop: 10, color: "#b42318" }}>{loadError}</p> : null}
               </div>
               <div className="shop-muted-box">Бараа нэмэх хэсэг: `/developer`</div>
             </div>
