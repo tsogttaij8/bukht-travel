@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
 export default function DeveloperLoginRedirect(){
-  redirect("/login")
+  redirect("/login?next=/developer")
 }

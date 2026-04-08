@@ -4,6 +4,7 @@ import {
   createShipment,
   findShipmentByTrackingCode,
   getShipmentTracking,
+  listShipments,
   listShipmentsWithEvents,
   type ShipmentStatus,
 } from "../../../../lib/server/shipment-store"
@@ -29,7 +30,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   const denied = ensureDeveloper(request)
   if (denied) return denied
 
-  const trackingCode = new URL(request.url).searchParams.get("trackingCode")?.trim()
+  const searchParams = new URL(request.url).searchParams
+  const trackingCode = searchParams.get("trackingCode")?.trim()
+  const includeEvents = searchParams.get("includeEvents") === "true"
 
   if (trackingCode) {
     const tracking = await getShipmentTracking(trackingCode)
@@ -38,7 +41,11 @@ export async function GET(request: Request): Promise<NextResponse> {
       : NextResponse.json({ message: "Shipment олдсонгүй" }, { status: 404 })
   }
 
-  return NextResponse.json({ shipments: await listShipmentsWithEvents() }, { status: 200 })
+  if (includeEvents) {
+    return NextResponse.json({ shipments: await listShipmentsWithEvents() }, { status: 200 })
+  }
+
+  return NextResponse.json({ shipments: await listShipments() }, { status: 200 })
 }
 
 export async function POST(request: Request): Promise<NextResponse> {

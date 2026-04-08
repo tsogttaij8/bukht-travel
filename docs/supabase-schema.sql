@@ -13,6 +13,70 @@ create table if not exists public.login_codes (
 );
 
 create index if not exists login_codes_email_idx on public.login_codes (email);
+create unique index if not exists login_codes_email_unique_idx on public.login_codes (email);
+
+create table if not exists public.rate_limits (
+  key text primary key,
+  count integer not null,
+  reset_at bigint not null
+);
+
+create index if not exists rate_limits_reset_at_idx on public.rate_limits (reset_at);
+
+create or replace function public.consume_rate_limit(
+  input_key text,
+  input_limit integer,
+  input_window_ms bigint,
+  input_now bigint default ((extract(epoch from now()) * 1000)::bigint)
+)
+returns table (allowed boolean, remaining integer, retry_after_ms bigint)
+language sql
+as $$
+  delete from public.rate_limits where reset_at <= input_now;
+
+  with existing as (
+    select key, count, reset_at
+    from public.rate_limits
+    where key = input_key
+  ),
+  upserted as (
+    insert into public.rate_limits as rl (key, count, reset_at)
+    values (input_key, 1, input_now + input_window_ms)
+    on conflict (key) do update
+    set
+      count = case
+        when rl.reset_at <= input_now then 1
+        when rl.count < input_limit then rl.count + 1
+        else rl.count
+      end,
+      reset_at = case
+        when rl.reset_at <= input_now then input_now + input_window_ms
+        else rl.reset_at
+      end
+    returning count, reset_at
+  )
+  select
+    case
+      when existing.key is null then true
+      when existing.reset_at <= input_now then true
+      when existing.count < input_limit then true
+      else false
+    end as allowed,
+    case
+      when existing.key is null then greatest(input_limit - upserted.count, 0)
+      when existing.reset_at <= input_now then greatest(input_limit - upserted.count, 0)
+      when existing.count < input_limit then greatest(input_limit - upserted.count, 0)
+      else 0
+    end as remaining,
+    case
+      when existing.key is null then 0
+      when existing.reset_at <= input_now then 0
+      when existing.count < input_limit then 0
+      else greatest(upserted.reset_at - input_now, 0)
+    end as retry_after_ms
+  from upserted
+  left join existing on true;
+$$;
 
 create table if not exists public.shipments (
   id text primary key,

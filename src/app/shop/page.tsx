@@ -1,6 +1,9 @@
+import { cookies } from "next/headers"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
+import Link from "next/link"
 import { listProducts, type StoredProduct } from "../../lib/server/product-store"
+import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 
 export const dynamic = "force-dynamic"
 
@@ -22,6 +25,10 @@ function initials(name: string): string {
 }
 
 export default async function ShopPage(){
+  const cookieStore = await cookies()
+  const token = cookieStore.get(sessionConfig.name)?.value
+  const session = token ? verifySessionToken(token) : null
+
   let products: StoredProduct[] = []
   let loadError = ""
 
@@ -36,13 +43,14 @@ export default async function ShopPage(){
     <>
       <Navbar/>
       <main className="section shop-page">
-        <div className="container">
+        <div className="container shop-page-shell">
           <section className="shop-hero">
             <div className="shop-hero-copy">
+              <span className="section-kicker">Marketplace</span>
               <span className="shop-eyebrow">Marketplace Commerce</span>
               <h1 className="section-title" style={{ marginBottom: 16 }}>Цэвэрхэн, илүү худалдааны мэдрэмжтэй shop</h1>
               <p className="section-subtitle" style={{ marginBottom: 24 }}>
-                Shoppyhub төрлийн marketplace vibe-тай, бараа үзүүлэлт нь нэг дор харагддаг, admin талаасаа шинэ бараа нэмэхэд бэлэн бүтэц.
+                Marketplace төрлийн цэгцтэй худалдааны хэсэг. Барааны гол үзүүлэлтүүд нэг дор харагдаж, хүн бүр эхлээд чөлөөтэй үзэж танилцаад, хүсэлт өгөх үедээ л account-аараа үргэлжлүүлнэ.
               </p>
               <div className="shop-chip-row">
                 {categoryHighlights.map((item) => (
@@ -61,17 +69,21 @@ export default async function ShopPage(){
                 <span>Бөөний болон reseller худалдан авалтад чиглэсэн</span>
               </div>
               <div className="shop-stat-card">
-                <strong>Admin</strong>
-                <span>Dashboard-оос бараа шууд нэмэх боломжтой</span>
+                <strong>Удирдлага</strong>
+                <span>Хөгжүүлэгчийн хэсгээс бараа шууд нэмэх боломжтой</span>
               </div>
             </div>
           </section>
 
-          <section className="shop-section-block">
+          <section className="shop-section-block shop-section-shell">
             <div className="shop-section-head">
               <div>
+                <span className="section-kicker">Catalog</span>
                 <h2 className="section-title" style={{ marginBottom: 10 }}>Онцлох бараанууд</h2>
                 <p className="section-subtitle">Shop хэсгийн картууд одоо өгөгдлөөс уншигдаж байгаа тул шинэ бараа нэмэхэд шууд энд харагдана.</p>
+                <p className="section-subtitle" style={{ marginTop: 10 }}>
+                  Сонирхсон бараагаа сонгоод дараагийн алхам руу ороход л нэвтрэх шаардлагатай. Хүсэлт, sourcing flow нь хэрэглэгчийн өөрийн account дээр хадгалагдана.
+                </p>
                 {loadError ? <p className="section-subtitle" style={{ marginTop: 10, color: "#b42318" }}>{loadError}</p> : null}
               </div>
               <div className="shop-muted-box">Бараа нэмэх хэсэг: `/developer`</div>
@@ -95,13 +107,37 @@ export default async function ShopPage(){
                     <span>{item.origin}</span>
                     <span>{item.leadTime}</span>
                   </div>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                    {(() => {
+                      const accountPath = `/account?service=product_sourcing&title=${encodeURIComponent(item.name)}`
+                      const requestPath = session ? accountPath : `/login?next=${encodeURIComponent(accountPath)}`
+
+                      return (
+                        <Link
+                          href={requestPath}
+                          className="btn btn-primary"
+                          style={{ padding: "10px 14px", fontSize: "0.92rem" }}
+                        >
+                          {session ? "Хүсэлт өгөх" : "Сонгоод нэвтрэх"}
+                        </Link>
+                      )
+                    })()}
+                    <Link
+                      href={`/cargo`}
+                      className="btn btn-secondary"
+                      style={{ padding: "10px 14px", fontSize: "0.92rem" }}
+                    >
+                      Карготой холбох
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>
           </section>
 
-          <section className="shop-bottom-grid">
+          <section className="shop-bottom-grid shop-section-shell">
             <article className="shop-info-panel">
+              <span className="section-kicker">Flow</span>
               <h2 className="section-title" style={{ marginBottom: 12 }}>Яаж ажиллах вэ</h2>
               <div className="shop-steps">
                 {serviceSteps.map((step, index) => (
@@ -117,6 +153,7 @@ export default async function ShopPage(){
             </article>
 
             <article className="shop-info-panel shop-info-panel-warm">
+              <span className="section-kicker">Benefits</span>
               <h2 className="section-title" style={{ marginBottom: 12 }}>Яагаад илүү дээр болсон бэ</h2>
               <div className="shop-benefits">
                 <div>

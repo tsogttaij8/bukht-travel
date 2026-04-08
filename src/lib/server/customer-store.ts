@@ -57,6 +57,35 @@ type ServiceRequestRow = {
   updated_at: string
 }
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  if (error && typeof error === "object") {
+    const maybeError = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
+    const parts = [
+      typeof maybeError.message === "string" ? maybeError.message : "",
+      typeof maybeError.details === "string" ? maybeError.details : "",
+      typeof maybeError.hint === "string" ? maybeError.hint : "",
+      typeof maybeError.code === "string" ? `code: ${maybeError.code}` : "",
+    ].filter(Boolean)
+    if (parts.length > 0) return parts.join(" | ")
+  }
+  return "Unknown error"
+}
+
+function shouldFallbackToLocalDb(error: unknown): boolean {
+  const message = toErrorMessage(error).toLowerCase()
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("getaddrinfo enotfound") ||
+    message.includes("enotfound") ||
+    message.includes("econnrefused") ||
+    message.includes("network") ||
+    message.includes("dns")
+  )
+}
+
 function normalizeCustomerTypes(input: unknown): CustomerType[] {
   const validTypes: CustomerType[] = ["traveler", "merchant", "cargo_customer", "esim_customer"]
 
@@ -106,38 +135,50 @@ function mapServiceRequest(row: ServiceRequestRow): StoredServiceRequest {
 }
 
 export async function ensureUserProfile(user: StoredUser): Promise<StoredUserProfile> {
-  const existing = await findUserProfileByEmail(user.email)
-  if (existing) return existing
-
   const now = new Date().toISOString()
 
   if (isSupabaseEnabled()) {
-    const supabase = getSupabaseAdmin()
-    const { error } = await supabase.from("user_profiles").insert({
-      user_id: user.id,
-      email: user.email,
-      phone: "",
-      company_name: "",
-      telegram_handle: "",
-      customer_types: [],
-      notes: "",
-      created_at: now,
-      updated_at: now,
-    })
+    try {
+      const supabase = getSupabaseAdmin()
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .insert({
+          user_id: user.id,
+          email: user.email,
+          phone: "",
+          company_name: "",
+          telegram_handle: "",
+          customer_types: [],
+          notes: "",
+          created_at: now,
+          updated_at: now,
+        })
+        .select("user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at")
+        .single()
 
-    if (error) throw error
+      if (!error && data) return mapUserProfile(data as UserProfileRow)
+      if (error?.code !== "23505") throw error
+
+      const existing = await findUserProfileByEmail(user.email)
+      if (existing) return existing
+      throw error
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) throw error
+      console.warn("Saving user profile to local DB because Supabase is unreachable.", error)
+    }
   } else {
     const db = await getDb()
-    await db.query(
+    const result = await db.query<UserProfileRow>(
       `INSERT INTO user_profiles (user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (user_id)
+       DO UPDATE SET email = EXCLUDED.email
+       RETURNING user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at`,
       [user.id, user.email, "", "", "", JSON.stringify([]), "", now, now]
     )
-  }
 
-  const created = await findUserProfileByEmail(user.email)
-  if (!created) throw new Error("Failed to create user profile")
-  return created
+    return mapUserProfile(result.rows[0] as UserProfileRow)
+  }
 }
 
 export async function findUserProfileByEmail(email: string): Promise<StoredUserProfile | null> {

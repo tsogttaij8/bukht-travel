@@ -1,38 +1,52 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
 import { sendLoginCode, verifyLoginCode, type LoginFlowMode } from "../../lib/auth"
 
 export default function LoginPage(){
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialMode = searchParams.get("mode") === "register" ? "register" : "login"
+  const [mode, setMode] = useState<LoginFlowMode>(initialMode)
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [registerName, setRegisterName] = useState("")
   const [verifyEmail, setVerifyEmail] = useState("")
   const [code, setCode] = useState("")
-  const [mode, setMode] = useState<LoginFlowMode>("login")
   const [step, setStep] = useState<"request" | "verify">("request")
   const [devCode, setDevCode] = useState<string | null>(null)
   const [error, setError] = useState("")
+  const [infoMessage, setInfoMessage] = useState("")
+  const nextPath = searchParams.get("next")
+
+  function resolveNextPath(role?: "user" | "developer"): string {
+    if (nextPath && nextPath.startsWith("/")) {
+      return nextPath
+    }
+
+    return role === "developer" ? "/developer" : "/account"
+  }
 
   async function onRequestCode(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
     setError("")
     setDevCode(null)
+    setInfoMessage("")
 
+    const trimmedName = name.trim()
     if (!email.trim()) {
       setError("Имэйл оруулна уу")
       return
     }
 
-    if (mode === "register" && !registerName.trim()) {
-      setError("Бүртгүүлэхийн тулд нэр оруулна уу")
+    if (mode === "register" && !trimmedName) {
+      setError("Нэрээ оруулна уу")
       return
     }
 
-    const result = await sendLoginCode(email, mode === "register" ? registerName : undefined, mode)
+    const result = await sendLoginCode(email, trimmedName || undefined, mode)
 
     if (!result.ok) {
       setError(result.message)
@@ -42,6 +56,13 @@ export default function LoginPage(){
     setVerifyEmail(email.trim().toLowerCase())
     setStep("verify")
     if (result.devCode) setDevCode(result.devCode)
+    if (result.message) {
+      setInfoMessage(result.message)
+    } else if (mode === "register") {
+      setInfoMessage("Бүртгэл үүсгэх кодыг таны имэйл рүү илгээлээ. Inbox болон spam хавтсаа шалгана уу.")
+    } else if (result.deliveryMode === "email") {
+      setInfoMessage("Кодыг таны имэйл рүү илгээлээ. Inbox болон spam хавтсаа шалгана уу.")
+    }
   }
 
   async function onVerifyCode(e: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -60,7 +81,7 @@ export default function LoginPage(){
       return
     }
 
-    router.push("/")
+    router.push(resolveNextPath(result.user?.role))
   }
 
   return (
@@ -69,52 +90,64 @@ export default function LoginPage(){
       <main className="section">
         <div className="container" style={{maxWidth:560}}>
           <section className="card">
-            <h1 className="section-title" style={{marginBottom:10}}>Нэвтрэх</h1>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+              <button
+                type="button"
+                className={mode === "login" ? "btn btn-primary" : "btn btn-secondary"}
+                onClick={() => {
+                  setMode("login")
+                  setStep("request")
+                  setError("")
+                  setInfoMessage("")
+                  setCode("")
+                }}
+              >
+                Нэвтрэх
+              </button>
+              <button
+                type="button"
+                className={mode === "register" ? "btn btn-primary" : "btn btn-secondary"}
+                onClick={() => {
+                  setMode("register")
+                  setStep("request")
+                  setError("")
+                  setInfoMessage("")
+                  setCode("")
+                }}
+              >
+                Бүртгүүлэх
+              </button>
+            </div>
+            <h1 className="section-title" style={{marginBottom:10}}>
+              {mode === "register" ? "Имэйлээр бүртгүүлэх" : "Имэйлээр нэвтрэх"}
+            </h1>
             <p className="section-subtitle" style={{marginBottom:20}}>
-              Доор эхлээд бүртгүүлэх эсвэл нэвтрэхээ сонгоод, имэйл кодоор баталгаажуулна.
+              {mode === "register"
+                ? "Нэр болон имэйлээ оруулаад код авна. Кодоо баталгаажуулмагц шинэ account үүсэж автоматаар нэвтэрнэ."
+                : "Имэйл хаягаа оруулаад код авна. Хөгжүүлэгчийн имэйл бол developer эрхээр танигдана."}
             </p>
+            <p className="section-subtitle" style={{marginBottom:20}}>
+              Код ирэхгүй байвал spam хавтсаа шалгана уу. Имэйл илгээх тохиргоо хийгдээгүй үед түр dev код харагдана.
+            </p>
+            {infoMessage ? <p style={{margin:"0 0 20px",color:"#1d6b42",fontWeight:600}}>{infoMessage}</p> : null}
 
             {step === "request" ? (
               <>
-                <div style={{display:"flex",gap:8,marginBottom:12}}>
-                  <button
-                    className={`btn ${mode === "register" ? "btn-primary" : "btn-secondary"}`}
-                    type="button"
-                    onClick={() => {
-                      setMode("register")
-                      setError("")
-                    }}
-                  >
-                    Эхлээд бүртгүүлэх
-                  </button>
-                  <button
-                    className={`btn ${mode === "login" ? "btn-primary" : "btn-secondary"}`}
-                    type="button"
-                    onClick={() => {
-                      setMode("login")
-                      setError("")
-                    }}
-                  >
-                    Бүртгэлтэй нэвтрэх
-                  </button>
-                </div>
-
                 <form onSubmit={onRequestCode} style={{display:"grid",gap:12}}>
                   {mode === "register" ? (
                     <input
-                      value={registerName}
-                      onChange={(e) => setRegisterName(e.target.value)}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       placeholder="Нэр"
-                      style={{padding:"12px 14px",border:"1px solid #d7cfbf",borderRadius:10,fontSize:15}}
+                      className="admin-input"
                     />
                   ) : null}
-
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Имэйл"
-                    style={{padding:"12px 14px",border:"1px solid #d7cfbf",borderRadius:10,fontSize:15}}
+                    placeholder="Имэйл хаяг"
+                    className="admin-input"
                   />
 
                   {error ? <p style={{margin:0,color:"#b42318",fontWeight:600}}>{error}</p> : null}
@@ -124,7 +157,9 @@ export default function LoginPage(){
                     </p>
                   ) : null}
 
-                  <button className="btn btn-primary" type="submit">Код илгээх</button>
+                  <button className="btn btn-primary" type="submit">
+                    {mode === "register" ? "Бүртгэлийн код авах" : "Нэвтрэх код авах"}
+                  </button>
                 </form>
               </>
             ) : (
@@ -133,13 +168,14 @@ export default function LoginPage(){
                   type="email"
                   value={verifyEmail}
                   readOnly
-                  style={{padding:"12px 14px",border:"1px solid #d7cfbf",borderRadius:10,fontSize:15,background:"#f8f4ed"}}
+                  className="admin-input"
+                  style={{background:"#f8f4ed"}}
                 />
                 <input
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="6 оронтой код"
-                  style={{padding:"12px 14px",border:"1px solid #d7cfbf",borderRadius:10,fontSize:15}}
+                  className="admin-input"
                 />
 
                 {error ? <p style={{margin:0,color:"#b42318",fontWeight:600}}>{error}</p> : null}
@@ -153,7 +189,7 @@ export default function LoginPage(){
                   className="btn btn-primary"
                   type="submit"
                 >
-                  Кодоор нэвтрэх
+                  {mode === "register" ? "Бүртгэлээ баталгаажуулах" : "Кодоор нэвтрэх"}
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -163,6 +199,7 @@ export default function LoginPage(){
                     setCode("")
                     setError("")
                     setDevCode(null)
+                    setInfoMessage("")
                   }}
                 >
                   Буцах

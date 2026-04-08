@@ -73,6 +73,19 @@ function mapProductStoreError(error: unknown): Error {
   return error instanceof Error ? error : new Error(message)
 }
 
+function shouldFallbackToLocalDb(error: unknown): boolean {
+  const message = toErrorMessage(error).toLowerCase()
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("getaddrinfo enotfound") ||
+    message.includes("enotfound") ||
+    message.includes("econnrefused") ||
+    message.includes("network") ||
+    message.includes("dns")
+  )
+}
+
 function mapProduct(row: ProductRow): StoredProduct {
   return {
     id: row.id,
@@ -91,14 +104,22 @@ function mapProduct(row: ProductRow): StoredProduct {
 
 export async function listProducts(): Promise<StoredProduct[]> {
   if (isSupabaseEnabled()) {
-    const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at")
-      .order("updated_at", { ascending: false })
+    try {
+      const supabase = getSupabaseAdmin()
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at")
+        .order("updated_at", { ascending: false })
 
-    if (error) throw mapProductStoreError(error)
-    return (data ?? []).map((product) => mapProduct(product as ProductRow))
+      if (error) throw mapProductStoreError(error)
+      return (data ?? []).map((product) => mapProduct(product as ProductRow))
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) {
+        throw mapProductStoreError(error)
+      }
+
+      console.warn("Falling back to local product DB because Supabase is unreachable.", error)
+    }
   }
 
   const db = await getDb()
@@ -138,35 +159,43 @@ export async function createProduct(input: {
   }
 
   if (isSupabaseEnabled()) {
-    const supabase = getSupabaseAdmin()
-    const { error } = await supabase.from("products").insert({
-      id: payload.id,
-      name: payload.name,
-      category: payload.category,
-      price: payload.price,
-      moq: payload.moq,
-      origin: payload.origin,
-      lead_time: payload.leadTime,
-      badge: payload.badge,
-      summary: payload.summary,
-      created_at: payload.createdAt,
-      updated_at: payload.updatedAt,
-    })
+    try {
+      const supabase = getSupabaseAdmin()
+      const { error } = await supabase.from("products").insert({
+        id: payload.id,
+        name: payload.name,
+        category: payload.category,
+        price: payload.price,
+        moq: payload.moq,
+        origin: payload.origin,
+        lead_time: payload.leadTime,
+        badge: payload.badge,
+        summary: payload.summary,
+        created_at: payload.createdAt,
+        updated_at: payload.updatedAt,
+      })
 
-    if (error) throw mapProductStoreError(error)
+      if (error) throw mapProductStoreError(error)
 
-    return {
-      id: payload.id,
-      name: payload.name,
-      category: payload.category,
-      price: payload.price,
-      moq: payload.moq,
-      origin: payload.origin,
-      leadTime: payload.leadTime,
-      badge: payload.badge,
-      summary: payload.summary,
-      createdAt: payload.createdAt,
-      updatedAt: payload.updatedAt,
+      return {
+        id: payload.id,
+        name: payload.name,
+        category: payload.category,
+        price: payload.price,
+        moq: payload.moq,
+        origin: payload.origin,
+        leadTime: payload.leadTime,
+        badge: payload.badge,
+        summary: payload.summary,
+        createdAt: payload.createdAt,
+        updatedAt: payload.updatedAt,
+      }
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) {
+        throw mapProductStoreError(error)
+      }
+
+      console.warn("Saving product to local DB because Supabase is unreachable.", error)
     }
   }
 

@@ -61,7 +61,28 @@ async function initSchema(db: PGlite): Promise<void> {
       expires_at BIGINT NOT NULL
     );
 
+    DELETE FROM login_codes
+    WHERE ctid IN (
+      SELECT ctid
+      FROM (
+        SELECT ctid, ROW_NUMBER() OVER (PARTITION BY email ORDER BY expires_at DESC) AS rn
+        FROM login_codes
+      ) duplicates
+      WHERE duplicates.rn > 1
+    );
+
     CREATE INDEX IF NOT EXISTS login_codes_email_idx ON login_codes (email);
+    CREATE UNIQUE INDEX IF NOT EXISTS login_codes_email_unique_idx ON login_codes (email);
+
+    CREATE TABLE IF NOT EXISTS rate_limits (
+      key TEXT PRIMARY KEY,
+      count INTEGER NOT NULL,
+      reset_at BIGINT NOT NULL
+    );
+
+    DELETE FROM rate_limits WHERE reset_at <= ${Date.now()};
+
+    CREATE INDEX IF NOT EXISTS rate_limits_reset_at_idx ON rate_limits (reset_at);
 
     CREATE TABLE IF NOT EXISTS shipments (
       id TEXT PRIMARY KEY,

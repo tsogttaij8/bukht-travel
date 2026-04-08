@@ -8,6 +8,35 @@ type LoginCodeRow = {
   expires_at: number
 }
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  if (error && typeof error === "object") {
+    const maybeError = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
+    const parts = [
+      typeof maybeError.message === "string" ? maybeError.message : "",
+      typeof maybeError.details === "string" ? maybeError.details : "",
+      typeof maybeError.hint === "string" ? maybeError.hint : "",
+      typeof maybeError.code === "string" ? `code: ${maybeError.code}` : "",
+    ].filter(Boolean)
+    if (parts.length > 0) return parts.join(" | ")
+  }
+  return "Unknown error"
+}
+
+function shouldFallbackToLocalDb(error: unknown): boolean {
+  const message = toErrorMessage(error).toLowerCase()
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("getaddrinfo enotfound") ||
+    message.includes("enotfound") ||
+    message.includes("econnrefused") ||
+    message.includes("network") ||
+    message.includes("dns")
+  )
+}
+
 function hashCode(email: string, code: string): string {
   return createHash("sha256").update(`${email.toLowerCase()}:${code}`).digest("hex")
 }
@@ -19,33 +48,38 @@ export function generateLoginCode(): string {
 export async function saveLoginCode(email: string, code: string, ttlMs = 10 * 60 * 1000): Promise<void> {
   const normalizedEmail = email.trim().toLowerCase()
   const now = Date.now()
+  const codeHash = hashCode(normalizedEmail, code)
+  const expiresAt = now + ttlMs
 
   if (isSupabaseEnabled()) {
-    const supabase = getSupabaseAdmin()
-    const { error: deleteError } = await supabase
-      .from("login_codes")
-      .delete()
-      .or(`expires_at.lte.${now},email.eq.${normalizedEmail}`)
+    try {
+      const supabase = getSupabaseAdmin()
+      const { error: cleanupError } = await supabase.from("login_codes").delete().lte("expires_at", now)
+      if (cleanupError) throw cleanupError
 
-    if (deleteError) throw deleteError
+      const { error: upsertError } = await supabase.from("login_codes").upsert({
+        email: normalizedEmail,
+        code_hash: codeHash,
+        expires_at: expiresAt,
+      }, { onConflict: "email" })
 
-    const { error: insertError } = await supabase.from("login_codes").insert({
-      email: normalizedEmail,
-      code_hash: hashCode(normalizedEmail, code),
-      expires_at: now + ttlMs,
-    })
-
-    if (insertError) throw insertError
-    return
+      if (upsertError) throw upsertError
+      return
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) throw error
+      console.warn("Saving login code to local DB because Supabase is unreachable.", error)
+    }
   }
 
   const db = await getDb()
 
-  await db.query("DELETE FROM login_codes WHERE expires_at <= $1 OR email = $2", [now, normalizedEmail])
+  await db.query("DELETE FROM login_codes WHERE expires_at <= $1", [now])
   await db.query(
     `INSERT INTO login_codes (email, code_hash, expires_at)
-     VALUES ($1, $2, $3)`,
-    [normalizedEmail, hashCode(normalizedEmail, code), now + ttlMs]
+     VALUES ($1, $2, $3)
+     ON CONFLICT (email)
+     DO UPDATE SET code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at`,
+    [normalizedEmail, codeHash, expiresAt]
   )
 }
 
@@ -61,23 +95,15 @@ export async function verifyAndConsumeLoginCode(email: string, code: string): Pr
 
     const { data, error } = await supabase
       .from("login_codes")
-      .select("email, code_hash, expires_at")
+      .delete()
+      .select("email")
       .eq("email", normalizedEmail)
       .eq("code_hash", targetHash)
       .gt("expires_at", now)
-      .maybeSingle()
+      .limit(1)
 
     if (error) throw error
-    if (!data) return false
-
-    const { error: deleteError } = await supabase
-      .from("login_codes")
-      .delete()
-      .eq("email", normalizedEmail)
-      .eq("code_hash", targetHash)
-
-    if (deleteError) throw deleteError
-    return true
+    return Boolean(data?.length)
   }
 
   const db = await getDb()
@@ -85,19 +111,11 @@ export async function verifyAndConsumeLoginCode(email: string, code: string): Pr
   await db.query("DELETE FROM login_codes WHERE expires_at <= $1", [now])
 
   const result = await db.query<LoginCodeRow>(
-    `SELECT email, code_hash, expires_at
-     FROM login_codes
+    `DELETE FROM login_codes
      WHERE email = $1 AND code_hash = $2 AND expires_at > $3
-     LIMIT 1`,
+     RETURNING email, code_hash, expires_at`,
     [normalizedEmail, targetHash, now]
   )
 
-  const matched = result.rows[0]
-
-  if (matched) {
-    await db.query("DELETE FROM login_codes WHERE email = $1 AND code_hash = $2", [normalizedEmail, targetHash])
-    return true
-  }
-
-  return false
+  return Boolean(result.rows[0])
 }

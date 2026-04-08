@@ -104,6 +104,33 @@ export async function listShipments(): Promise<StoredShipment[]> {
   return result.rows.map(mapShipment)
 }
 
+export async function listShipmentsByCustomerEmail(email: string): Promise<StoredShipment[]> {
+  const normalizedEmail = email.trim().toLowerCase()
+
+  if (isSupabaseEnabled()) {
+    const supabase = getSupabaseAdmin()
+    const { data, error } = await supabase
+      .from("shipments")
+      .select("id, tracking_code, customer_name, customer_email, origin, destination, current_status, notes, created_at, updated_at")
+      .eq("customer_email", normalizedEmail)
+      .order("updated_at", { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).map(mapShipment)
+  }
+
+  const db = await getDb()
+  const result = await db.query<ShipmentRow>(
+    `SELECT id, tracking_code, customer_name, customer_email, origin, destination, current_status, notes, created_at, updated_at
+     FROM shipments
+     WHERE customer_email = $1
+     ORDER BY updated_at DESC`,
+    [normalizedEmail]
+  )
+
+  return result.rows.map(mapShipment)
+}
+
 export async function findShipmentByTrackingCode(trackingCode: string): Promise<StoredShipment | null> {
   const normalized = trackingCode.trim()
 
@@ -339,6 +366,17 @@ export async function getShipmentTracking(trackingCode: string): Promise<{ shipm
 
 export async function listShipmentsWithEvents(): Promise<ShipmentTracking[]> {
   const shipments = await listShipments()
+
+  return Promise.all(
+    shipments.map(async (shipment) => ({
+      shipment,
+      events: await listShipmentEvents(shipment.id),
+    }))
+  )
+}
+
+export async function listShipmentsWithEventsByCustomerEmail(email: string): Promise<ShipmentTracking[]> {
+  const shipments = await listShipmentsByCustomerEmail(email)
 
   return Promise.all(
     shipments.map(async (shipment) => ({

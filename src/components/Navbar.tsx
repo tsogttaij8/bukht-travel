@@ -23,18 +23,10 @@ useEffect(() => {
 
 return(
 
-<header style={{position:"sticky",top:0,zIndex:30,background:"rgba(247,243,237,0.95)",backdropFilter:"blur(8px)",borderBottom:"1px solid #e8dece"}}>
+<header className="site-header">
   <nav className="container navbar-shell">
-    <Link href="/" style={{display:"flex",alignItems:"center",gap:10}}>
-      <div
-        style={{
-          position:"relative",
-          width:86,
-          height:46,
-          overflow:"hidden",
-          borderRadius:8
-        }}
-      >
+    <Link href="/" className="navbar-brand">
+      <div className="navbar-logo-wrap">
         <Image
           src="/bukht-logo-full.png"
           alt="BUKHT logo"
@@ -43,6 +35,10 @@ return(
           sizes="86px"
           style={{objectFit:"cover",objectPosition:"center 28%",mixBlendMode:"multiply"}}
         />
+      </div>
+      <div className="navbar-brand-copy">
+        <strong>BUKHT</strong>
+        <span>Trade, travel, cargo</span>
       </div>
     </Link>
 
@@ -56,7 +52,7 @@ return(
       {menuOpen ? "Хаах" : "Цэс"}
     </button>
 
-    <div className={`navbar-links ${menuOpen ? "is-open" : ""}`}>
+    <div className={`navbar-links navbar-links-shell ${menuOpen ? "is-open" : ""}`}>
       <Link href="/">Нүүр</Link>
       <Link href="/travel">Аялал</Link>
       <Link href="/shop">Худалдаа</Link>
@@ -65,8 +61,9 @@ return(
 
       {user ? (
         <>
-          <span style={{color:"#5a4d40"}}>{user.name} ({user.role})</span>
-          {user.role === "developer" ? <Link href="/developer">Developer</Link> : null}
+          <span className="navbar-user-pill">{user.name} ({user.role})</span>
+          <Link href="/account">Миний хуудас</Link>
+          {user.role === "developer" ? <Link href="/developer">Хөгжүүлэгч</Link> : null}
           <button
             className="btn btn-secondary"
             style={{padding:"6px 12px",fontSize:"0.85rem"}}

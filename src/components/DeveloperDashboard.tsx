@@ -1,14 +1,13 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
 import type { ShipmentEvent, ShipmentStatus, StoredShipment } from "../lib/server/shipment-store"
 import type { StoredUser } from "../lib/server/user-store"
 
-type DashboardProps = {
-  users: StoredUser[]
-  products: StoredProduct[]
-  shipments: Array<StoredShipment & { events: ShipmentEvent[] }>
+type DashboardShipment = StoredShipment & {
+  events: ShipmentEvent[]
+  eventsLoaded: boolean
 }
 
 const shipmentStatuses: ShipmentStatus[] = ["registered", "received", "in_transit", "arrived", "delivered"]
@@ -28,9 +27,12 @@ function labelForStatus(status: ShipmentStatus): string {
   }
 }
 
-export default function DeveloperDashboard({ users, products: initialProducts, shipments: initialShipments }: DashboardProps) {
-  const [shipments, setShipments] = useState(initialShipments)
-  const [products, setProducts] = useState(initialProducts)
+export default function DeveloperDashboard() {
+  const [users, setUsers] = useState<StoredUser[]>([])
+  const [shipments, setShipments] = useState<DashboardShipment[]>([])
+  const [products, setProducts] = useState<StoredProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
   const [createForm, setCreateForm] = useState({
     trackingCode: "",
     customerName: "",
@@ -58,6 +60,140 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
 
   const totalDevelopers = useMemo(() => users.filter((user) => user.role === "developer").length, [users])
 
+  useEffect(() => {
+    let active = true
+
+    async function loadDashboard(): Promise<void> {
+      setLoading(true)
+      setLoadError("")
+
+      try {
+        const [usersResult, productsResult, shipmentsResult] = await Promise.allSettled([
+          fetch("/api/admin/users", { cache: "no-store" }),
+          fetch("/api/admin/products", { cache: "no-store" }),
+          fetch("/api/admin/shipments", { cache: "no-store" }),
+        ])
+
+        if (!active) return
+
+        const errors: string[] = []
+
+        if (usersResult.status === "fulfilled") {
+          const body = (await usersResult.value.json()) as { users?: StoredUser[]; message?: string }
+          if (usersResult.value.ok) {
+            setUsers(body.users ?? [])
+          } else {
+            errors.push(body.message ?? "Хэрэглэгчдийн мэдээлэл ачаалахад алдаа гарлаа.")
+          }
+        } else {
+          errors.push("Хэрэглэгчдийн мэдээлэл ачаалахад алдаа гарлаа.")
+        }
+
+        if (productsResult.status === "fulfilled") {
+          const body = (await productsResult.value.json()) as { products?: StoredProduct[]; message?: string }
+          if (productsResult.value.ok) {
+            setProducts(body.products ?? [])
+          } else {
+            errors.push(body.message ?? "Барааны мэдээлэл ачаалахад алдаа гарлаа.")
+          }
+        } else {
+          errors.push("Барааны мэдээлэл ачаалахад алдаа гарлаа.")
+        }
+
+        if (shipmentsResult.status === "fulfilled") {
+          const body = (await shipmentsResult.value.json()) as { shipments?: StoredShipment[]; message?: string }
+          if (shipmentsResult.value.ok) {
+            setShipments(
+              (body.shipments ?? []).map((shipment) => ({
+                ...shipment,
+                events: [],
+                eventsLoaded: false,
+              }))
+            )
+          } else {
+            errors.push(body.message ?? "Shipment мэдээлэл ачаалахад алдаа гарлаа.")
+          }
+        } else {
+          errors.push("Shipment мэдээлэл ачаалахад алдаа гарлаа.")
+        }
+
+        if (errors.length > 0) {
+          setLoadError(errors[0] ?? "Dashboard мэдээлэл ачаалахад алдаа гарлаа.")
+        }
+      } catch (error) {
+        if (!active) return
+        setLoadError(error instanceof Error ? error.message : "Dashboard мэдээлэл ачаалахад алдаа гарлаа.")
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    loadDashboard()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  async function loadShipmentEvents(trackingCode: string): Promise<void> {
+    const target = shipments.find((shipment) => shipment.trackingCode === trackingCode)
+    if (!target || target.eventsLoaded) return
+
+    setUpdateState((state) => ({
+      ...state,
+      [trackingCode]: {
+        status: state[trackingCode]?.status ?? target.currentStatus,
+        details: state[trackingCode]?.details ?? "",
+        location: state[trackingCode]?.location ?? "",
+        busy: true,
+        error: "",
+      },
+    }))
+
+    const response = await fetch(`/api/admin/shipments?trackingCode=${encodeURIComponent(trackingCode)}`, {
+      cache: "no-store",
+    })
+
+    const body = (await response.json()) as {
+      shipment?: StoredShipment
+      events?: ShipmentEvent[]
+      message?: string
+    }
+
+    if (!response.ok || !body.shipment || !body.events) {
+      setUpdateState((state) => ({
+        ...state,
+        [trackingCode]: {
+          status: state[trackingCode]?.status ?? target.currentStatus,
+          details: state[trackingCode]?.details ?? "",
+          location: state[trackingCode]?.location ?? "",
+          busy: false,
+          error: body.message ?? "Shipment түүх ачаалахад алдаа гарлаа",
+        },
+      }))
+      return
+    }
+
+    setShipments((current) =>
+      current.map((shipment) =>
+        shipment.trackingCode === trackingCode
+          ? { ...shipment, events: body.events ?? [], eventsLoaded: true }
+          : shipment
+      )
+    )
+
+    setUpdateState((state) => ({
+      ...state,
+      [trackingCode]: {
+        status: body.shipment?.currentStatus ?? target.currentStatus,
+        details: state[trackingCode]?.details ?? "",
+        location: state[trackingCode]?.location ?? "",
+        busy: false,
+        error: "",
+      },
+    }))
+  }
+
   async function createShipment(): Promise<void> {
     setCreateBusy(true)
     setCreateError("")
@@ -81,7 +217,7 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
       return
     }
 
-    setShipments((current) => [{ ...body.shipment!, events: body.events! }, ...current])
+    setShipments((current) => [{ ...body.shipment!, events: body.events!, eventsLoaded: true }, ...current])
     setCreateForm({
       trackingCode: "",
       customerName: "",
@@ -164,7 +300,9 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
 
     setShipments((currentShipments) =>
       currentShipments.map((shipment) =>
-        shipment.trackingCode === trackingCode ? { ...body.shipment!, events: body.events! } : shipment
+        shipment.trackingCode === trackingCode
+          ? { ...body.shipment!, events: body.events!, eventsLoaded: true }
+          : shipment
       )
     )
 
@@ -180,37 +318,47 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
     }))
   }
 
+  if (loading) {
+    return <section className="card"><p style={{ margin: 0 }}>Developer dashboard ачаалж байна...</p></section>
+  }
+
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div className="developer-dashboard" style={{ display: "grid", gap: 20 }}>
+      {loadError ? (
+        <section className="card">
+          <p style={{ margin: 0, color: "#b42318", fontWeight: 700 }}>{loadError}</p>
+        </section>
+      ) : null}
+
       <section className="card-grid">
-        <article className="card" style={{ gridColumn: "span 4" }}>
+        <article className="card developer-stat-card" style={{ gridColumn: "span 4" }}>
           <h3>Хэрэглэгч</h3>
           <p>{users.length} бүртгэлтэй хэрэглэгч</p>
         </article>
-        <article className="card" style={{ gridColumn: "span 4" }}>
+        <article className="card developer-stat-card" style={{ gridColumn: "span 4" }}>
           <h3>Developer</h3>
           <p>{totalDevelopers} developer эрхтэй</p>
         </article>
-        <article className="card" style={{ gridColumn: "span 4" }}>
+        <article className="card developer-stat-card" style={{ gridColumn: "span 4" }}>
           <h3>Shipment</h3>
-          <p>{shipments.length} tracking бүртгэл</p>
+          <p>{shipments.length} ачилтын бүртгэл</p>
         </article>
-        <article className="card" style={{ gridColumn: "span 4" }}>
+        <article className="card developer-stat-card" style={{ gridColumn: "span 4" }}>
           <h3>Бараа</h3>
           <p>{products.length} нийт бүтээгдэхүүн</p>
         </article>
       </section>
 
-      <section className="card">
+      <section className="card developer-panel">
         <h3 style={{ marginBottom: 16 }}>Shop-д бараа нэмэх</h3>
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
           <input value={productForm.name} onChange={(event) => setProductForm((state) => ({ ...state, name: event.target.value }))} placeholder="Барааны нэр" className="admin-input" />
-          <input value={productForm.category} onChange={(event) => setProductForm((state) => ({ ...state, category: event.target.value }))} placeholder="Category" className="admin-input" />
+          <input value={productForm.category} onChange={(event) => setProductForm((state) => ({ ...state, category: event.target.value }))} placeholder="Ангилал" className="admin-input" />
           <input value={productForm.price} onChange={(event) => setProductForm((state) => ({ ...state, price: event.target.value }))} placeholder="Үнэ" className="admin-input" />
           <input value={productForm.moq} onChange={(event) => setProductForm((state) => ({ ...state, moq: event.target.value }))} placeholder="MOQ" className="admin-input" />
-          <input value={productForm.origin} onChange={(event) => setProductForm((state) => ({ ...state, origin: event.target.value }))} placeholder="Origin" className="admin-input" />
-          <input value={productForm.leadTime} onChange={(event) => setProductForm((state) => ({ ...state, leadTime: event.target.value }))} placeholder="Lead time" className="admin-input" />
-          <input value={productForm.badge} onChange={(event) => setProductForm((state) => ({ ...state, badge: event.target.value }))} placeholder="Badge" className="admin-input" />
+          <input value={productForm.origin} onChange={(event) => setProductForm((state) => ({ ...state, origin: event.target.value }))} placeholder="Гарал" className="admin-input" />
+          <input value={productForm.leadTime} onChange={(event) => setProductForm((state) => ({ ...state, leadTime: event.target.value }))} placeholder="Хүрэх хугацаа" className="admin-input" />
+          <input value={productForm.badge} onChange={(event) => setProductForm((state) => ({ ...state, badge: event.target.value }))} placeholder="Шошго" className="admin-input" />
         </div>
         <textarea value={productForm.summary} onChange={(event) => setProductForm((state) => ({ ...state, summary: event.target.value }))} placeholder="Товч тайлбар" className="admin-input" style={{ width: "100%", minHeight: 88, marginTop: 12, resize: "vertical" }} />
         {productError ? <p style={{ margin: "12px 0 0", color: "#b42318", fontWeight: 700 }}>{productError}</p> : null}
@@ -219,10 +367,10 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
         </button>
       </section>
 
-      <section className="card">
+      <section className="card developer-panel">
         <h3 style={{ marginBottom: 16 }}>Шинэ shipment үүсгэх</h3>
         <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-          <input value={createForm.trackingCode} onChange={(event) => setCreateForm((state) => ({ ...state, trackingCode: event.target.value }))} placeholder="Tracking code" className="admin-input" />
+          <input value={createForm.trackingCode} onChange={(event) => setCreateForm((state) => ({ ...state, trackingCode: event.target.value }))} placeholder="Tracking код" className="admin-input" />
           <input value={createForm.customerName} onChange={(event) => setCreateForm((state) => ({ ...state, customerName: event.target.value }))} placeholder="Хэрэглэгчийн нэр" className="admin-input" />
           <input value={createForm.customerEmail} onChange={(event) => setCreateForm((state) => ({ ...state, customerEmail: event.target.value }))} placeholder="Имэйл" className="admin-input" />
           <input value={createForm.origin} onChange={(event) => setCreateForm((state) => ({ ...state, origin: event.target.value }))} placeholder="Эхлэх цэг" className="admin-input" />
@@ -242,11 +390,11 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
         </button>
       </section>
 
-      <section className="card">
+      <section className="card developer-panel">
         <h3 style={{ marginBottom: 16 }}>Хэрэглэгчдийн жагсаалт</h3>
         <div style={{ display: "grid", gap: 10 }}>
           {users.map((user) => (
-            <div key={user.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingBottom: 10, borderBottom: "1px solid #eee3d3" }}>
+            <div key={user.id} className="developer-list-row" style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", paddingBottom: 10, borderBottom: "1px solid #eee3d3" }}>
               <strong>{user.name}</strong>
               <span>{user.email}</span>
               <span style={{ color: "#6b5b4c" }}>{user.role}</span>
@@ -255,11 +403,11 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
         </div>
       </section>
 
-      <section className="card">
+      <section className="card developer-panel">
         <h3 style={{ marginBottom: 16 }}>Shop барааны жагсаалт</h3>
         <div style={{ display: "grid", gap: 14 }}>
           {products.map((product) => (
-            <article key={product.id} style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
+            <article key={product.id} className="developer-item-card" style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
                   <strong>{product.name}</strong>
@@ -278,7 +426,7 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
         </div>
       </section>
 
-      <section className="card">
+      <section className="card developer-panel">
         <h3 style={{ marginBottom: 16 }}>Shipment удирдлага</h3>
         <div style={{ display: "grid", gap: 16 }}>
           {shipments.map((shipment) => {
@@ -291,7 +439,7 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
             }
 
             return (
-              <article key={shipment.id} style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
+              <article key={shipment.id} className="developer-item-card" style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
                   <div>
                     <strong>{shipment.trackingCode}</strong>
@@ -310,8 +458,8 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
                       </option>
                     ))}
                   </select>
-                  <input value={current.location} onChange={(event) => setUpdateState((state) => ({ ...state, [shipment.trackingCode]: { ...current, location: event.target.value } }))} placeholder="Location" className="admin-input" />
-                  <input value={current.details} onChange={(event) => setUpdateState((state) => ({ ...state, [shipment.trackingCode]: { ...current, details: event.target.value } }))} placeholder="Status details" className="admin-input" />
+                  <input value={current.location} onChange={(event) => setUpdateState((state) => ({ ...state, [shipment.trackingCode]: { ...current, location: event.target.value } }))} placeholder="Байршил" className="admin-input" />
+                  <input value={current.details} onChange={(event) => setUpdateState((state) => ({ ...state, [shipment.trackingCode]: { ...current, details: event.target.value } }))} placeholder="Төлөвийн тайлбар" className="admin-input" />
                 </div>
 
                 {current.error ? <p style={{ margin: "10px 0 0", color: "#b42318", fontWeight: 700 }}>{current.error}</p> : null}
@@ -320,16 +468,26 @@ export default function DeveloperDashboard({ users, products: initialProducts, s
                   {current.busy ? "Шинэчилж байна..." : "Төлөв шинэчлэх"}
                 </button>
 
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  style={{ marginTop: 12, marginLeft: 10 }}
+                  onClick={() => void loadShipmentEvents(shipment.trackingCode)}
+                  disabled={current.busy || shipment.eventsLoaded}
+                >
+                  {shipment.eventsLoaded ? "Түүх ачаалсан" : "Түүх ачаалах"}
+                </button>
+
                 <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
-                  {shipment.events.map((event) => (
-                    <div key={event.id} style={{ borderLeft: "3px solid #d8b98a", paddingLeft: 12 }}>
+                  {shipment.eventsLoaded ? shipment.events.map((event) => (
+                    <div key={event.id} className="developer-timeline-item" style={{ borderLeft: "3px solid #d8b98a", paddingLeft: 12 }}>
                       <strong>{labelForStatus(event.status)}</strong>
                       <p style={{ margin: "4px 0" }}>{event.details}</p>
                       <p style={{ margin: 0, color: "#6b5b4c", fontSize: "0.92rem" }}>
                         {event.location} • {new Date(event.happenedAt).toLocaleString("mn-MN")}
                       </p>
                     </div>
-                  ))}
+                  )) : <p style={{ margin: 0, color: "#6b5b4c" }}>Түүхийг тусад нь ачаална.</p>}
                 </div>
               </article>
             )

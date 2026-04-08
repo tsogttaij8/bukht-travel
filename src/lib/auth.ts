@@ -7,6 +7,59 @@ export type SessionUser = {
   role: UserRole
 }
 
+export type UserProfile = {
+  userId: string
+  email: string
+  phone: string
+  companyName: string
+  telegramHandle: string
+  customerTypes: string[]
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type ServiceRequest = {
+  id: string
+  userId: string
+  serviceType: "travel" | "cargo" | "esim" | "product_sourcing"
+  status: "new" | "contacted" | "quoted" | "confirmed" | "completed" | "cancelled"
+  title: string
+  details: string
+  budget: string
+  travelDate: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type ShipmentStatus = "registered" | "received" | "in_transit" | "arrived" | "delivered"
+
+export type ShipmentEvent = {
+  id: string
+  shipmentId: string
+  status: ShipmentStatus
+  details: string
+  location: string
+  happenedAt: string
+  createdAt: string
+}
+
+export type ShipmentTracking = {
+  shipment: {
+    id: string
+    trackingCode: string
+    customerName: string
+    customerEmail: string
+    origin: string
+    destination: string
+    currentStatus: ShipmentStatus
+    notes: string
+    createdAt: string
+    updatedAt: string
+  }
+  events: ShipmentEvent[]
+}
+
 type ApiResult = { ok: true } | { ok: false; message: string }
 
 async function parseError(response: Response, fallback: string): Promise<string> {
@@ -31,11 +84,27 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   }
 }
 
+export async function getCurrentSession(): Promise<{ user: SessionUser | null; profile?: UserProfile | null }> {
+  const response = await fetch("/api/auth/me", { method: "GET", cache: "no-store" })
+
+  if (!response.ok) return { user: null, profile: null }
+
+  try {
+    const body = (await response.json()) as { user?: SessionUser | null; profile?: UserProfile | null }
+    return { user: body.user ?? null, profile: body.profile ?? null }
+  } catch {
+    return { user: null, profile: null }
+  }
+}
+
 export async function sendLoginCode(
   email: string,
   name?: string,
   mode: LoginFlowMode = "login"
-): Promise<{ ok: true; devCode?: string } | { ok: false; message: string }> {
+): Promise<
+  | { ok: true; devCode?: string; message?: string; deliveryMode?: "email" | "dev"; deliveryProvider?: string }
+  | { ok: false; message: string }
+> {
   const response = await fetch("/api/auth/send-code", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -47,14 +116,25 @@ export async function sendLoginCode(
   }
 
   try {
-    const body = (await response.json()) as { devCode?: string }
-    return { ok: true, devCode: body.devCode }
+    const body = (await response.json()) as {
+      devCode?: string
+      message?: string
+      deliveryMode?: "email" | "dev"
+      deliveryProvider?: string
+    }
+    return {
+      ok: true,
+      devCode: body.devCode,
+      message: body.message,
+      deliveryMode: body.deliveryMode,
+      deliveryProvider: body.deliveryProvider,
+    }
   } catch {
     return { ok: true }
   }
 }
 
-export async function verifyLoginCode(email: string, code: string): Promise<ApiResult> {
+export async function verifyLoginCode(email: string, code: string): Promise<(ApiResult & { user?: SessionUser })> {
   const response = await fetch("/api/auth/verify-code", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -65,7 +145,12 @@ export async function verifyLoginCode(email: string, code: string): Promise<ApiR
     return { ok: false, message: await parseError(response, "Нэвтрэхэд алдаа гарлаа") }
   }
 
-  return { ok: true }
+  try {
+    const body = (await response.json()) as { user?: SessionUser }
+    return { ok: true, user: body.user }
+  } catch {
+    return { ok: true }
+  }
 }
 
 export async function logoutUser(): Promise<void> {

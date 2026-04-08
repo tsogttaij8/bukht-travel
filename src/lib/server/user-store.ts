@@ -21,6 +21,35 @@ type UserRow = {
   created_at: string
 }
 
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  if (error && typeof error === "object") {
+    const maybeError = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
+    const parts = [
+      typeof maybeError.message === "string" ? maybeError.message : "",
+      typeof maybeError.details === "string" ? maybeError.details : "",
+      typeof maybeError.hint === "string" ? maybeError.hint : "",
+      typeof maybeError.code === "string" ? `code: ${maybeError.code}` : "",
+    ].filter(Boolean)
+    if (parts.length > 0) return parts.join(" | ")
+  }
+  return "Unknown error"
+}
+
+function shouldFallbackToLocalDb(error: unknown): boolean {
+  const message = toErrorMessage(error).toLowerCase()
+
+  return (
+    message.includes("fetch failed") ||
+    message.includes("getaddrinfo enotfound") ||
+    message.includes("enotfound") ||
+    message.includes("econnrefused") ||
+    message.includes("network") ||
+    message.includes("dns")
+  )
+}
+
 export async function readUsers(): Promise<StoredUser[]> {
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin()
@@ -94,22 +123,27 @@ export async function findUserByEmail(email: string): Promise<StoredUser | null>
   const normalizedEmail = email.trim().toLowerCase()
 
   if (isSupabaseEnabled()) {
-    const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase
-      .from("users")
-      .select("id, name, email, role, created_at")
-      .eq("email", normalizedEmail)
-      .maybeSingle()
+    try {
+      const supabase = getSupabaseAdmin()
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, name, email, role, created_at")
+        .eq("email", normalizedEmail)
+        .maybeSingle()
 
-    if (error) throw error
-    if (!data) return null
+      if (error) throw error
+      if (!data) return null
 
-    return {
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      role: data.role === "developer" ? "developer" : "user",
-      createdAt: data.created_at,
+      return {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role === "developer" ? "developer" : "user",
+        createdAt: data.created_at,
+      }
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) throw error
+      console.warn("Falling back to local user DB because Supabase is unreachable.", error)
     }
   }
 
@@ -154,81 +188,80 @@ export function nameFromEmail(email: string): string {
 export async function upsertUserByEmail(input: { email: string; name?: string }): Promise<StoredUser> {
   const email = input.email.trim().toLowerCase()
   const role = roleFromEmail(email)
+  const name = input.name?.trim() || nameFromEmail(email)
+  const createdAt = new Date().toISOString()
 
   if (isSupabaseEnabled()) {
-    const existing = await findUserByEmail(email)
+    try {
+      const supabase = getSupabaseAdmin()
+      const { data: inserted, error: insertError } = await supabase
+        .from("users")
+        .insert({
+          id: randomUUID(),
+          name,
+          email,
+          role,
+          created_at: createdAt,
+        })
+        .select("id, name, email, role, created_at")
+        .single()
 
-    if (existing) {
-      const updated: StoredUser = {
-        ...existing,
-        name: input.name?.trim() || existing.name || nameFromEmail(email),
-        role,
+      if (!insertError && inserted) {
+        return {
+          id: inserted.id,
+          name: inserted.name,
+          email: inserted.email,
+          role: inserted.role === "developer" ? "developer" : "user",
+          createdAt: inserted.created_at,
+        }
       }
 
-      const supabase = getSupabaseAdmin()
-      const { error } = await supabase
+      if (insertError?.code !== "23505") throw insertError
+
+      const { error: updateError } = await supabase
         .from("users")
-        .update({ name: updated.name, role: updated.role })
+        .update({ name, role })
         .eq("email", email)
 
+      if (updateError) throw updateError
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("id, name, email, role, created_at")
+        .eq("email", email)
+        .single()
+
       if (error) throw error
-      return updated
+
+      return {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role === "developer" ? "developer" : "user",
+        createdAt: data.created_at,
+      }
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) throw error
+      console.warn("Saving user to local DB because Supabase is unreachable.", error)
     }
-
-    const created: StoredUser = {
-      id: randomUUID(),
-      name: input.name?.trim() || nameFromEmail(email),
-      email,
-      role,
-      createdAt: new Date().toISOString(),
-    }
-
-    const supabase = getSupabaseAdmin()
-    const { error } = await supabase.from("users").insert({
-      id: created.id,
-      name: created.name,
-      email: created.email,
-      role: created.role,
-      created_at: created.createdAt,
-    })
-
-    if (error) throw error
-    return created
   }
 
   const db = await getDb()
-  const existing = await findUserByEmail(email)
-
-  if (existing) {
-    const updated: StoredUser = {
-      ...existing,
-      name: input.name?.trim() || existing.name || nameFromEmail(email),
-      role,
-    }
-
-    await db.query(
-      `UPDATE users
-       SET name = $1, role = $2
-       WHERE email = $3`,
-      [updated.name, updated.role, email]
-    )
-
-    return updated
-  }
-
-  const created: StoredUser = {
-    id: randomUUID(),
-    name: input.name?.trim() || nameFromEmail(email),
-    email,
-    role,
-    createdAt: new Date().toISOString(),
-  }
-
-  await db.query(
+  const result = await db.query<UserRow>(
     `INSERT INTO users (id, name, email, role, created_at)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [created.id, created.name, created.email, created.role, created.createdAt]
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (email)
+     DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role
+     RETURNING id, name, email, role, created_at`,
+    [randomUUID(), name, email, role, createdAt]
   )
 
-  return created
+  const user = result.rows[0]
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role === "developer" ? "developer" : "user",
+    createdAt: user.created_at,
+  }
 }

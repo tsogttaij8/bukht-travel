@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { sessionConfig, createSessionToken } from "../../../../lib/server/session"
+import { checkRateLimit, readClientIp } from "../../../../lib/server/rate-limit"
 import { findUserByEmail } from "../../../../lib/server/user-store"
 import { verifyAndConsumeLoginCode } from "../../../../lib/server/login-code-store"
 
@@ -12,9 +13,15 @@ export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as VerifyBody
   const email = body.email?.trim().toLowerCase() ?? ""
   const code = body.code?.trim() ?? ""
+  const clientIp = readClientIp(request)
 
   if (!email || !code) {
     return NextResponse.json({ message: "Имэйл болон код оруулна уу" }, { status: 400 })
+  }
+
+  const verifyRateLimit = await checkRateLimit(`verify-code:${clientIp}:${email}`, 10, 10 * 60 * 1000)
+  if (!verifyRateLimit.ok) {
+    return NextResponse.json({ message: "Код баталгаажуулах оролдлого хэт олширлоо. Түр хүлээгээд дахин оролдоно уу." }, { status: 429 })
   }
 
   const isValid = await verifyAndConsumeLoginCode(email, code)

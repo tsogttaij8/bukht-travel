@@ -1,5 +1,6 @@
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
+import Link from "next/link"
 
 const cityHighlights = [
   {
@@ -49,13 +50,14 @@ export default function TravelPage(){
     <>
       <Navbar/>
       <main className="section travel-page">
-        <div className="container">
+        <div className="container travel-page-shell">
           <section className="travel-hero">
             <div className="travel-hero-copy">
+              <span className="section-kicker">Travel design</span>
               <span className="travel-eyebrow">Trade Journey Design</span>
               <h1 className="section-title" style={{ marginBottom: 16 }}>Худалдааны аяллаа хотоор нь төлөвлө</h1>
               <p className="section-subtitle" style={{ marginBottom: 24 }}>
-                Хятад руу явах аяллыг зүгээр ticket booking биш, харин supplier уулзалт, орчуулагч, route planning, cargo follow-up-тай нь хамт зохион байгуулна.
+                Хятад руу явах аяллыг зүгээр ticket booking биш, харин supplier уулзалт, орчуулагч, route planning, cargo follow-up-тай нь хамт зохион байгуулна. Үзэхэд нээлттэй, харин хүсэлт үлдээхдээ имэйл account ашиглана.
               </p>
               <div className="travel-pill-row">
                 <span className="travel-pill">Иү market route</span>
@@ -89,6 +91,7 @@ export default function TravelPage(){
           <section className="travel-section-block">
             <div className="travel-section-head">
               <div>
+                <span className="section-kicker">City routes</span>
                 <h2 className="section-title" style={{ marginBottom: 10 }}>Хотуудаар нь сонгох</h2>
                 <p className="section-subtitle">Ямар бараа хайж байгаагаас шалтгаалаад таны аяллын хот өөр байх ёстой. Гол чиглэлүүдийг эндээс харж болно.</p>
               </div>
@@ -120,6 +123,7 @@ export default function TravelPage(){
 
           <section className="travel-split-grid">
             <article className="travel-info-card">
+              <span className="section-kicker">Flow</span>
               <h2 className="section-title" style={{ marginBottom: 12 }}>Аяллын урсгал</h2>
               <div className="travel-step-list">
                 {travelSteps.map((step, index) => (
@@ -135,6 +139,7 @@ export default function TravelPage(){
             </article>
 
             <article className="travel-info-card travel-info-card-accent">
+              <span className="section-kicker">Included</span>
               <h2 className="section-title" style={{ marginBottom: 12 }}>Аялал дээр яг юу ордог вэ</h2>
               <div className="travel-benefit-list">
                 <div>
@@ -151,6 +156,17 @@ export default function TravelPage(){
                 </div>
               </div>
             </article>
+          </section>
+
+          <section className="card page-cta-shell" style={{ marginTop: 18, display: "grid", gap: 12 }}>
+            <h3 style={{ margin: 0 }}>Аялал, бараа, карго-г нэг account дээрээ холбох</h3>
+            <p style={{ margin: 0, color: "#5a5349" }}>
+              Аяллын мэдээллийг хүн бүр чөлөөтэй үзэж болно. Харин маршрут, supplier, cargo, eSIM-тэй холбоотой нарийн хүсэлтүүд нь тухайн хэрэглэгчийн имэйл account дээр хадгалагдана.
+            </p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <Link href="/account?service=travel&title=%D0%A5%D1%8F%D1%82%D0%B0%D0%B4%20%D0%B0%D1%8F%D0%BB%D0%BB%D1%8B%D0%BD%20%D1%82%D3%A9%D0%BB%D3%A9%D0%B2%D0%BB%D3%A9%D0%BB%D1%82" className="btn btn-primary">Account-аараа аяллын хүсэлт өгөх</Link>
+              <Link href="/shop" className="btn btn-secondary">Shop руу орох</Link>
+            </div>
           </section>
         </div>
       </main>
