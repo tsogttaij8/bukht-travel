@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --font-body: "Avenir Next", "Segoe UI", "Noto Sans", sans-serif;
   --font-heading: "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
@@ -82,23 +84,26 @@ a {
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+}
+
+.navbar-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .navbar-logo-wrap {
   position: relative;
-  width: 92px;
-  height: 48px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: rgba(255, 250, 243, 0.95);
-  border: 1px solid rgba(227, 204, 173, 0.9);
-  box-shadow: 0 12px 28px rgba(143, 102, 68, 0.08);
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
 }
 
 .navbar-brand-copy {
   display: grid;
-  gap: 2px;
+  gap: 0;
+  line-height: 0.98;
+  margin-left: -2px;
 }
 
 .navbar-brand-copy strong {
@@ -121,23 +126,21 @@ a {
 }
 
 .navbar-links-shell {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 251, 246, 0.78);
-  border: 1px solid rgba(227, 207, 180, 0.82);
-  box-shadow: 0 14px 30px rgba(132, 98, 68, 0.08);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .navbar-links-shell a {
   padding: 8px 10px;
   border-radius: 999px;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .navbar-links-shell a:hover {
-  background: rgba(244, 214, 174, 0.32);
-  color: var(--brown-deep);
-  transform: translateY(-1px);
+  color: #9b8a78;
 }
 
 .navbar-user-pill {

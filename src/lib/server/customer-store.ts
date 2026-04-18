@@ -166,19 +166,19 @@ export async function ensureUserProfile(user: StoredUser): Promise<StoredUserPro
       if (!shouldFallbackToLocalDb(error)) throw error
       console.warn("Saving user profile to local DB because Supabase is unreachable.", error)
     }
-  } else {
-    const db = await getDb()
-    const result = await db.query<UserProfileRow>(
-      `INSERT INTO user_profiles (user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       ON CONFLICT (user_id)
-       DO UPDATE SET email = EXCLUDED.email
-       RETURNING user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at`,
-      [user.id, user.email, "", "", "", JSON.stringify([]), "", now, now]
-    )
-
-    return mapUserProfile(result.rows[0] as UserProfileRow)
   }
+
+  const db = await getDb()
+  const result = await db.query<UserProfileRow>(
+    `INSERT INTO user_profiles (user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     ON CONFLICT (user_id)
+     DO UPDATE SET email = EXCLUDED.email
+     RETURNING user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at`,
+    [user.id, user.email, "", "", "", JSON.stringify([]), "", now, now]
+  )
+
+  return mapUserProfile(result.rows[0] as UserProfileRow)
 }
 
 export async function findUserProfileByEmail(email: string): Promise<StoredUserProfile | null> {
