@@ -2,16 +2,19 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getCurrentUser, logoutUser, type SessionUser } from "../lib/auth"
 import { primaryButton, shell } from "./ui/tw"
 
 const navLinkClass =
-  "rounded-full px-2.5 py-2 font-semibold text-[#3f342b] transition hover:text-[#9b8a78]"
+  "rounded-full px-2.5 py-2 font-semibold text-[#3f342b] transition-colors duration-200 ease-out hover:text-[#cdbda9]"
 
 export default function Navbar() {
   const [user, setUser] = useState<SessionUser | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [headerHidden, setHeaderHidden] = useState(false)
+  const lastScrollY = useRef(0)
+  const ticking = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -23,8 +26,40 @@ export default function Navbar() {
     }
   }, [])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (ticking.current) return
+
+      ticking.current = true
+      window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY
+        const scrollDifference = currentScrollY - lastScrollY.current
+
+        if (currentScrollY <= 8) {
+          setHeaderHidden(false)
+        } else if (Math.abs(scrollDifference) > 6) {
+          setHeaderHidden(scrollDifference > 0)
+        }
+
+        lastScrollY.current = currentScrollY
+        ticking.current = false
+      })
+    }
+
+    lastScrollY.current = window.scrollY
+    window.addEventListener("scroll", handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+    }
+  }, [])
+
   return (
-    <header className="sticky top-0 z-30 border-b border-[rgba(225,207,183,0.82)] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(250,246,240,0.74))] backdrop-blur-[16px]">
+    <header
+      className={`sticky top-0 z-30 border-b border-[rgba(225,207,183,0.82)] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(250,246,240,0.74))] backdrop-blur-[16px] transition-transform duration-300 ease-out will-change-transform ${
+        headerHidden && !menuOpen ? "-translate-y-full" : "translate-y-0"
+      }`}
+    >
       <nav className={`${shell} flex items-center justify-between gap-4 py-4 max-sm:flex-wrap max-sm:py-3`}>
         <Link href="/" className="flex items-center">
           <div className="flex items-center gap-1">
@@ -82,9 +117,7 @@ export default function Navbar() {
                 Гарах
               </button>
             </>
-          ) : (
-            <Link href="/login" className={navLinkClass}>Нэвтрэх</Link>
-          )}
+          ) : null}
         </div>
       </nav>
     </header>
