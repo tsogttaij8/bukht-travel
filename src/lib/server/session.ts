@@ -1,10 +1,11 @@
 import { createHmac } from "node:crypto"
-import type { UserRole } from "./user-store"
+import { userRoles, type LegacyUserRole, type UserRole } from "./user-store"
 
 export type SessionPayload = {
   name: string
   email: string
-  role: UserRole
+  role: LegacyUserRole
+  roles: UserRole[]
   exp: number
 }
 
@@ -24,11 +25,28 @@ function sign(value: string): string {
   return createHmac("sha256", SESSION_SECRET).update(value).digest("base64url")
 }
 
-export function createSessionToken(name: string, email: string, role: UserRole): string {
+function isUserRole(role: string): role is UserRole {
+  return (userRoles as readonly string[]).includes(role)
+}
+
+function normalizeSessionRoles(roles: unknown, legacyRole?: string): UserRole[] {
+  const parsedRoles = Array.isArray(roles) ? roles.filter((role): role is UserRole => typeof role === "string" && isUserRole(role)) : []
+  const unique = Array.from(new Set(parsedRoles))
+  if (unique.length > 0) return unique
+  return legacyRole === "developer" ? ["owner"] : ["customer"]
+}
+
+function legacyRoleFromRoles(roles: UserRole[]): LegacyUserRole {
+  return roles.some((role) => role !== "customer") ? "developer" : "user"
+}
+
+export function createSessionToken(name: string, email: string, roles: UserRole[]): string {
+  const normalizedRoles = normalizeSessionRoles(roles)
   const payload: SessionPayload = {
     name,
     email,
-    role,
+    role: legacyRoleFromRoles(normalizedRoles),
+    roles: normalizedRoles,
     exp: Date.now() + SESSION_AGE_SECONDS * 1000,
   }
 
@@ -46,10 +64,11 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
   try {
     const payload = JSON.parse(fromBase64Url(encoded)) as SessionPayload
-    if (!payload?.email || !payload?.name || !payload?.exp || !payload?.role) return null
-    if (payload.role !== "user" && payload.role !== "developer") return null
+    if (!payload?.email || !payload?.name || !payload?.exp) return null
+    const roles = normalizeSessionRoles(payload.roles, payload.role)
+    const role = legacyRoleFromRoles(roles)
     if (Date.now() > payload.exp) return null
-    return payload
+    return { ...payload, role, roles }
   } catch {
     return null
   }
@@ -70,4 +89,16 @@ export function readSessionFromCookieHeader(cookieHeader: string): SessionPayloa
 export const sessionConfig = {
   name: SESSION_COOKIE_NAME,
   maxAge: SESSION_AGE_SECONDS,
+}
+
+export function sessionHasRole(session: Pick<SessionPayload, "roles">, role: UserRole): boolean {
+  return session.roles.includes(role)
+}
+
+export function sessionHasAnyRole(session: Pick<SessionPayload, "roles">, roles: UserRole[]): boolean {
+  return roles.some((role) => sessionHasRole(session, role))
+}
+
+export function sessionCanAccessAdmin(session: Pick<SessionPayload, "roles">): boolean {
+  return sessionHasAnyRole(session, ["owner", "cargo_staff", "travel_staff", "esim_staff", "finance_staff", "support_staff"])
 }

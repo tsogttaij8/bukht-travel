@@ -1,4 +1,5 @@
 import "./globals.css"
+import { ClerkProvider } from "@clerk/nextjs"
 
 export const metadata = {
   title: "BUKHT",
@@ -12,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="mn">
-      <body>{children}</body>
+      <body>
+        <ClerkProvider>{children}</ClerkProvider>
+      </body>
     </html>
   )
 }

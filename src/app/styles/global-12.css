@@ -1,0 +1,86 @@
+﻿.esim-step-item span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: rgba(17, 126, 156, 0.1);
+  color: #0d6b86;
+  font-weight: 800;
+}
+
+.esim-step-item p {
+  color: #47616c;
+  line-height: 1.55;
+}
+
+.esim-payment-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 18px;
+  align-items: center;
+}
+
+.esim-qr-shell {
+  display: flex;
+  justify-content: center;
+  padding: 18px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top, rgba(213, 243, 251, 0.86), transparent 40%),
+    linear-gradient(180deg, rgba(239, 249, 252, 0.96), rgba(228, 242, 247, 0.86));
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: 56px 0;
+  }
+
+  .hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-stat-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card-grid > * {
+    grid-column: span 6 !important;
+  }
+
+  .shop-hero,
+  .travel-hero,
+  .shop-bottom-grid,
+  .shop-product-grid,
+  .travel-city-grid,
+  .travel-split-grid,
+  .cargo-hero,
+  .cargo-step-grid,
+  .esim-hero,
+  .esim-plan-grid,
+  .esim-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-section-head,
+  .travel-section-head {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .travel-hero-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+

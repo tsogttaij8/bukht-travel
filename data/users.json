@@ -4,6 +4,7 @@
     "name": "bielgt",
     "email": "tsogttaij8@gmail.com",
     "role": "user",
+    "roles": ["customer"],
     "createdAt": "2026-03-05T06:15:07.015Z"
   }
 ]

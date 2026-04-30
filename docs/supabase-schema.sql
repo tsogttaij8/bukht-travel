@@ -1,10 +1,24 @@
 create table if not exists public.users (
   id text primary key,
+  clerk_user_id text unique,
   name text not null,
   email text not null unique,
   role text not null check (role in ('user', 'developer')),
+  status text not null default 'active' check (status in ('active', 'disabled')),
   created_at timestamptz not null default now()
 );
+
+alter table public.users add column if not exists clerk_user_id text unique;
+alter table public.users add column if not exists status text not null default 'active' check (status in ('active', 'disabled'));
+
+create table if not exists public.user_roles (
+  user_id text not null references public.users(id) on delete cascade,
+  role text not null check (role in ('owner', 'cargo_staff', 'travel_staff', 'esim_staff', 'finance_staff', 'support_staff', 'customer')),
+  created_at timestamptz not null default now(),
+  primary key (user_id, role)
+);
+
+create index if not exists user_roles_role_idx on public.user_roles (role);
 
 create table if not exists public.login_codes (
   email text not null,

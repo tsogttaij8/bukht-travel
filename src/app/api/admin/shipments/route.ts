@@ -8,7 +8,7 @@ import {
   listShipmentsWithEvents,
   type ShipmentStatus,
 } from "../../../../lib/server/shipment-store"
-import { readSessionFromCookieHeader } from "../../../../lib/server/session"
+import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
 const validStatuses: ShipmentStatus[] = ["registered", "received", "in_transit", "arrived", "delivered"]
 
@@ -19,7 +19,7 @@ function isValidStatus(value: string): value is ShipmentStatus {
 function ensureDeveloper(request: Request): NextResponse | null {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
 
-  if (!session || session.role !== "developer") {
+  if (!session || !sessionHasAnyRole(session, ["owner", "cargo_staff", "support_staff"])) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 })
   }
 

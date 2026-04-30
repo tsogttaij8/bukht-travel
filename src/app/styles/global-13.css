@@ -1,0 +1,99 @@
+﻿@media (max-width: 640px) {
+  .container {
+    width: min(1120px, calc(100vw - 32px));
+  }
+
+  .section {
+    padding: 40px 0;
+  }
+
+  .card-grid > * {
+    grid-column: span 12 !important;
+  }
+
+  .navbar-shell {
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+
+  .navbar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
+
+  .navbar-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .navbar-links.is-open {
+    display: flex;
+  }
+
+  .navbar-links-shell {
+    border-radius: 22px;
+  }
+
+  .navbar-brand-copy {
+    display: none;
+  }
+
+  .shop-hero-copy,
+  .shop-hero-panel,
+  .shop-info-panel,
+  .travel-hero-copy,
+  .travel-hero-visual,
+  .travel-info-card,
+  .cargo-hero-copy,
+  .cargo-price-card,
+  .cargo-step-card,
+  .cargo-tracker-shell,
+  .esim-hero-copy,
+  .esim-hero-panel,
+  .esim-plan-card,
+  .esim-flow-card,
+  .esim-payment-card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .shop-product-card,
+  .travel-city-card {
+    border-radius: 20px;
+  }
+
+  .travel-hero-photo,
+  .travel-city-visual {
+    min-height: 190px;
+  }
+
+  .cargo-price-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cargo-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .esim-hero-panel,
+  .esim-payment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer {
+    padding-top: 72px;
+  }
+
+  .site-footer-shell,
+  .whyus-shell {
+    padding: 22px;
+    border-radius: 24px;
+  }
+}

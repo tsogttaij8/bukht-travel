@@ -1,122 +1,64 @@
 import { randomUUID } from "node:crypto"
 import { getDb } from "./db"
+import { shouldFallbackToLocalDb } from "./shared-store"
 import { getSupabaseAdmin, isSupabaseEnabled } from "./supabase"
+import {
+  legacyRoleFromRoles,
+  mapUser,
+  nameFromEmail,
+  type LegacyUserRole,
+  type StoredUser,
+  type UserRow,
+  type UserRole,
+} from "./user-model"
+import { ensureUserRoles, readRolesByUserIds, writeUserRoles } from "./user-role-store"
 
-export type UserRole = "user" | "developer"
+export type { LegacyUserRole, StoredUser, UserRole } from "./user-model"
+export { canAccessAdmin, hasAnyRole, hasRole, nameFromEmail, normalizeUserRoles, userRoles } from "./user-model"
+export { updateUserAccess, upsertStaffUser } from "./user-access-store"
 
-export type StoredUser = {
-  id: string
-  name: string
-  email: string
-  role: UserRole
-  passwordHash?: string
-  createdAt: string
-}
-
-type UserRow = {
-  id: string
-  name: string
-  email: string
-  role: UserRole
-  created_at: string
-}
-
-function toErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message
-  if (typeof error === "string") return error
-  if (error && typeof error === "object") {
-    const maybeError = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown }
-    const parts = [
-      typeof maybeError.message === "string" ? maybeError.message : "",
-      typeof maybeError.details === "string" ? maybeError.details : "",
-      typeof maybeError.hint === "string" ? maybeError.hint : "",
-      typeof maybeError.code === "string" ? `code: ${maybeError.code}` : "",
-    ].filter(Boolean)
-    if (parts.length > 0) return parts.join(" | ")
-  }
-  return "Unknown error"
-}
-
-function shouldFallbackToLocalDb(error: unknown): boolean {
-  const message = toErrorMessage(error).toLowerCase()
-
-  return (
-    message.includes("fetch failed") ||
-    message.includes("getaddrinfo enotfound") ||
-    message.includes("enotfound") ||
-    message.includes("econnrefused") ||
-    message.includes("network") ||
-    message.includes("dns")
-  )
-}
+const userSelect = "id, clerk_user_id, name, email, role, status, created_at"
 
 export async function readUsers(): Promise<StoredUser[]> {
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase
-      .from("users")
-      .select("id, name, email, role, created_at")
-      .order("created_at", { ascending: false })
-
+    const { data, error } = await supabase.from("users").select(userSelect).order("created_at", { ascending: false })
     if (error) throw error
-
-    return (data ?? []).map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role === "developer" ? "developer" : "user",
-      createdAt: user.created_at,
-    }))
+    const rolesByUserId = await readRolesByUserIds((data ?? []).map((user) => user.id))
+    return (data ?? []).map((user) => mapUser(user, rolesByUserId.get(user.id) ?? []))
   }
 
   const db = await getDb()
-  const result = await db.query<UserRow>(
-    `SELECT id, name, email, role, created_at
-     FROM users
-     ORDER BY created_at DESC`
-  )
-
-  return result.rows.map((user) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role === "developer" ? "developer" : "user",
-    createdAt: user.created_at,
-  }))
+  const result = await db.query<UserRow>(`SELECT ${userSelect} FROM users ORDER BY created_at DESC`)
+  const rolesByUserId = await readRolesByUserIds(result.rows.map((user) => user.id), true)
+  return result.rows.map((user) => mapUser(user, rolesByUserId.get(user.id) ?? []))
 }
 
 export async function writeUsers(users: StoredUser[]): Promise<void> {
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin()
+    const { error: rolesDeleteError } = await supabase.from("user_roles").delete().neq("user_id", "")
+    if (rolesDeleteError) throw rolesDeleteError
     const { error: deleteError } = await supabase.from("users").delete().neq("id", "")
     if (deleteError) throw deleteError
-
     if (users.length === 0) return
-
-    const { error: insertError } = await supabase.from("users").insert(
-      users.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email.trim().toLowerCase(),
-        role: user.role,
-        created_at: user.createdAt,
-      }))
-    )
-
+    const { error: insertError } = await supabase.from("users").insert(users.map(toUserInsert))
     if (insertError) throw insertError
+    await writeUserRoles(users.map((user) => ({ userId: user.id, roles: user.roles })))
     return
   }
 
   const db = await getDb()
+  await db.exec("DELETE FROM user_roles")
   await db.exec("DELETE FROM users")
-
   for (const user of users) {
     await db.query(
-      `INSERT INTO users (id, name, email, role, created_at)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [user.id, user.name, user.email.trim().toLowerCase(), user.role, user.createdAt]
+      `INSERT INTO users (id, clerk_user_id, name, email, role, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [user.id, user.clerkUserId ?? null, user.name, user.email.trim().toLowerCase(), legacyRoleFromRoles(user.roles), user.status, user.createdAt]
     )
   }
+  await writeUserRoles(users.map((user) => ({ userId: user.id, roles: user.roles })), true)
 }
 
 export async function findUserByEmail(email: string): Promise<StoredUser | null> {
@@ -125,22 +67,11 @@ export async function findUserByEmail(email: string): Promise<StoredUser | null>
   if (isSupabaseEnabled()) {
     try {
       const supabase = getSupabaseAdmin()
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, name, email, role, created_at")
-        .eq("email", normalizedEmail)
-        .maybeSingle()
-
+      const { data, error } = await supabase.from("users").select(userSelect).eq("email", normalizedEmail).maybeSingle()
       if (error) throw error
       if (!data) return null
-
-      return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role === "developer" ? "developer" : "user",
-        createdAt: data.created_at,
-      }
+      const rolesByUserId = await readRolesByUserIds([data.id])
+      return mapUser(data, rolesByUserId.get(data.id) ?? [])
     } catch (error) {
       if (!shouldFallbackToLocalDb(error)) throw error
       console.warn("Falling back to local user DB because Supabase is unreachable.", error)
@@ -148,24 +79,11 @@ export async function findUserByEmail(email: string): Promise<StoredUser | null>
   }
 
   const db = await getDb()
-  const result = await db.query<UserRow>(
-    `SELECT id, name, email, role, created_at
-     FROM users
-     WHERE email = $1
-     LIMIT 1`,
-    [normalizedEmail]
-  )
-
+  const result = await db.query<UserRow>(`SELECT ${userSelect} FROM users WHERE email = $1 LIMIT 1`, [normalizedEmail])
   const user = result.rows[0]
   if (!user) return null
-
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role === "developer" ? "developer" : "user",
-    createdAt: user.created_at,
-  }
+  const rolesByUserId = await readRolesByUserIds([user.id], true)
+  return mapUser(user, rolesByUserId.get(user.id) ?? [])
 }
 
 export function isAdminEmail(email: string): boolean {
@@ -173,73 +91,23 @@ export function isAdminEmail(email: string): boolean {
     .split(",")
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean)
-
   return adminList.includes(email.trim().toLowerCase())
 }
 
-export function roleFromEmail(email: string): UserRole {
+export function roleFromEmail(email: string): LegacyUserRole {
   return isAdminEmail(email) ? "developer" : "user"
-}
-
-export function nameFromEmail(email: string): string {
-  return email.split("@")[0]?.trim() || "User"
 }
 
 export async function upsertUserByEmail(input: { email: string; name?: string }): Promise<StoredUser> {
   const email = input.email.trim().toLowerCase()
-  const role = roleFromEmail(email)
+  const defaultRoles: UserRole[] = isAdminEmail(email) ? ["owner"] : ["customer"]
+  const role = legacyRoleFromRoles(defaultRoles)
   const name = input.name?.trim() || nameFromEmail(email)
   const createdAt = new Date().toISOString()
 
   if (isSupabaseEnabled()) {
     try {
-      const supabase = getSupabaseAdmin()
-      const { data: inserted, error: insertError } = await supabase
-        .from("users")
-        .insert({
-          id: randomUUID(),
-          name,
-          email,
-          role,
-          created_at: createdAt,
-        })
-        .select("id, name, email, role, created_at")
-        .single()
-
-      if (!insertError && inserted) {
-        return {
-          id: inserted.id,
-          name: inserted.name,
-          email: inserted.email,
-          role: inserted.role === "developer" ? "developer" : "user",
-          createdAt: inserted.created_at,
-        }
-      }
-
-      if (insertError?.code !== "23505") throw insertError
-
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({ name, role })
-        .eq("email", email)
-
-      if (updateError) throw updateError
-
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, name, email, role, created_at")
-        .eq("email", email)
-        .single()
-
-      if (error) throw error
-
-      return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        role: data.role === "developer" ? "developer" : "user",
-        createdAt: data.created_at,
-      }
+      return await upsertSupabaseUser({ email, name, role, defaultRoles, createdAt })
     } catch (error) {
       if (!shouldFallbackToLocalDb(error)) throw error
       console.warn("Saving user to local DB because Supabase is unreachable.", error)
@@ -248,20 +116,58 @@ export async function upsertUserByEmail(input: { email: string; name?: string })
 
   const db = await getDb()
   const result = await db.query<UserRow>(
-    `INSERT INTO users (id, name, email, role, created_at)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO users (id, name, email, role, status, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
      ON CONFLICT (email)
-     DO UPDATE SET name = EXCLUDED.name, role = EXCLUDED.role
-     RETURNING id, name, email, role, created_at`,
-    [randomUUID(), name, email, role, createdAt]
+     DO UPDATE SET name = EXCLUDED.name
+     RETURNING ${userSelect}`,
+    [randomUUID(), name, email, role, "active", createdAt]
   )
-
   const user = result.rows[0]
+  const roles = (await readRolesByUserIds([user.id], true)).get(user.id) ?? defaultRoles
+  await ensureUserRoles(user.id, roles, true)
+  return mapUser(user, roles)
+}
+
+async function upsertSupabaseUser(input: {
+  email: string
+  name: string
+  role: LegacyUserRole
+  defaultRoles: UserRole[]
+  createdAt: string
+}): Promise<StoredUser> {
+  const supabase = getSupabaseAdmin()
+  const { data: inserted, error: insertError } = await supabase.from("users").insert({
+    id: randomUUID(),
+    name: input.name,
+    email: input.email,
+    role: input.role,
+    status: "active",
+    created_at: input.createdAt,
+  }).select(userSelect).single()
+  if (!insertError && inserted) {
+    await ensureUserRoles(inserted.id, input.defaultRoles)
+    return mapUser(inserted, input.defaultRoles)
+  }
+  if (insertError?.code !== "23505") throw insertError
+  const { error: updateError } = await supabase.from("users").update({ name: input.name }).eq("email", input.email)
+  if (updateError) throw updateError
+  const { data, error } = await supabase.from("users").select(userSelect).eq("email", input.email).single()
+  if (error) throw error
+  const roles = (await readRolesByUserIds([data.id])).get(data.id) ?? input.defaultRoles
+  await ensureUserRoles(data.id, roles)
+  return mapUser(data, roles)
+}
+
+function toUserInsert(user: StoredUser) {
   return {
     id: user.id,
+    clerk_user_id: user.clerkUserId ?? null,
     name: user.name,
-    email: user.email,
-    role: user.role === "developer" ? "developer" : "user",
-    createdAt: user.created_at,
+    email: user.email.trim().toLowerCase(),
+    role: legacyRoleFromRoles(user.roles),
+    status: user.status,
+    created_at: user.createdAt,
   }
 }
+

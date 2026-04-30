@@ -36,8 +36,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ message: "Хэрэглэгч олдсонгүй" }, { status: 404 })
   }
 
-  const response = NextResponse.json({ user: { name: user.name, email: user.email, role: user.role } }, { status: 200 })
-  response.cookies.set(sessionConfig.name, createSessionToken(user.name, user.email, user.role), {
+  if (user.status === "disabled") {
+    return NextResponse.json({ message: "Энэ хэрэглэгчийн эрх идэвхгүй байна" }, { status: 403 })
+  }
+
+  const response = NextResponse.json({ user: { name: user.name, email: user.email, role: user.role, roles: user.roles } }, { status: 200 })
+  response.cookies.set(sessionConfig.name, createSessionToken(user.name, user.email, user.roles), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

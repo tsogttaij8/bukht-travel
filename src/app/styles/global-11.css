@@ -1,0 +1,166 @@
+﻿.esim-hero-copy,
+.esim-hero-panel,
+.esim-plan-card,
+.esim-flow-card,
+.esim-payment-card {
+  border-radius: 28px;
+  border: 1px solid rgba(143, 183, 196, 0.3);
+  box-shadow: 0 24px 64px rgba(18, 64, 84, 0.08);
+}
+
+.esim-hero-copy {
+  padding: 34px;
+  background:
+    radial-gradient(circle at top left, rgba(214, 245, 255, 0.92), transparent 34%),
+    linear-gradient(180deg, rgba(246, 252, 255, 0.98), rgba(233, 246, 250, 0.9));
+}
+
+.esim-eyebrow {
+  display: inline-flex;
+  padding: 9px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(17, 126, 156, 0.08);
+  color: #0d6b86;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.esim-perk-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.esim-perk-list span {
+  display: inline-flex;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(141, 196, 214, 0.34);
+  color: #1e4f61;
+  font-weight: 700;
+}
+
+.esim-hero-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(175, 240, 255, 0.26), transparent 28%),
+    linear-gradient(160deg, rgba(14, 47, 63, 0.98), rgba(23, 111, 133, 0.92));
+  color: #fff;
+}
+
+.esim-signal-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.esim-signal-card p,
+.esim-hero-chip,
+.esim-plan-card p,
+.esim-step-item p {
+  margin: 0;
+}
+
+.esim-signal-card p {
+  color: rgba(227, 246, 250, 0.78);
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.esim-signal-card strong {
+  font-size: 1.4rem;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.esim-hero-chip {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(239, 251, 255, 0.94);
+  font-weight: 700;
+}
+
+.esim-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.esim-plan-card {
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 250, 252, 0.84));
+}
+
+.esim-plan-badge {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+  background: rgba(17, 126, 156, 0.09);
+  color: #0d6b86;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.esim-plan-card h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.esim-plan-price {
+  margin-bottom: 10px;
+  color: #113c4f;
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.esim-plan-card p {
+  color: #56707a;
+  line-height: 1.65;
+}
+
+.esim-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 18px;
+}
+
+.esim-flow-card,
+.esim-payment-card {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.esim-flow-card h3,
+.esim-payment-card h3 {
+  margin-top: 0;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.esim-step-list {
+  display: grid;
+  gap: 12px;
+}
+
+.esim-step-item {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+

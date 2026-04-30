@@ -1,0 +1,169 @@
+﻿.travel-muted-box {
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(255, 252, 247, 0.72);
+  border: 1px solid rgba(216, 185, 138, 0.4);
+  color: #6b5b4c;
+  font-weight: 600;
+}
+
+.travel-city-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.travel-city-card {
+  overflow: hidden;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.74), transparent 26%),
+    linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(255, 244, 229, 0.8));
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.travel-city-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 52px rgba(111, 78, 49, 0.14);
+}
+
+.travel-city-visual {
+  min-height: 210px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 18px;
+}
+
+.travel-city-visual::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  background:
+    linear-gradient(90deg,
+      rgba(18, 18, 18, 0.96) 0 10%,
+      transparent 10% 13%,
+      rgba(18, 18, 18, 0.96) 13% 19%,
+      transparent 19% 24%,
+      rgba(18, 18, 18, 0.95) 24% 31%,
+      transparent 31% 36%,
+      rgba(18, 18, 18, 0.95) 36% 45%,
+      transparent 45% 50%,
+      rgba(18, 18, 18, 0.97) 50% 60%,
+      transparent 60% 65%,
+      rgba(18, 18, 18, 0.95) 65% 72%,
+      transparent 72% 78%,
+      rgba(18, 18, 18, 0.96) 78% 100%);
+}
+
+.travel-city-visual span {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.travel-city-visual-guangzhou {
+  background:
+    radial-gradient(circle at 74% 18%, rgba(255, 241, 205, 0.95), rgba(255, 241, 205, 0.12) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(31, 78, 145, 0.94), rgba(241, 170, 109, 0.45) 62%, rgba(22, 22, 22, 0.92) 100%);
+}
+
+.travel-city-visual-yiwu {
+  background:
+    radial-gradient(circle at 24% 16%, rgba(255, 247, 217, 0.95), rgba(255, 247, 217, 0.12) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(67, 112, 164, 0.92), rgba(237, 196, 126, 0.44) 58%, rgba(27, 27, 27, 0.94) 100%);
+}
+
+.travel-city-visual-shenzhen {
+  background:
+    radial-gradient(circle at 72% 18%, rgba(226, 248, 255, 0.94), rgba(226, 248, 255, 0.14) 18%, transparent 19%),
+    linear-gradient(180deg, rgba(20, 109, 139, 0.96), rgba(94, 199, 209, 0.34) 54%, rgba(21, 21, 21, 0.95) 100%);
+}
+
+.travel-city-copy {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.travel-city-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.travel-city-topline h3 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.travel-city-topline span {
+  display: inline-flex;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(216, 185, 138, 0.22);
+  color: var(--brown-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.travel-city-copy p,
+.travel-benefit-list p,
+.travel-step-item p {
+  margin: 0;
+  color: #58514a;
+  line-height: 1.6;
+}
+
+.travel-city-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.travel-city-tags span {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 252, 247, 0.88);
+  border: 1px solid rgba(216, 185, 138, 0.38);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.travel-split-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.travel-info-card {
+  padding: 24px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 28%),
+    linear-gradient(180deg, rgba(255, 251, 245, 0.94), rgba(255, 246, 233, 0.82));
+  box-shadow: 0 24px 46px rgba(123, 89, 58, 0.1);
+}
+
+.travel-info-card-accent {
+  background:
+    radial-gradient(circle at top right, rgba(255, 221, 179, 0.42), transparent 24%),
+    linear-gradient(180deg, rgba(250, 235, 216, 0.98), rgba(238, 217, 193, 0.88));
+}
+
+.travel-step-list,
+.travel-benefit-list {
+  display: grid;
+  gap: 14px;
+}
+

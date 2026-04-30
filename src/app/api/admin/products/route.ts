@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
 import { createProduct, listProducts } from "../../../../lib/server/product-store"
-import { readSessionFromCookieHeader } from "../../../../lib/server/session"
+import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
 function ensureDeveloper(request: Request): NextResponse | null {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
 
-  if (!session || session.role !== "developer") {
+  if (!session || !sessionHasAnyRole(session, ["owner", "cargo_staff"])) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 })
   }
 

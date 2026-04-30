@@ -1,10 +1,12 @@
-export type UserRole = "user" | "developer"
+export type UserRole = "owner" | "cargo_staff" | "travel_staff" | "esim_staff" | "finance_staff" | "support_staff" | "customer"
+export type LegacyUserRole = "user" | "developer"
 export type LoginFlowMode = "register" | "login"
 
 export type SessionUser = {
   name: string
   email: string
-  role: UserRole
+  role: LegacyUserRole
+  roles: UserRole[]
 }
 
 export type UserProfile = {
@@ -143,6 +145,21 @@ export async function verifyLoginCode(email: string, code: string): Promise<(Api
 
   if (!response.ok) {
     return { ok: false, message: await parseError(response, "Нэвтрэхэд алдаа гарлаа") }
+  }
+
+  try {
+    const body = (await response.json()) as { user?: SessionUser }
+    return { ok: true, user: body.user }
+  } catch {
+    return { ok: true }
+  }
+}
+
+export async function syncClerkSession(): Promise<(ApiResult & { user?: SessionUser })> {
+  const response = await fetch("/api/auth/clerk-sync", { method: "POST", cache: "no-store" })
+
+  if (!response.ok) {
+    return { ok: false, message: await parseError(response, "Clerk session holbohod aldaa garlaa") }
   }
 
   try {

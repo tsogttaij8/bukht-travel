@@ -1,0 +1,170 @@
+﻿.glass-panel-dark {
+  background: linear-gradient(180deg, rgba(29, 29, 29, 0.84), rgba(29, 29, 29, 0.68));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 26px 70px rgba(17, 17, 17, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.glass-card-dark {
+  background: linear-gradient(180deg, rgba(45, 45, 45, 0.82), rgba(34, 34, 34, 0.7));
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-inset {
+  background: rgba(255, 251, 245, 0.48);
+  border: 1px solid rgba(228, 216, 198, 0.7);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.home-section {
+  position: relative;
+}
+
+.home-section-services::before,
+.home-section::before {
+  content: "";
+  position: absolute;
+  inset: 18px auto auto 4vw;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 226, 187, 0.24), transparent 68%);
+  pointer-events: none;
+}
+
+.home-service-grid {
+  position: relative;
+}
+
+.home-service-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.home-service-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(192, 140, 84, 0.9);
+  box-shadow: 0 28px 50px rgba(120, 86, 54, 0.16);
+}
+
+.home-service-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(124, 76, 49, 0.96), rgba(241, 188, 112, 0.92));
+  color: var(--white);
+  font-family: var(--font-heading), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.whyus-shell {
+  background:
+    radial-gradient(circle at top right, rgba(255, 205, 136, 0.18), transparent 22%),
+    linear-gradient(135deg, #2b1f19, #6d4028);
+  color: #fff;
+  border-radius: 34px;
+  padding: 40px 28px;
+  box-shadow: 0 34px 70px rgba(56, 33, 21, 0.26);
+}
+
+.whyus-card {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 243, 230, 0.12), rgba(255, 228, 196, 0.06));
+  border-color: rgba(255, 219, 184, 0.16);
+  min-height: 168px;
+}
+
+.feature-grid {
+  align-items: stretch;
+}
+
+.feature-card {
+  min-height: 170px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 233, 196, 0.5), transparent 22%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(255, 241, 222, 0.76));
+}
+
+.feature-card-tall {
+  min-height: 240px;
+}
+
+.site-footer {
+  padding: 96px 0 40px;
+}
+
+.site-footer-shell {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 28px 30px;
+  border: 1px solid rgba(226, 207, 181, 0.84);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.72), transparent 28%),
+    linear-gradient(180deg, rgba(255, 251, 246, 0.94), rgba(251, 241, 226, 0.82));
+  box-shadow: 0 28px 54px rgba(117, 85, 57, 0.12);
+}
+
+.hero-primary-panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.78), transparent 32%),
+    radial-gradient(circle at 20% 78%, rgba(255, 211, 153, 0.22), transparent 24%),
+    radial-gradient(circle at 85% 18%, rgba(240, 189, 114, 0.28), transparent 20%),
+    linear-gradient(145deg, rgba(255, 249, 241, 0.97), rgba(245, 231, 212, 0.95));
+  border: 1px solid rgba(226, 205, 172, 0.92);
+  border-radius: 24px;
+  padding: 42px 34px;
+  box-shadow:
+    0 28px 56px rgba(116, 82, 49, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.hero-primary-panel::after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -60px auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 222, 167, 0.46), transparent 68%);
+  pointer-events: none;
+}
+
+.hero-floating-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.hero-floating-orb-one {
+  top: 26px;
+  right: 34px;
+  width: 74px;
+  height: 74px;
+  background: radial-gradient(circle, rgba(255, 214, 151, 0.52), rgba(255, 214, 151, 0.06) 72%);
+}
+
+.hero-floating-orb-two {
+  bottom: 82px;
+  right: 126px;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(185, 109, 70, 0.34), rgba(185, 109, 70, 0.02) 72%);
+}
+

@@ -1,4 +1,4 @@
-import { pageSection, sectionKicker, sectionTitle, shell } from "./ui/tw"
+import { pageSection, sectionTitle, shell } from "./ui/tw"
 
 const reasons = [
   ["Найдвартай", "Баталгаатай процесс, тогтмол статус мэдээлэл."],
