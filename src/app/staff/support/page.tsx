@@ -16,11 +16,10 @@ export default async function SupportStaffPage() {
           <p className="section-subtitle" style={{ marginBottom: 24 }}>
             Сайн байна уу, {session.name}. Хэрэглэгчийн лавлагаа болон shipment төлөв шалгах хэсэг.
           </p>
-          <DeveloperDashboard currentRoles={["support_staff"]} />
+          <DeveloperDashboard currentRoles={["support_staff"]} currentUser={{ name: session.name, email: session.email }} />
         </div>
       </main>
       <Footer />
     </>
   )
 }
-

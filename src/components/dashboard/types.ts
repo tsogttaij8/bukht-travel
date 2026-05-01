@@ -1,4 +1,5 @@
 import type { StoredProduct } from "../../lib/server/product-store"
+import type { StoredEsimPackage } from "../../lib/server/esim-package-store"
 import type { ShipmentEvent, ShipmentStatus, StoredShipment } from "../../lib/server/shipment-store"
 import type { StoredTravelPackage, TravelItineraryDay } from "../../lib/server/travel-package-store"
 import type { StoredUser, UserRole } from "../../lib/server/user-store"
@@ -25,6 +26,15 @@ export type ProductForm = {
   leadTime: string
   badge: string
   summary: string
+}
+
+export type EsimPackageForm = {
+  name: string
+  dataAmount: string
+  validity: string
+  price: string
+  note: string
+  badge: string
 }
 
 export type TravelPackageForm = {
@@ -68,6 +78,7 @@ export type ShipmentUpdateState = Record<
 export type DashboardData = {
   users: StoredUser[]
   products: StoredProduct[]
+  esimPackages: StoredEsimPackage[]
   travelPackages: StoredTravelPackage[]
   shipments: DashboardShipment[]
 }

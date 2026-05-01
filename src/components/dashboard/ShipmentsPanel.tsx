@@ -17,7 +17,7 @@ type ShipmentsPanelProps = {
 
 export function ShipmentCreatePanel(props: ShipmentsPanelProps) {
   return (
-    <section className="card developer-panel">
+    <section className="office-panel developer-panel">
       <h3 style={{ marginBottom: 16 }}>Шинэ shipment үүсгэх</h3>
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
         <Input field="trackingCode" placeholder="Tracking код" {...props} />
@@ -40,7 +40,7 @@ export function ShipmentCreatePanel(props: ShipmentsPanelProps) {
 
 export function ShipmentListPanel(props: ShipmentsPanelProps) {
   return (
-    <section className="card developer-panel">
+    <section className="office-panel developer-panel">
       <h3 style={{ marginBottom: 16 }}>Shipment удирдлага</h3>
       <div style={{ display: "grid", gap: 16 }}>{props.shipments.map((shipment) => <ShipmentCard key={shipment.id} shipment={shipment} {...props} />)}</div>
     </section>
@@ -52,7 +52,7 @@ function ShipmentCard(props: ShipmentsPanelProps & { shipment: DashboardShipment
   const update = (patch: Partial<typeof current>) => props.setUpdateState((state) => ({ ...state, [props.shipment.trackingCode]: { ...current, ...patch } }))
 
   return (
-    <article className="developer-item-card" style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
+    <article className="office-row developer-item-card">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
         <div><strong>{props.shipment.trackingCode}</strong><p style={{ margin: "6px 0 0" }}>{props.shipment.customerName} - {props.shipment.origin} -&gt; {props.shipment.destination}</p></div>
         <span style={{ fontWeight: 700, color: "#8a5a3c" }}>{labelForStatus(props.shipment.currentStatus)}</span>
@@ -75,4 +75,3 @@ function ShipmentCard(props: ShipmentsPanelProps & { shipment: DashboardShipment
 function Input(props: ShipmentsPanelProps & { field: keyof ShipmentForm; placeholder: string }) {
   return <input value={props.form[props.field]} onChange={(event) => props.setForm((state) => ({ ...state, [props.field]: event.target.value }))} placeholder={props.placeholder} className="admin-input" />
 }
-

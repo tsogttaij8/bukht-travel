@@ -5,7 +5,7 @@ import { createSessionToken, readSessionFromCookieHeader, sessionConfig, type Se
 import { findUserByEmail, isAdminEmail, upsertUserByEmail, type StoredUser, type UserRole } from "../../../../lib/server/user-store"
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const payload = readSessionFromCookieHeader(request.headers.get("cookie") ?? "") ?? (await clerkPayload())
+  const payload = await refreshPayload(readSessionFromCookieHeader(request.headers.get("cookie") ?? "")) ?? (await clerkPayload())
 
   if (!payload) {
     return NextResponse.json({ user: null }, { status: 200 })
@@ -22,6 +22,17 @@ export async function GET(request: Request): Promise<NextResponse> {
     maxAge: sessionConfig.maxAge,
   })
   return response
+}
+
+async function refreshPayload(payload: SessionPayload | null): Promise<SessionPayload | null> {
+  if (!payload) return null
+  try {
+    const user = await findUserByEmail(payload.email)
+    if (!user || user.status === "disabled") return payload
+    return { name: user.name, email: user.email, role: user.role, roles: user.roles, exp: payload.exp }
+  } catch {
+    return payload
+  }
 }
 
 async function clerkPayload(): Promise<SessionPayload | null> {

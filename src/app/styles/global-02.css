@@ -40,25 +40,16 @@
 .developer-page {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 10% 14%, rgba(255, 214, 157, 0.34), transparent 22%),
-    radial-gradient(circle at 92% 18%, rgba(255, 241, 218, 0.84), transparent 24%),
-    linear-gradient(180deg, rgba(255, 248, 240, 0.9), rgba(246, 234, 216, 0.94));
+  background: #f7f8fa;
 }
 
 .developer-page-shell {
   position: relative;
   padding: 28px;
-  border-radius: 34px;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 252, 247, 0.48), rgba(255, 244, 227, 0.28));
-  background-size: 32px 32px, 32px 32px, auto;
-  border: 1px solid rgba(236, 212, 182, 0.74);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
-    0 28px 62px rgba(131, 93, 58, 0.12);
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .btn {
@@ -161,4 +152,3 @@
   box-shadow: var(--glass-shadow);
   backdrop-filter: blur(22px);
 }
-

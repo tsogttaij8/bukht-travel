@@ -29,11 +29,111 @@
   position: relative;
 }
 
+.office-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #cfd6df;
+  border-bottom: 1px solid #cfd6df;
+  padding: 18px 0;
+  margin-bottom: 18px;
+}
+
+.office-header p,
+.office-header h2,
+.office-header span {
+  margin: 0;
+}
+
+.office-header p {
+  color: #667085;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.office-header h2 {
+  margin-top: 6px;
+  color: #172033;
+  font-size: 1.45rem;
+}
+
+.office-header span {
+  display: block;
+  margin-top: 4px;
+  color: #516071;
+  font-weight: 700;
+}
+
+.office-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #cfd6df;
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+
+.office-tabs button {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #516071;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 14px 18px 12px;
+}
+
+.office-tabs button:hover,
+.office-tabs button.active {
+  color: #172033;
+  border-bottom-color: #172033;
+}
+
+.office-panel {
+  border-top: 1px solid #d8dee7;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 24px 0 28px;
+}
+
+.office-panel + .office-panel,
+.office-panel + .card-grid,
+.card-grid + .office-panel {
+  margin-top: 4px;
+}
+
+.office-panel h3 {
+  margin-top: 0;
+  color: #172033;
+}
+
+.office-row {
+  border-top: 1px solid #d8dee7;
+  padding: 16px 0;
+  background: transparent;
+}
+
+.office-row:last-child {
+  border-bottom: 1px solid #d8dee7;
+}
+
+.office-metric {
+  border-top: 1px solid #d8dee7;
+  padding: 18px 0;
+  background: transparent;
+}
+
+.office-metric h3 {
+  margin: 0 0 8px;
+  color: #172033;
+}
+
+.office-metric p {
+  margin: 0;
+  color: #516071;
+  font-weight: 600;
+}
+
 .developer-stat-card {
-  background:
-    radial-gradient(circle at top right, rgba(255, 219, 167, 0.44), transparent 26%),
-    linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(255, 239, 214, 0.82));
-  border-color: rgba(231, 194, 150, 0.9);
   min-height: 148px;
 }
 
@@ -47,11 +147,7 @@
 }
 
 .developer-panel {
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.74), transparent 28%),
-    linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(255, 243, 224, 0.82));
-  border-color: rgba(231, 205, 173, 0.9);
-  box-shadow: 0 28px 52px rgba(123, 88, 55, 0.12);
+  color: #172033;
 }
 
 .developer-panel h3 {
@@ -72,9 +168,8 @@
 }
 
 .developer-item-card {
-  background: linear-gradient(180deg, rgba(255, 253, 250, 0.94), rgba(255, 243, 224, 0.78));
-  border-color: rgba(229, 200, 165, 0.9) !important;
-  box-shadow: 0 18px 36px rgba(121, 87, 54, 0.08);
+  background: transparent;
+  box-shadow: none;
 }
 
 .developer-timeline-item {
@@ -165,4 +260,3 @@
   gap: 10px;
   margin-top: 24px;
 }
-

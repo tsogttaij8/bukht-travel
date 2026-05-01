@@ -6,13 +6,12 @@ import type { StaffAccessDraft } from "./types"
 
 export function useStaffAccess(users: StoredUser[], setUsers: (updater: (users: StoredUser[]) => StoredUser[]) => void) {
   const [form, setForm] = useState({
-    name: "",
     email: "",
     roles: ["cargo_staff"] as UserRole[],
-    status: "active" as "active" | "disabled",
   })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
+  const [notice, setNotice] = useState("")
   const [drafts, setDrafts] = useState<Record<string, StaffAccessDraft>>({})
   const totalStaff = useMemo(() => users.filter((user) => user.roles.some((role) => role !== "customer")).length, [users])
   const activeStaff = useMemo(
@@ -48,19 +47,17 @@ export function useStaffAccess(users: StoredUser[], setUsers: (updater: (users: 
   async function createStaffUser(): Promise<void> {
     setBusy(true)
     setError("")
-    const response = await fetch("/api/admin/users", {
+    setNotice("")
+    const response = await fetch("/api/admin/role-invites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     })
-    const body = (await response.json()) as { user?: StoredUser; message?: string }
+    const body = (await response.json()) as { inviteUrl?: string; message?: string }
     setBusy(false)
-    if (!response.ok || !body.user) return setError(body.message ?? "Ажилтан хадгалахад алдаа гарлаа")
-    setUsers((current) => {
-      const exists = current.some((user) => user.id === body.user!.id)
-      return exists ? current.map((user) => (user.id === body.user!.id ? body.user! : user)) : [body.user!, ...current]
-    })
-    setForm({ name: "", email: "", roles: ["cargo_staff"], status: "active" })
+    if (!response.ok) return setError(body.message ?? "Invite илгээхэд алдаа гарлаа")
+    setNotice(body.inviteUrl ? `Invite үүслээ: ${body.inviteUrl}` : "Invite имэйлээр илгээгдлээ.")
+    setForm({ email: "", roles: ["cargo_staff"] })
   }
 
   async function saveUserAccess(user: StoredUser): Promise<void> {
@@ -81,6 +78,5 @@ export function useStaffAccess(users: StoredUser[], setUsers: (updater: (users: 
     })
   }
 
-  return { form, setForm, busy, error, totalStaff, activeStaff, getDraft, updateDraft, toggleFormRole, toggleUserRole, createStaffUser, saveUserAccess }
+  return { form, setForm, busy, error, notice, totalStaff, activeStaff, getDraft, updateDraft, toggleFormRole, toggleUserRole, createStaffUser, saveUserAccess }
 }
-

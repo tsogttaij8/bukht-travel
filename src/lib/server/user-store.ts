@@ -18,6 +18,7 @@ export { canAccessAdmin, hasAnyRole, hasRole, nameFromEmail, normalizeUserRoles,
 export { updateUserAccess, upsertStaffUser } from "./user-access-store"
 
 const userSelect = "id, clerk_user_id, name, email, role, status, created_at"
+const bootstrapAdminEmails = ["tsogttaij8@gmail.com"]
 
 export async function readUsers(): Promise<StoredUser[]> {
   if (isSupabaseEnabled()) {
@@ -71,7 +72,12 @@ export async function findUserByEmail(email: string): Promise<StoredUser | null>
       if (error) throw error
       if (!data) return null
       const rolesByUserId = await readRolesByUserIds([data.id])
-      return mapUser(data, rolesByUserId.get(data.id) ?? [])
+      const roles = rolesByUserId.get(data.id) ?? []
+      if (isAdminEmail(normalizedEmail) && !roles.includes("owner")) {
+        await ensureUserRoles(data.id, ["owner"])
+        return mapUser(data, ["owner"])
+      }
+      return mapUser(data, roles)
     } catch (error) {
       if (!shouldFallbackToLocalDb(error)) throw error
       console.warn("Falling back to local user DB because Supabase is unreachable.", error)
@@ -83,7 +89,12 @@ export async function findUserByEmail(email: string): Promise<StoredUser | null>
   const user = result.rows[0]
   if (!user) return null
   const rolesByUserId = await readRolesByUserIds([user.id], true)
-  return mapUser(user, rolesByUserId.get(user.id) ?? [])
+  const roles = rolesByUserId.get(user.id) ?? []
+  if (isAdminEmail(normalizedEmail) && !roles.includes("owner")) {
+    await ensureUserRoles(user.id, ["owner"], true)
+    return mapUser(user, ["owner"])
+  }
+  return mapUser(user, roles)
 }
 
 export function isAdminEmail(email: string): boolean {
@@ -91,6 +102,7 @@ export function isAdminEmail(email: string): boolean {
     .split(",")
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean)
+    .concat(bootstrapAdminEmails)
   return adminList.includes(email.trim().toLowerCase())
 }
 
@@ -125,6 +137,10 @@ export async function upsertUserByEmail(input: { email: string; name?: string })
   )
   const user = result.rows[0]
   const roles = (await readRolesByUserIds([user.id], true)).get(user.id) ?? defaultRoles
+  if (defaultRoles.includes("owner") && !roles.includes("owner")) {
+    await ensureUserRoles(user.id, defaultRoles, true)
+    return mapUser(user, defaultRoles)
+  }
   await ensureUserRoles(user.id, roles, true)
   return mapUser(user, roles)
 }
@@ -170,4 +186,3 @@ function toUserInsert(user: StoredUser) {
     created_at: user.createdAt,
   }
 }
-

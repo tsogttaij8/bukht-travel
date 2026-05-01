@@ -25,7 +25,7 @@ export default function DashboardStats(props: DashboardStatsProps) {
 
 function Stat({ title, value }: { title: string; value: string }) {
   return (
-    <article className="card developer-stat-card" style={{ gridColumn: "span 4" }}>
+    <article className="office-metric developer-stat-card" style={{ gridColumn: "span 4" }}>
       <h3>{title}</h3>
       <p>{value}</p>
     </article>

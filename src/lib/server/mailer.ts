@@ -14,18 +14,36 @@ function getMailPayload(email: string, code: string, fromEmail: string) {
   }
 }
 
+function getRoleInvitePayload(email: string, inviteUrl: string, roles: string[], fromEmail: string) {
+  const roleText = roles.join(", ")
+  return {
+    from: fromEmail,
+    to: email,
+    subject: "BUKHT role invite",
+    text: `Танд BUKHT дээр ${roleText} эрхийн invite ирлээ. Accept хийх: ${inviteUrl}`,
+    html: `<p>Танд BUKHT дээр <strong>${roleText}</strong> эрхийн invite ирлээ.</p><p><a href="${inviteUrl}">Invite accept хийх</a></p>`,
+  }
+}
+
 export async function sendLoginCodeEmail(email: string, code: string): Promise<MailDeliveryResult> {
+  return sendMailPayload(getMailPayload(email, code, process.env.MAIL_FROM ?? "no-reply@bukht.mn"))
+}
+
+export async function sendRoleInviteEmail(email: string, inviteUrl: string, roles: string[]): Promise<MailDeliveryResult> {
+  return sendMailPayload(getRoleInvitePayload(email, inviteUrl, roles, process.env.MAIL_FROM ?? "no-reply@bukht.mn"))
+}
+
+async function sendMailPayload(payload: { from: string; to: string; subject: string; text: string; html: string }): Promise<MailDeliveryResult> {
   const resendApiKey = process.env.RESEND_API_KEY
   const resendAudience = process.env.RESEND_AUDIENCE_ID
   const mailrunUrl = process.env.MAILRUN_API_URL
   const mailrunKey = process.env.MAILRUN_API_KEY
-  const fromEmail = process.env.MAIL_FROM ?? "no-reply@bukht.mn"
+  const fromEmail = payload.from
   const smtpHost = process.env.SMTP_HOST
   const smtpPort = Number(process.env.SMTP_PORT ?? "587")
   const smtpUser = process.env.SMTP_USER
   const smtpPass = process.env.SMTP_PASS
   const smtpSecure = process.env.SMTP_SECURE === "true" || smtpPort === 465
-  const payload = getMailPayload(email, code, fromEmail)
   const hasPartialSmtpConfig = Boolean(smtpHost || smtpUser || smtpPass) && !(smtpHost && smtpUser && smtpPass)
 
   if (smtpHost && smtpUser && smtpPass) {
@@ -42,7 +60,7 @@ export async function sendLoginCodeEmail(email: string, code: string): Promise<M
 
     await transporter.sendMail({
       from: effectiveFrom,
-      to: email,
+      to: payload.to,
       subject: payload.subject,
       text: payload.text,
       html: payload.html,
@@ -106,6 +124,6 @@ export async function sendLoginCodeEmail(email: string, code: string): Promise<M
     return { mode: "email", provider: "mailrun" }
   }
 
-  console.log(`[AUTH DEV] login code for ${email}: ${code}`)
+  console.log(`[MAIL DEV] ${payload.subject} for ${payload.to}: ${payload.text}`)
   return { mode: "dev", provider: "console" }
 }

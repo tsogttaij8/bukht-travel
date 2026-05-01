@@ -62,11 +62,9 @@ export default function AccountDashboard({ initialServiceType, initialTitle }: A
       }
       setUser(session.user)
       setProfileForm(createProfileState(session.profile))
-      const [profile, serviceRequests, shipmentList] = await Promise.all([
-        readAccountApi<{ profile?: UserProfile }>("/api/account/profile"),
-        readAccountApi<{ requests?: ServiceRequest[] }>("/api/account/service-requests"),
-        readAccountApi<{ shipments?: ShipmentTracking[] }>("/api/account/shipments"),
-      ])
+      const profile = await readAccountApi<{ profile?: UserProfile }>("/api/account/profile")
+      const serviceRequests = await readAccountApi<{ requests?: ServiceRequest[] }>("/api/account/service-requests")
+      const shipmentList = await readAccountApi<{ shipments?: ShipmentTracking[] }>("/api/account/shipments")
       if (!active) return
       if (profile.profile) setProfileForm(createProfileState(profile.profile))
       setRequests(serviceRequests.requests ?? [])
@@ -190,4 +188,3 @@ function ShipmentList({ shipments }: { shipments: ShipmentTracking[] }) {
 function Input(props: { value: string; placeholder: string; onChange: (value: string) => void }) {
   return <input className="admin-input" placeholder={props.placeholder} value={props.value} onChange={(event) => props.onChange(event.target.value)} />
 }
-

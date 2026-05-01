@@ -20,6 +20,18 @@ export async function initSchema(db: PGlite): Promise<void> {
       PRIMARY KEY (user_id, role)
     );
     CREATE INDEX IF NOT EXISTS user_roles_role_idx ON user_roles (role);
+    CREATE TABLE IF NOT EXISTS role_invites (
+      id TEXT PRIMARY KEY,
+      token TEXT NOT NULL UNIQUE,
+      email TEXT NOT NULL,
+      roles TEXT NOT NULL,
+      invited_by_email TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('pending', 'accepted')),
+      created_at TEXT NOT NULL,
+      accepted_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS role_invites_email_idx ON role_invites (email);
+    CREATE INDEX IF NOT EXISTS role_invites_status_idx ON role_invites (status);
     CREATE TABLE IF NOT EXISTS login_codes (email TEXT NOT NULL, code_hash TEXT NOT NULL, expires_at BIGINT NOT NULL);
     CREATE INDEX IF NOT EXISTS login_codes_email_idx ON login_codes (email);
     CREATE UNIQUE INDEX IF NOT EXISTS login_codes_email_unique_idx ON login_codes (email);
@@ -63,6 +75,18 @@ export async function initSchema(db: PGlite): Promise<void> {
       updated_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS products_updated_at_idx ON products (updated_at);
+    CREATE TABLE IF NOT EXISTS esim_packages (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      data_amount TEXT NOT NULL,
+      validity TEXT NOT NULL,
+      price TEXT NOT NULL,
+      note TEXT NOT NULL,
+      badge TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS esim_packages_updated_at_idx ON esim_packages (updated_at);
     CREATE TABLE IF NOT EXISTS travel_packages (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,

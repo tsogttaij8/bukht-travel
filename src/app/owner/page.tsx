@@ -16,7 +16,7 @@ export default async function OwnerPage() {
           <p className="section-subtitle" style={{ marginBottom: 24 }}>
             Сайн байна уу, {session.name}. Энд staff эрх, аялал нийтлэх, бараа болон shipment удирдлагын хэсгүүд байна.
           </p>
-          <DeveloperDashboard currentRoles={["owner"]} />
+          <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} />
         </div>
       </main>
       <Footer />

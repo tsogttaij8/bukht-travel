@@ -3,8 +3,8 @@
     "id": "ab478a9d-c8b5-4031-862d-392d24ef16e1",
     "name": "bielgt",
     "email": "tsogttaij8@gmail.com",
-    "role": "user",
-    "roles": ["customer"],
+    "role": "developer",
+    "roles": ["owner"],
     "createdAt": "2026-03-05T06:15:07.015Z"
   }
 ]

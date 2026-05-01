@@ -14,7 +14,7 @@ export default async function TravelStaffPage() {
           <span className="section-kicker">Travel staff</span>
           <h1 className="section-title">Travel operations</h1>
           <p className="section-subtitle" style={{ marginBottom: 24 }}>Сайн байна уу, {session.name}. Аялал нийтлэх, үнэ болон хөтөлбөрийн мэдээлэл удирдах хэсэг.</p>
-          <DeveloperDashboard currentRoles={["travel_staff"]} />
+          <DeveloperDashboard currentRoles={["travel_staff"]} currentUser={{ name: session.name, email: session.email }} />
         </div>
       </main>
       <Footer />

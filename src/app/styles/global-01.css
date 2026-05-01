@@ -1,8 +1,8 @@
 ﻿@import "tailwindcss";
 
 :root {
-  --font-body: "Avenir Next", "Segoe UI", "Noto Sans", sans-serif;
-  --font-heading: "Montserrat", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Segoe UI", "Noto Sans", Arial, sans-serif;
+  --font-heading: "Inter", "Segoe UI", "Noto Sans", Arial, sans-serif;
   --sand: #d8b98a;
   --brown: #8a5a3c;
   --brown-deep: #71452f;
@@ -29,6 +29,10 @@ body {
   padding: 0;
 }
 
+html {
+  min-height: 100%;
+}
+
 body {
   font-family: var(--font-body), sans-serif;
   color: var(--charcoal);
@@ -39,6 +43,29 @@ body {
     linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(216, 185, 138, 0.14)),
     #f7f3ed;
   min-height: 100vh;
+}
+
+body > div,
+body > main,
+body > footer {
+  flex-shrink: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+body > main,
+body > div:has(> main) {
+  flex: 1 0 auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
 }
 
 body::before {
@@ -164,4 +191,3 @@ a {
   font-weight: 700;
   cursor: pointer;
 }
-

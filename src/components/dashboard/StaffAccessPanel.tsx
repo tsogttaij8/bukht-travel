@@ -4,9 +4,10 @@ import type { StaffAccessDraft } from "./types"
 
 type StaffAccessPanelProps = {
   users: StoredUser[]
-  form: { name: string; email: string; roles: UserRole[]; status: "active" | "disabled" }
+  form: { email: string; roles: UserRole[] }
   busy: boolean
   error: string
+  notice: string
   activeStaff: number
   setForm: (updater: (form: StaffAccessPanelProps["form"]) => StaffAccessPanelProps["form"]) => void
   getDraft: (user: StoredUser) => StaffAccessDraft
@@ -19,11 +20,11 @@ type StaffAccessPanelProps = {
 
 export default function StaffAccessPanel(props: StaffAccessPanelProps) {
   return (
-    <section className="card developer-panel">
+    <section className="office-panel developer-panel">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
         <div>
-          <h3 style={{ marginBottom: 6 }}>Staff access</h3>
-          <p style={{ margin: 0, color: "#6b5b4c" }}>Owner эндээс ажилтан нэмнэ, олон role онооно, role хасна.</p>
+          <h3 style={{ marginBottom: 6 }}>Owner & role access</h3>
+          <p style={{ margin: 0, color: "#6b5b4c" }}>Нэвтэрсэн хэрэглэгчээс сонгоод role invite илгээнэ. Accept хийсний дараа тухайн role идэвхжинэ.</p>
         </div>
         <strong style={{ color: "#6a513e" }}>{props.activeStaff} active staff</strong>
       </div>
@@ -39,17 +40,18 @@ function StaffForm(props: StaffAccessPanelProps) {
   return (
     <>
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-        <input value={props.form.name} onChange={(event) => props.setForm((state) => ({ ...state, name: event.target.value }))} placeholder="Ажилтны нэр" className="admin-input" />
-        <input value={props.form.email} onChange={(event) => props.setForm((state) => ({ ...state, email: event.target.value }))} placeholder="Имэйл" className="admin-input" />
-        <select value={props.form.status} onChange={(event) => props.setForm((state) => ({ ...state, status: event.target.value as "active" | "disabled" }))} className="admin-input">
-          <option value="active">Active</option>
-          <option value="disabled">Disabled</option>
+        <select value={props.form.email} onChange={(event) => props.setForm((state) => ({ ...state, email: event.target.value }))} className="admin-input">
+          <option value="">Нэвтэрсэн хэрэглэгч сонгох</option>
+          {props.users.map((user) => (
+            <option key={user.id} value={user.email}>{user.name} - {user.email}</option>
+          ))}
         </select>
       </div>
       <RoleGrid roles={props.form.roles} onToggle={props.toggleFormRole} />
       {props.error ? <p style={{ margin: "12px 0 0", color: "#b42318", fontWeight: 700 }}>{props.error}</p> : null}
+      {props.notice ? <p style={{ margin: "12px 0 0", color: "#1d6b42", fontWeight: 700 }}>{props.notice}</p> : null}
       <button className="btn btn-primary" type="button" style={{ marginTop: 12 }} onClick={props.createStaffUser} disabled={props.busy}>
-        {props.busy ? "Хадгалж байна..." : "Ажилтан нэмэх / шинэчлэх"}
+        {props.busy ? "Invite илгээж байна..." : "Role invite илгээх"}
       </button>
     </>
   )
@@ -59,7 +61,7 @@ function StaffRow(props: StaffAccessPanelProps & { user: StoredUser }) {
   const draft = props.getDraft(props.user)
 
   return (
-    <article className="developer-item-card" style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
+    <article className="office-row developer-item-card">
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
         <input value={draft.name} onChange={(event) => props.updateDraft(props.user, { name: event.target.value })} className="admin-input" />
         <input value={props.user.email} className="admin-input" disabled />
@@ -89,4 +91,3 @@ function RoleGrid(props: { roles: UserRole[]; onToggle: (role: UserRole) => void
     </div>
   )
 }
-

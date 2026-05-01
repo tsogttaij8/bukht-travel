@@ -15,8 +15,8 @@ type TravelPackagesPanelProps = {
 
 export function TravelPackageCreatePanel(props: TravelPackagesPanelProps) {
   return (
-    <section className="card developer-panel">
-      <h3 style={{ marginBottom: 16 }}>Нүүр хэсэгт аялал нэмэх</h3>
+    <section className="office-panel developer-panel">
+      <h3 style={{ marginBottom: 16 }}>Аялал нэмэх</h3>
       <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" }}>
         <Input field="title" placeholder="Аяллын нэр" {...props} />
         <Input field="location" placeholder="Байршил" {...props} />
@@ -67,11 +67,11 @@ export function TravelPackageCreatePanel(props: TravelPackagesPanelProps) {
 
 export function TravelPackageListPanel({ travelPackages }: { travelPackages: StoredTravelPackage[] }) {
   return (
-    <section className="card developer-panel">
+    <section className="office-panel developer-panel">
       <h3 style={{ marginBottom: 16 }}>Зарлагдсан аялалууд</h3>
       <div style={{ display: "grid", gap: 14 }}>
         {travelPackages.map((item) => (
-          <article key={item.id} className="developer-item-card" style={{ border: "1px solid #e5ddcf", borderRadius: 14, padding: 16 }}>
+          <article key={item.id} className="office-row developer-item-card">
             <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
               <div className="travel-admin-thumb" style={{ backgroundImage: `url(${item.heroImage})` }} />
               <div style={{ flex: "1 1 260px" }}>
