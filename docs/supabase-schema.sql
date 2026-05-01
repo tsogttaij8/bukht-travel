@@ -135,6 +135,36 @@ create table if not exists public.products (
 
 create index if not exists products_updated_at_idx on public.products (updated_at);
 
+create table if not exists public.travel_packages (
+  id text primary key,
+  title text not null,
+  slug text not null unique,
+  location text not null,
+  category text not null,
+  duration text not null,
+  group_size text not null,
+  transport text not null,
+  hotel text not null,
+  language text not null,
+  start_date text not null,
+  hero_image text not null,
+  gallery_images jsonb not null default '[]'::jsonb,
+  summary text not null,
+  adult_price integer not null,
+  child_price integer not null,
+  infant_price integer not null,
+  single_room_price integer not null,
+  included jsonb not null default '[]'::jsonb,
+  excluded jsonb not null default '[]'::jsonb,
+  itinerary jsonb not null default '[]'::jsonb,
+  warning text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists travel_packages_updated_at_idx on public.travel_packages (updated_at);
+create index if not exists travel_packages_slug_idx on public.travel_packages (slug);
+
 create table if not exists public.user_profiles (
   user_id text primary key references public.users(id) on delete cascade,
   email text not null unique,

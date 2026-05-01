@@ -41,8 +41,7 @@ async function syncUser(email: string, name: string): Promise<StoredUser> {
     const user = await upsertUserByEmail({ email, name })
     await ensureUserProfile(user)
     return user
-  } catch (error) {
-    console.error("Using Clerk session without local profile because persistence failed.", error)
+  } catch {
     const roles: UserRole[] = isAdminEmail(email) ? ["owner"] : ["customer"]
     return { id: `clerk:${email}`, name, email: email.trim().toLowerCase(), role: roles.includes("owner") ? "developer" : "user", roles, status: "active", createdAt: new Date().toISOString() }
   }
@@ -52,8 +51,7 @@ async function readProfile(email: string) {
   try {
     const user = await findUserByEmail(email)
     return user ? (await findUserProfileByEmail(email)) ?? (await ensureUserProfile(user)) : null
-  } catch (error) {
-    console.error("Account profile skipped because persistence failed.", error)
+  } catch {
     return null
   }
 }

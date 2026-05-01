@@ -3,15 +3,17 @@
 import { useEffect, useState } from "react"
 import type { StoredProduct } from "../../lib/server/product-store"
 import type { StoredShipment } from "../../lib/server/shipment-store"
+import type { StoredTravelPackage } from "../../lib/server/travel-package-store"
 import type { StoredUser } from "../../lib/server/user-store"
 import type { DashboardData } from "./types"
 
 export function useDashboardData(options: {
   isOwner: boolean
   canManageProducts: boolean
+  canManageTravelPackages: boolean
   canManageShipments: boolean
 }) {
-  const [data, setData] = useState<DashboardData>({ users: [], products: [], shipments: [] })
+  const [data, setData] = useState<DashboardData>({ users: [], products: [], travelPackages: [], shipments: [] })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
 
@@ -23,15 +25,16 @@ export function useDashboardData(options: {
       setLoadError("")
 
       try {
-        const [usersResult, productsResult, shipmentsResult] = await Promise.allSettled([
+        const [usersResult, productsResult, travelPackagesResult, shipmentsResult] = await Promise.allSettled([
           options.isOwner ? fetch("/api/admin/users", { cache: "no-store" }) : Promise.resolve(null),
           options.canManageProducts ? fetch("/api/admin/products", { cache: "no-store" }) : Promise.resolve(null),
+          options.canManageTravelPackages ? fetch("/api/admin/travel-packages", { cache: "no-store" }) : Promise.resolve(null),
           options.canManageShipments ? fetch("/api/admin/shipments", { cache: "no-store" }) : Promise.resolve(null),
         ])
 
         if (!active) return
 
-        const next: DashboardData = { users: [], products: [], shipments: [] }
+        const next: DashboardData = { users: [], products: [], travelPackages: [], shipments: [] }
         const errors: string[] = []
 
         if (options.isOwner && usersResult.status === "fulfilled" && usersResult.value) {
@@ -49,6 +52,15 @@ export function useDashboardData(options: {
             next.products = body.products ?? []
           } else {
             errors.push(body.message ?? "Failed to load products.")
+          }
+        }
+
+        if (options.canManageTravelPackages && travelPackagesResult.status === "fulfilled" && travelPackagesResult.value) {
+          const body = (await travelPackagesResult.value.json()) as { travelPackages?: StoredTravelPackage[]; message?: string }
+          if (travelPackagesResult.value.ok) {
+            next.travelPackages = body.travelPackages ?? []
+          } else {
+            errors.push(body.message ?? "Failed to load travel packages.")
           }
         }
 
@@ -78,7 +90,7 @@ export function useDashboardData(options: {
     return () => {
       active = false
     }
-  }, [options.canManageProducts, options.canManageShipments, options.isOwner])
+  }, [options.canManageProducts, options.canManageShipments, options.canManageTravelPackages, options.isOwner])
 
   return { data, setData, loading, loadError }
 }

@@ -63,6 +63,34 @@ export async function initSchema(db: PGlite): Promise<void> {
       updated_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS products_updated_at_idx ON products (updated_at);
+    CREATE TABLE IF NOT EXISTS travel_packages (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      location TEXT NOT NULL,
+      category TEXT NOT NULL,
+      duration TEXT NOT NULL,
+      group_size TEXT NOT NULL,
+      transport TEXT NOT NULL,
+      hotel TEXT NOT NULL,
+      language TEXT NOT NULL,
+      start_date TEXT NOT NULL,
+      hero_image TEXT NOT NULL,
+      gallery_images TEXT NOT NULL DEFAULT '[]',
+      summary TEXT NOT NULL,
+      adult_price INTEGER NOT NULL,
+      child_price INTEGER NOT NULL,
+      infant_price INTEGER NOT NULL,
+      single_room_price INTEGER NOT NULL,
+      included TEXT NOT NULL DEFAULT '[]',
+      excluded TEXT NOT NULL DEFAULT '[]',
+      itinerary TEXT NOT NULL DEFAULT '[]',
+      warning TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS travel_packages_updated_at_idx ON travel_packages (updated_at);
+    CREATE INDEX IF NOT EXISTS travel_packages_slug_idx ON travel_packages (slug);
     CREATE TABLE IF NOT EXISTS user_profiles (
       user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       email TEXT NOT NULL UNIQUE,
@@ -91,4 +119,3 @@ export async function initSchema(db: PGlite): Promise<void> {
     CREATE INDEX IF NOT EXISTS service_requests_status_idx ON service_requests (status);
   `)
 }
-

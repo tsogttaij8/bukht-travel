@@ -1,5 +1,6 @@
 import type { StoredProduct } from "../../lib/server/product-store"
 import type { ShipmentEvent, ShipmentStatus, StoredShipment } from "../../lib/server/shipment-store"
+import type { StoredTravelPackage, TravelItineraryDay } from "../../lib/server/travel-package-store"
 import type { StoredUser, UserRole } from "../../lib/server/user-store"
 
 export type DashboardShipment = StoredShipment & {
@@ -26,6 +27,29 @@ export type ProductForm = {
   summary: string
 }
 
+export type TravelPackageForm = {
+  title: string
+  location: string
+  category: string
+  duration: string
+  groupSize: string
+  transport: string
+  hotel: string
+  language: string
+  startDate: string
+  heroImage: string
+  galleryImagesText: string
+  summary: string
+  adultPrice: string
+  childPrice: string
+  infantPrice: string
+  singleRoomPrice: string
+  includedText: string
+  excludedText: string
+  itinerary: TravelItineraryDay[]
+  warning: string
+}
+
 export type ShipmentForm = {
   trackingCode: string
   customerName: string
@@ -44,6 +68,6 @@ export type ShipmentUpdateState = Record<
 export type DashboardData = {
   users: StoredUser[]
   products: StoredProduct[]
+  travelPackages: StoredTravelPackage[]
   shipments: DashboardShipment[]
 }
-

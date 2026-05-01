@@ -12,9 +12,9 @@ export default async function OwnerPage() {
       <main className="section developer-page">
         <div className="container developer-page-shell">
           <span className="section-kicker">Owner console</span>
-          <h1 className="section-title">Staff access</h1>
+          <h1 className="section-title">Owner workspace</h1>
           <p className="section-subtitle" style={{ marginBottom: 24 }}>
-            Сайн байна уу, {session.name}. Owner хэсэгт зөвхөн ажилтны эрх, role, status удирдана.
+            Сайн байна уу, {session.name}. Энд staff эрх, аялал нийтлэх, бараа болон shipment удирдлагын хэсгүүд байна.
           </p>
           <DeveloperDashboard currentRoles={["owner"]} />
         </div>
@@ -23,4 +23,3 @@ export default async function OwnerPage() {
     </>
   )
 }
-

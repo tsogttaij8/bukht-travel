@@ -1,6 +1,6 @@
+import DeveloperDashboard from "../../../components/DeveloperDashboard"
 import Footer from "../../../components/Footer"
 import Navbar from "../../../components/Navbar"
-import StaffRoleConsole from "../../../components/StaffRoleConsole"
 import { requireRole } from "../../../lib/server/role-guard"
 
 export default async function TravelStaffPage() {
@@ -13,16 +13,11 @@ export default async function TravelStaffPage() {
         <div className="container developer-page-shell">
           <span className="section-kicker">Travel staff</span>
           <h1 className="section-title">Travel operations</h1>
-          <p className="section-subtitle" style={{ marginBottom: 24 }}>Сайн байна уу, {session.name}.</p>
-          <StaffRoleConsole
-            title="Travel workspace"
-            summary="Аяллын хүсэлт, booking, itinerary болон хэрэглэгчтэй холбогдох ажлууд энэ role-д тусгаарлагдана."
-            panels={["Travel requests", "Bookings", "Itinerary notes"]}
-          />
+          <p className="section-subtitle" style={{ marginBottom: 24 }}>Сайн байна уу, {session.name}. Аялал нийтлэх, үнэ болон хөтөлбөрийн мэдээлэл удирдах хэсэг.</p>
+          <DeveloperDashboard currentRoles={["travel_staff"]} />
         </div>
       </main>
       <Footer />
     </>
   )
 }
-

@@ -31,8 +31,7 @@ async function syncUser(email: string, name: string): Promise<StoredUser> {
     const user = await upsertUserByEmail({ email, name })
     await ensureUserProfile(user)
     return user
-  } catch (error) {
-    console.error("Clerk user synced without local DB because local persistence failed.", error)
+  } catch {
     const roles: UserRole[] = isAdminEmail(email) ? ["owner"] : ["customer"]
     return {
       id: `clerk:${email}`,
