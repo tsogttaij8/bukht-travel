@@ -5,7 +5,7 @@ import { ensureUserProfile } from "../../../../lib/server/customer-store"
 import { isAdminEmail, upsertUserByEmail, type StoredUser, type UserRole } from "../../../../lib/server/user-store"
 
 export async function POST(): Promise<NextResponse> {
-  const { userId } = await auth()
+  const { userId } = await auth({ acceptsToken: "session_token" })
   if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
 
   const clerkUser = await currentUser()

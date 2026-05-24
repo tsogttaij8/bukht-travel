@@ -155,8 +155,18 @@ export async function verifyLoginCode(email: string, code: string): Promise<(Api
   }
 }
 
-export async function syncClerkSession(): Promise<(ApiResult & { user?: SessionUser })> {
-  const response = await fetch("/api/auth/clerk-sync", { method: "POST", cache: "no-store" })
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export async function syncClerkSession(token?: string | null): Promise<(ApiResult & { user?: SessionUser })> {
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined
+  let response = await fetch("/api/auth/clerk-sync", { method: "POST", cache: "no-store", headers })
+
+  for (let attempt = 0; response.status === 401 && attempt < 3; attempt += 1) {
+    await wait(250 * (attempt + 1))
+    response = await fetch("/api/auth/clerk-sync", { method: "POST", cache: "no-store", headers })
+  }
 
   if (!response.ok) {
     return { ok: false, message: await parseError(response, "Clerk session holbohod aldaa garlaa") }

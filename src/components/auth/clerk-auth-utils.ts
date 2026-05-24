@@ -26,6 +26,11 @@ export function clerkMessage(error: unknown): string {
   return errors?.[0]?.longMessage ?? errors?.[0]?.message ?? (error instanceof Error ? error.message : "Алдаа гарлаа.")
 }
 
+export function isAlreadySignedInError(error: unknown): boolean {
+  const message = clerkMessage(error).toLowerCase()
+  return message.includes("already signed in") || message.includes("already signed")
+}
+
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }

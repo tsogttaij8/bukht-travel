@@ -21,7 +21,7 @@ export default function ClerkAuthShell() {
   const nextPath = searchParams.get("next")
 
   const goLanding = useCallback(() => {
-    router.push(loginTarget(nextPath))
+    router.replace(loginTarget(nextPath))
     router.refresh()
   }, [nextPath, router])
 

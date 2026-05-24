@@ -7,6 +7,51 @@ import { getSupabaseAdmin, isSupabaseEnabled } from "./supabase"
 export type { StoredProduct } from "./product-model"
 
 const productSelect = "id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at"
+const fallbackProducts: StoredProduct[] = [
+  {
+    id: "fallback-kitchen-storage-set",
+    name: "Kitchen Storage Set",
+    category: "Ger ahui",
+    price: "29,900 - 69,900 MNT",
+    moq: "MOQ 12",
+    origin: "Guangzhou",
+    leadTime: "7-10 honog",
+    badge: "Hot deal",
+    summary: "Home goods and reseller-friendly storage bundle.",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "fallback-mini-beauty-device",
+    name: "Mini Beauty Device",
+    category: "Goo saihan",
+    price: "48,000 - 118,000 MNT",
+    moq: "MOQ 6",
+    origin: "Shenzhen",
+    leadTime: "5-8 honog",
+    badge: "Trending",
+    summary: "Compact beauty gadget suited for online sales.",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+  {
+    id: "fallback-streetwear-capsule",
+    name: "Streetwear Capsule",
+    category: "Huvtsas",
+    price: "39,000 - 92,000 MNT",
+    moq: "MOQ 20",
+    origin: "Hangzhou",
+    leadTime: "8-12 honog",
+    badge: "New arrival",
+    summary: "Youth-focused capsule collection for small batches.",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+  },
+]
+
+declare global {
+  var __buhktProductsUseFallback: boolean | undefined
+}
 
 export async function listProducts(): Promise<StoredProduct[]> {
   if (isSupabaseEnabled()) {
@@ -21,13 +66,23 @@ export async function listProducts(): Promise<StoredProduct[]> {
     }
   }
 
-  const db = await getDb()
-  const result = await db.query<ProductRow>(
-    `SELECT id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at
-     FROM products
-     ORDER BY updated_at DESC`
-  )
-  return result.rows.map(mapProduct)
+  if (globalThis.__buhktProductsUseFallback) {
+    return fallbackProducts
+  }
+
+  try {
+    const db = await getDb()
+    const result = await db.query<ProductRow>(
+      `SELECT id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at
+       FROM products
+       ORDER BY updated_at DESC`
+    )
+    return result.rows.map(mapProduct)
+  } catch (error) {
+    globalThis.__buhktProductsUseFallback = true
+    console.warn("Falling back to bundled shop products because the local product DB is unavailable.", error)
+    return fallbackProducts
+  }
 }
 
 export async function createProduct(input: {
@@ -109,4 +164,3 @@ function toProductRow(product: StoredProduct): ProductRow {
     updated_at: product.updatedAt,
   }
 }
-

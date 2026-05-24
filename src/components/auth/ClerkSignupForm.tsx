@@ -1,13 +1,16 @@
 "use client"
 
+import { useAuth } from "@clerk/nextjs"
 import { useSignUp } from "@clerk/nextjs/legacy"
 import { useState } from "react"
+import { syncClerkSession } from "../../lib/auth"
 import FloatingField from "./FloatingField"
 import PasswordMeter from "./PasswordMeter"
 import { clerkMessage, isStrongPassword, normalizeEmail } from "./clerk-auth-utils"
 
 export default function ClerkSignupForm(props: { onRegistered: (email: string) => void }) {
-  const { isLoaded, signUp } = useSignUp()
+  const { getToken } = useAuth()
+  const { isLoaded, signUp, setActive } = useSignUp()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -68,6 +71,10 @@ export default function ClerkSignupForm(props: { onRegistered: (email: string) =
     try {
       const result = await signUp.attemptEmailAddressVerification({ code: code.trim() })
       if (result.status === "complete") {
+        if (result.createdSessionId) {
+          await setActive({ session: result.createdSessionId })
+          await syncClerkSession(await getToken())
+        }
         props.onRegistered(normalizeEmail(email))
         return
       }

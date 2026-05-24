@@ -36,7 +36,7 @@ async function refreshPayload(payload: SessionPayload | null): Promise<SessionPa
 }
 
 async function clerkPayload(): Promise<SessionPayload | null> {
-  const { userId } = await auth()
+  const { userId } = await auth({ acceptsToken: "session_token" })
   if (!userId) return null
   const clerkUser = await currentUser()
   const email = clerkUser?.primaryEmailAddress?.emailAddress
