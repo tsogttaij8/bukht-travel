@@ -24,24 +24,31 @@ import type { DashboardShipment } from "./dashboard/types"
 type DeveloperDashboardProps = {
   currentRoles: UserRole[]
   currentUser?: { name: string; email: string }
+  enabledTabs?: DashboardTab[]
 }
 
 type DashboardTab = "access" | "travel" | "commerce" | "esim" | "cargo"
 
-export default function DeveloperDashboard({ currentRoles, currentUser }: DeveloperDashboardProps) {
+export default function DeveloperDashboard({ currentRoles, currentUser, enabledTabs }: DeveloperDashboardProps) {
+  const tabEnabled = (tab: DashboardTab) => !enabledTabs || enabledTabs.includes(tab)
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
-    if (currentRoles.includes("owner")) return "access"
-    if (currentRoles.includes("travel_staff")) return "travel"
-    if (currentRoles.includes("cargo_staff")) return "commerce"
-    if (currentRoles.includes("esim_staff")) return "esim"
+    if (currentRoles.includes("owner") && tabEnabled("access")) return "access"
+    if (currentRoles.includes("travel_staff") && tabEnabled("travel")) return "travel"
+    if (currentRoles.includes("cargo_staff") && tabEnabled("commerce")) return "commerce"
+    if (currentRoles.includes("esim_staff") && tabEnabled("esim")) return "esim"
+    if (tabEnabled("travel")) return "travel"
+    if (tabEnabled("commerce")) return "commerce"
+    if (tabEnabled("esim")) return "esim"
+    if (tabEnabled("cargo")) return "cargo"
     return "cargo"
   })
   const isOwner = currentRoles.includes("owner")
-  const canManageProducts = isOwner || currentRoles.includes("cargo_staff")
-  const canManageTravelPackages = isOwner || currentRoles.includes("travel_staff")
-  const canManageEsimPackages = isOwner || currentRoles.includes("esim_staff")
-  const canManageShipments = isOwner || currentRoles.includes("cargo_staff") || currentRoles.includes("support_staff")
-  const { data, setData, loading, loadError } = useDashboardData({ isOwner, canManageProducts, canManageEsimPackages, canManageTravelPackages, canManageShipments })
+  const canManageAccess = tabEnabled("access") && isOwner
+  const canManageProducts = tabEnabled("commerce") && (isOwner || currentRoles.includes("cargo_staff"))
+  const canManageTravelPackages = tabEnabled("travel") && (isOwner || currentRoles.includes("travel_staff"))
+  const canManageEsimPackages = tabEnabled("esim") && (isOwner || currentRoles.includes("esim_staff"))
+  const canManageShipments = tabEnabled("cargo") && (isOwner || currentRoles.includes("cargo_staff") || currentRoles.includes("support_staff"))
+  const { data, setData, loading, loadError } = useDashboardData({ isOwner: canManageAccess, canManageProducts, canManageEsimPackages, canManageTravelPackages, canManageShipments })
   const setUsers = (updater: (users: StoredUser[]) => StoredUser[]) => setData((state) => ({ ...state, users: updater(state.users) }))
   const setProducts = (updater: (products: StoredProduct[]) => StoredProduct[]) => setData((state) => ({ ...state, products: updater(state.products) }))
   const setEsimPackages = (updater: (packages: StoredEsimPackage[]) => StoredEsimPackage[]) => setData((state) => ({ ...state, esimPackages: updater(state.esimPackages) }))
@@ -58,12 +65,13 @@ export default function DeveloperDashboard({ currentRoles, currentUser }: Develo
   }
 
   const tabs: Array<{ value: DashboardTab; label: string; visible: boolean }> = [
-    { value: "access", label: "Эрх", visible: isOwner },
+    { value: "access", label: "Эрх", visible: canManageAccess },
     { value: "travel", label: "Аялал", visible: canManageTravelPackages },
     { value: "commerce", label: "Худалдаа", visible: canManageProducts },
     { value: "esim", label: "eSIM", visible: canManageEsimPackages },
     { value: "cargo", label: "Карго", visible: canManageShipments },
   ]
+  const visibleTabs = tabs.filter((tab) => tab.visible && tabEnabled(tab.value))
 
   return (
     <div className="developer-dashboard">
@@ -75,7 +83,7 @@ export default function DeveloperDashboard({ currentRoles, currentUser }: Develo
         </div>
       </div>
       <nav className="office-tabs" aria-label="Owner sections">
-        {tabs.filter((tab) => tab.visible).map((tab) => (
+        {visibleTabs.map((tab) => (
           <button key={tab.value} type="button" className={activeTab === tab.value ? "active" : ""} onClick={() => setActiveTab(tab.value)}>
             {tab.label}
           </button>
@@ -83,10 +91,10 @@ export default function DeveloperDashboard({ currentRoles, currentUser }: Develo
       </nav>
 
       {loadError ? <section className="office-panel"><p style={{ margin: 0, color: "#b42318", fontWeight: 700 }}>{loadError}</p></section> : null}
-      {activeTab === "access" && isOwner ? (
+      {activeTab === "access" && canManageAccess ? (
         <>
           <StaffAccessPanel users={data.users} {...staff} />
-          <DashboardStats isOwner={isOwner} canManageProducts={canManageProducts} canManageTravelPackages={canManageTravelPackages} canManageShipments={canManageShipments} totalStaff={staff.totalStaff} data={data} />
+          <DashboardStats isOwner={canManageAccess} canManageProducts={canManageProducts} canManageTravelPackages={canManageTravelPackages} canManageShipments={canManageShipments} totalStaff={staff.totalStaff} data={data} />
           <UsersPanel users={data.users} />
         </>
       ) : null}

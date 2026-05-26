@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
+import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
 import Image from "next/image"
@@ -28,10 +29,12 @@ const perks = [
 export default async function EsimPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get(sessionConfig.name)?.value
+  const session = token ? verifySessionToken(token) : null
 
-  if (!token || !verifySessionToken(token)) {
+  if (!session) {
     redirect(`/login?next=${encodeURIComponent("/esim")}`)
   }
+  const isOwner = session.roles.includes("owner")
 
   return (
     <>
@@ -129,6 +132,11 @@ export default async function EsimPage() {
               <Link href="/login" className="btn btn-secondary">Имэйлээр бүртгүүлэх</Link>
             </div>
           </section>
+          {isOwner ? (
+            <section style={{ marginTop: 28 }}>
+              <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["esim"]} />
+            </section>
+          ) : null}
         </div>
       </main>
 

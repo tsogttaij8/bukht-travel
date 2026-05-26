@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Navbar from "../../components/Navbar"
 import CargoTracker from "../../components/CargoTrecker"
 import Footer from "../../components/Footer"
@@ -30,10 +31,12 @@ const cargoSteps = [
 export default async function CargoPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get(sessionConfig.name)?.value
+  const session = token ? verifySessionToken(token) : null
 
-  if (!token || !verifySessionToken(token)) {
+  if (!session) {
     redirect(`/login?next=${encodeURIComponent("/cargo")}`)
   }
+  const isOwner = session.roles.includes("owner")
 
   return (
     <>
@@ -109,6 +112,11 @@ export default async function CargoPage() {
               <Link href="/login" className="btn btn-secondary">Имэйлээр нэвтрэх</Link>
             </div>
           </section>
+          {isOwner ? (
+            <section style={{ marginTop: 28 }}>
+              <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["cargo"]} />
+            </section>
+          ) : null}
         </section>
       </div>
 

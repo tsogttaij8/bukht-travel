@@ -14,9 +14,9 @@ export default async function OwnerPage() {
           <span className="section-kicker">Owner console</span>
           <h1 className="section-title">Owner workspace</h1>
           <p className="section-subtitle" style={{ marginBottom: 24 }}>
-            Сайн байна уу, {session.name}. Энд staff эрх, аялал нийтлэх, бараа болон shipment удирдлагын хэсгүүд байна.
+            Сайн байна уу, {session.name}. Энд staff эрх өгөх, шилжүүлэх, хасах удирдлага байна.
           </p>
-          <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} />
+          <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["access"]} />
         </div>
       </main>
       <Footer />

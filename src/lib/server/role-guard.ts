@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { roleHomePath } from "../role-path"
 import { sessionConfig, sessionHasRole, verifySessionToken, type SessionPayload } from "./session"
-import { findUserByEmail } from "./user-store"
+import { findUserByEmail, upsertUserByEmail } from "./user-store"
 import type { UserRole } from "./user-store"
 
 export async function requireRole(role: UserRole): Promise<SessionPayload> {
@@ -41,8 +41,9 @@ export async function requireAnyStaffRole(): Promise<SessionPayload> {
 async function refreshSession(session: SessionPayload | null): Promise<SessionPayload | null> {
   if (!session) return null
   try {
-    const user = await findUserByEmail(session.email)
-    if (!user || user.status === "disabled") return session
+    const existingUser = await findUserByEmail(session.email)
+    if (existingUser?.status === "disabled") return null
+    const user = existingUser ?? (await upsertUserByEmail({ email: session.email, name: session.name }))
     return { ...session, name: user.name, email: user.email, role: user.role, roles: user.roles }
   } catch {
     return session

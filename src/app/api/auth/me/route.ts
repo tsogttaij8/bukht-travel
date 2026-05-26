@@ -27,8 +27,10 @@ export async function GET(request: Request): Promise<NextResponse> {
 async function refreshPayload(payload: SessionPayload | null): Promise<SessionPayload | null> {
   if (!payload) return null
   try {
-    const user = await findUserByEmail(payload.email)
-    if (!user || user.status === "disabled") return payload
+    const existingUser = await findUserByEmail(payload.email)
+    if (existingUser?.status === "disabled") return null
+    const user = existingUser ?? (await upsertUserByEmail({ email: payload.email, name: payload.name }))
+    await ensureUserProfile(user)
     return { name: user.name, email: user.email, role: user.role, roles: user.roles, exp: payload.exp }
   } catch {
     return payload
