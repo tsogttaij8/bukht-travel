@@ -1,25 +1,17 @@
-import DeveloperDashboard from "../../components/DeveloperDashboard"
-import Footer from "../../components/Footer"
-import Navbar from "../../components/Navbar"
+import OwnerDashboard from "../../components/owner/OwnerDashboard"
+import OwnerWorkspaceShell from "../../components/owner/OwnerWorkspaceShell"
 import { requireRole } from "../../lib/server/role-guard"
 
 export default async function OwnerPage() {
   const session = await requireRole("owner")
 
   return (
-    <>
-      <Navbar />
-      <main className="section developer-page">
-        <div className="container developer-page-shell">
-          <span className="section-kicker">Owner console</span>
-          <h1 className="section-title">Owner workspace</h1>
-          <p className="section-subtitle" style={{ marginBottom: 24 }}>
-            Сайн байна уу, {session.name}. Энд staff эрх өгөх, шилжүүлэх, хасах удирдлага байна.
-          </p>
-          <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["access"]} />
-        </div>
-      </main>
-      <Footer />
-    </>
+    <OwnerWorkspaceShell
+      title="Platform dashboard"
+      description="Manage BUKHT business modules from one owner workspace."
+      user={{ name: session.name, email: session.email }}
+    >
+      <OwnerDashboard />
+    </OwnerWorkspaceShell>
   )
 }

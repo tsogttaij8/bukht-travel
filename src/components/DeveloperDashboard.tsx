@@ -31,6 +31,7 @@ type DashboardTab = "access" | "travel" | "commerce" | "esim" | "cargo"
 
 export default function DeveloperDashboard({ currentRoles, currentUser, enabledTabs }: DeveloperDashboardProps) {
   const tabEnabled = (tab: DashboardTab) => !enabledTabs || enabledTabs.includes(tab)
+  const travelOnlyScope = Boolean(enabledTabs && enabledTabs.length === 1 && enabledTabs.includes("travel"))
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
     if (currentRoles.includes("owner") && tabEnabled("access")) return "access"
     if (currentRoles.includes("travel_staff") && tabEnabled("travel")) return "travel"
@@ -48,7 +49,7 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
   const canManageTravelPackages = tabEnabled("travel") && (isOwner || currentRoles.includes("travel_staff"))
   const canManageEsimPackages = tabEnabled("esim") && (isOwner || currentRoles.includes("esim_staff"))
   const canManageShipments = tabEnabled("cargo") && (isOwner || currentRoles.includes("cargo_staff") || currentRoles.includes("support_staff"))
-  const { data, setData, loading, loadError } = useDashboardData({ isOwner: canManageAccess, canManageProducts, canManageEsimPackages, canManageTravelPackages, canManageShipments })
+  const { data, setData, loading, loadError } = useDashboardData({ isOwner: canManageAccess, canManageProducts, canManageEsimPackages, canManageTravelPackages: canManageTravelPackages && !travelOnlyScope, canManageShipments })
   const setUsers = (updater: (users: StoredUser[]) => StoredUser[]) => setData((state) => ({ ...state, users: updater(state.users) }))
   const setProducts = (updater: (products: StoredProduct[]) => StoredProduct[]) => setData((state) => ({ ...state, products: updater(state.products) }))
   const setEsimPackages = (updater: (packages: StoredEsimPackage[]) => StoredEsimPackage[]) => setData((state) => ({ ...state, esimPackages: updater(state.esimPackages) }))
@@ -72,23 +73,24 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
     { value: "cargo", label: "Карго", visible: canManageShipments },
   ]
   const visibleTabs = tabs.filter((tab) => tab.visible && tabEnabled(tab.value))
+  const isTravelOnlyWorkspace = visibleTabs.length === 1 && visibleTabs[0]?.value === "travel"
 
   return (
     <div className="developer-dashboard">
-      <div className="office-header">
+      {!isTravelOnlyWorkspace ? <div className="office-header">
         <div>
           <p>Signed in as</p>
           <h2>{currentUser?.name ?? "Owner"}</h2>
           <span>{currentUser?.email ?? ""} · {currentRoles.join(", ")}</span>
         </div>
-      </div>
-      <nav className="office-tabs" aria-label="Owner sections">
+      </div> : null}
+      {!isTravelOnlyWorkspace ? <nav className="office-tabs" aria-label="Owner sections">
         {visibleTabs.map((tab) => (
           <button key={tab.value} type="button" className={activeTab === tab.value ? "active" : ""} onClick={() => setActiveTab(tab.value)}>
             {tab.label}
           </button>
         ))}
-      </nav>
+      </nav> : null}
 
       {loadError ? <section className="office-panel"><p style={{ margin: 0, color: "#b42318", fontWeight: 700 }}>{loadError}</p></section> : null}
       {activeTab === "access" && canManageAccess ? (

@@ -79,16 +79,22 @@ export function generateStaticParams() {
   return Object.keys(infoPages).map((slug) => ({ slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const page = infoPages[params.slug]
+type InfoPageProps = {
+  params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: InfoPageProps) {
+  const { slug } = await params
+  const page = infoPages[slug]
   return {
     title: page ? `${page.title} | BUKHT` : "BUKHT",
     description: page?.description ?? "BUKHT мэдээллийн хуудас",
   }
 }
 
-export default function InfoPage({ params }: { params: { slug: string } }) {
-  const page = infoPages[params.slug]
+export default async function InfoPage({ params }: InfoPageProps) {
+  const { slug } = await params
+  const page = infoPages[slug]
   if (!page) notFound()
 
   return (

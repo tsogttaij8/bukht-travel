@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import DeveloperDashboard from "../../components/DeveloperDashboard"
+import { redirect } from "next/navigation"
 import Footer from "../../components/Footer"
 import Navbar from "../../components/Navbar"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
@@ -9,6 +9,10 @@ export default async function TravelPage() {
   const token = cookieStore.get(sessionConfig.name)?.value
   const session = token ? verifySessionToken(token) : null
   const isOwner = session?.roles.includes("owner") ?? false
+
+  if (session && isOwner) {
+    redirect("/owner/travel")
+  }
 
   return (
     <>
@@ -22,11 +26,6 @@ export default async function TravelPage() {
               Одоогоор зарлагдсан аялал байхгүй байна.
             </p>
           </section>
-          {session && isOwner ? (
-            <section style={{ marginTop: 28 }}>
-              <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["travel"]} />
-            </section>
-          ) : null}
         </div>
       </main>
       <Footer />

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import Footer from "../../../components/Footer"
 import Navbar from "../../../components/Navbar"
 import TravelBookingPanel from "../../../components/TravelBookingPanel"
-import { getTravelPackage } from "../../../lib/server/travel-package-store"
+import { getPublishedTravelPackage } from "../../../lib/server/travel-package-store"
 
 type TravelDetailPageProps = {
   params: Promise<{ id: string }>
@@ -11,7 +11,7 @@ type TravelDetailPageProps = {
 
 export default async function TravelDetailPage({ params }: TravelDetailPageProps) {
   const { id } = await params
-  const travelPackage = await getTravelPackage(id)
+  const travelPackage = await getPublishedTravelPackage(id)
   if (!travelPackage) notFound()
 
   const gallery = [travelPackage.heroImage, ...travelPackage.galleryImages].slice(0, 4)

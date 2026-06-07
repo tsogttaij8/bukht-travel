@@ -1,4 +1,6 @@
-﻿@import "./styles/global-01.css";
+@import "tailwindcss";
+
+@import "./styles/global-01.css";
 @import "./styles/global-02.css";
 @import "./styles/global-03.css";
 @import "./styles/global-04.css";

@@ -15,7 +15,7 @@ const session = token ? verifySessionToken(token) : null
 let travelPackages: StoredTravelPackage[] = []
 
 try {
-travelPackages = await listTravelPackages()
+travelPackages = (await listTravelPackages()).filter((item) => item.status === "published")
 } catch {
 travelPackages = []
 }

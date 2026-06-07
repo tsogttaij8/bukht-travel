@@ -12,10 +12,25 @@ export type TravelPriceOption = {
   price: number
 }
 
+export type TravelPackageStatus = "draft" | "published"
+
 export type StoredTravelPackage = {
   id: string
+  ownerId: string
+  status: TravelPackageStatus
   title: string
   slug: string
+  shortDescription: string
+  fullDescription: string
+  destination: string
+  startLocation: string
+  endLocation: string
+  mapCoordinates: string
+  transportationTypes: string[]
+  price: number
+  maxParticipants: number
+  paymentSettings: string
+  cancellationPolicy: string
   location: string
   category: string
   duration: string
@@ -41,8 +56,21 @@ export type StoredTravelPackage = {
 
 export type TravelPackageRow = {
   id: string
+  owner_id?: string | null
+  status?: string | null
   title: string
   slug: string
+  short_description?: string | null
+  full_description?: string | null
+  destination?: string | null
+  start_location?: string | null
+  end_location?: string | null
+  map_coordinates?: string | null
+  transportation_types?: string | string[] | null
+  price?: number | null
+  max_participants?: number | null
+  payment_settings?: string | null
+  cancellation_policy?: string | null
   location: string
   category: string
   duration: string
@@ -67,10 +95,32 @@ export type TravelPackageRow = {
 }
 
 export function mapTravelPackage(row: TravelPackageRow): StoredTravelPackage {
+  const transportationTypes = parseJson<string[]>(row.transportation_types ?? "[]", [])
+  const status = row.status === "draft" ? "draft" : "published"
+  const price = Number(row.price ?? row.adult_price) || 0
+  const maxParticipants = Number(row.max_participants) || parseParticipantCount(row.group_size)
+  const shortDescription = row.short_description?.trim() || row.summary
+  const fullDescription = row.full_description?.trim() || row.summary
+  const destination = row.destination?.trim() || row.location
+  const transport = row.transport
+
   return {
     id: row.id,
+    ownerId: row.owner_id ?? "",
+    status,
     title: row.title,
     slug: row.slug,
+    shortDescription,
+    fullDescription,
+    destination,
+    startLocation: row.start_location ?? "",
+    endLocation: row.end_location ?? "",
+    mapCoordinates: row.map_coordinates ?? "",
+    transportationTypes: transportationTypes.length ? transportationTypes : transport.split(",").map((item) => item.trim()).filter(Boolean),
+    price,
+    maxParticipants,
+    paymentSettings: row.payment_settings ?? "",
+    cancellationPolicy: row.cancellation_policy ?? "",
     location: row.location,
     category: row.category,
     duration: row.duration,
@@ -110,4 +160,9 @@ function parseJson<T>(value: string | T, fallback: T): T {
   } catch {
     return fallback
   }
+}
+
+function parseParticipantCount(value: string): number {
+  const match = value.match(/\d+/)
+  return match ? Number(match[0]) || 0 : 0
 }

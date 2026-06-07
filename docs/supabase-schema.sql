@@ -137,8 +137,21 @@ create index if not exists products_updated_at_idx on public.products (updated_a
 
 create table if not exists public.travel_packages (
   id text primary key,
+  owner_id text not null default '',
+  status text not null default 'published' check (status in ('draft', 'published')),
   title text not null,
   slug text not null unique,
+  short_description text not null default '',
+  full_description text not null default '',
+  destination text not null default '',
+  start_location text not null default '',
+  end_location text not null default '',
+  map_coordinates text not null default '',
+  transportation_types jsonb not null default '[]'::jsonb,
+  price integer not null default 0,
+  max_participants integer not null default 0,
+  payment_settings text not null default '',
+  cancellation_policy text not null default '',
   location text not null,
   category text not null,
   duration text not null,
@@ -162,8 +175,23 @@ create table if not exists public.travel_packages (
   updated_at timestamptz not null default now()
 );
 
+alter table public.travel_packages add column if not exists owner_id text not null default '';
+alter table public.travel_packages add column if not exists status text not null default 'published' check (status in ('draft', 'published'));
+alter table public.travel_packages add column if not exists short_description text not null default '';
+alter table public.travel_packages add column if not exists full_description text not null default '';
+alter table public.travel_packages add column if not exists destination text not null default '';
+alter table public.travel_packages add column if not exists start_location text not null default '';
+alter table public.travel_packages add column if not exists end_location text not null default '';
+alter table public.travel_packages add column if not exists map_coordinates text not null default '';
+alter table public.travel_packages add column if not exists transportation_types jsonb not null default '[]'::jsonb;
+alter table public.travel_packages add column if not exists price integer not null default 0;
+alter table public.travel_packages add column if not exists max_participants integer not null default 0;
+alter table public.travel_packages add column if not exists payment_settings text not null default '';
+alter table public.travel_packages add column if not exists cancellation_policy text not null default '';
 create index if not exists travel_packages_updated_at_idx on public.travel_packages (updated_at);
 create index if not exists travel_packages_slug_idx on public.travel_packages (slug);
+create index if not exists travel_packages_owner_id_idx on public.travel_packages (owner_id);
+create index if not exists travel_packages_status_idx on public.travel_packages (status);
 
 create table if not exists public.user_profiles (
   user_id text primary key references public.users(id) on delete cascade,

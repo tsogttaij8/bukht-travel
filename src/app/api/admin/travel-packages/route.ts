@@ -2,18 +2,18 @@ import { NextResponse } from "next/server"
 import { createTravelPackage, listTravelPackages, type TravelItineraryDay } from "../../../../lib/server/travel-package-store"
 import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
-function ensureTravelManager(request: Request): NextResponse | null {
+function readTravelManager(request: Request) {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
 
   if (!session || !sessionHasAnyRole(session, ["owner", "travel_staff"])) {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 })
+    return { denied: NextResponse.json({ message: "Forbidden" }, { status: 403 }), session: null }
   }
 
-  return null
+  return { denied: null, session }
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const denied = ensureTravelManager(request)
+  const { denied } = readTravelManager(request)
   if (denied) return denied
 
   try {
@@ -25,7 +25,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const denied = ensureTravelManager(request)
+  const { denied, session } = readTravelManager(request)
   if (denied) return denied
 
   const body = (await request.json()) as {
@@ -66,6 +66,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const travelPackage = await createTravelPackage({
+      ownerId: session ? `email:${session.email.trim().toLowerCase()}` : "",
+      status: "draft",
       title,
       location,
       category: body.category?.trim() || "Адал явдалт аялал",
