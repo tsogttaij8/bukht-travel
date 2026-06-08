@@ -5,6 +5,8 @@ import { ensureUserProfile } from "../../../../lib/server/customer-store"
 import { checkRateLimit, readClientIp } from "../../../../lib/server/rate-limit"
 import { findUserByEmail, isAdminEmail, upsertUserByEmail } from "../../../../lib/server/user-store"
 
+export const dynamic = "force-dynamic"
+
 type SendCodeBody = {
   email?: string
   name?: string

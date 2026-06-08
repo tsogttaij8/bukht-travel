@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { createTravelPackage, listOwnerTravelPackages, type TravelItineraryDay, type TravelPackageStatus } from "../../../../lib/server/travel-package-store"
 import { readSessionFromCookieHeader, sessionHasAnyRole, type SessionPayload } from "../../../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 type TourBody = {
   title?: string
   shortDescription?: string

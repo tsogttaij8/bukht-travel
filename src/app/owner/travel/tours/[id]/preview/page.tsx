@@ -22,7 +22,7 @@ export default async function OwnerTravelTourPreviewPage({ params }: PreviewPage
     <>
       <Navbar />
       <div className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-blue-200 bg-blue-50 px-[max(20px,4vw)] py-3 text-blue-950 max-md:flex-col max-md:items-start">
-        <strong>Preview mode — this is how customers will see your tour</strong>
+        <strong>Урьдчилан харах горим - хэрэглэгчид таны аяллыг ингэж харна</strong>
         <OwnerTourPreviewActions tourId={tour.id} status={tour.status} />
       </div>
       <main className="travel-detail-page">
@@ -42,49 +42,49 @@ export default async function OwnerTravelTourPreviewPage({ params }: PreviewPage
             </div>
 
             <nav className="travel-tabs">
-              <a href="#intro">Overview</a>
-              <a href="#program">Itinerary</a>
-              <a href="#included">Included</a>
-              <a href="#policy">Policy</a>
+              <a href="#intro">Тойм</a>
+              <a href="#program">Хөтөлбөр</a>
+              <a href="#included">Багтсан зүйлс</a>
+              <a href="#policy">Нөхцөл</a>
             </nav>
 
             <section id="intro" className="travel-detail-card">
-              <h2>Overview</h2>
+              <h2>Тойм</h2>
               <p>{tour.fullDescription || tour.shortDescription}</p>
             </section>
 
             <section id="program" className="travel-detail-card">
-              <h2>Itinerary</h2>
+              <h2>Хөтөлбөр</h2>
               <div className="travel-itinerary-list">
                 {tour.itinerary.length ? tour.itinerary.map((day, index) => (
                   <article key={`${day.day}-${index}`} className="travel-itinerary-item">
                     <div className="travel-itinerary-date">
-                      <strong>{day.day || `Day ${index + 1}`}</strong>
+                      <strong>{day.day || `${index + 1}-р өдөр`}</strong>
                     </div>
                     <div>
                       <h3>{day.title}</h3>
                       <p>{day.details}</p>
                     </div>
                   </article>
-                )) : <p>No itinerary yet.</p>}
+                )) : <p>Хөтөлбөр оруулаагүй байна.</p>}
               </div>
             </section>
 
             <section id="included" className="travel-detail-card travel-included-grid">
               <div>
-                <h2>Included</h2>
+                <h2>Үүнд багтсан</h2>
                 <CheckList items={tour.included} />
               </div>
               <div>
-                <h2>Not included</h2>
+                <h2>Үүнд багтаагүй</h2>
                 <CheckList items={tour.excluded} />
               </div>
             </section>
 
             <section id="policy" className="travel-detail-card">
-              <h2>Payment and cancellation</h2>
-              <p>{tour.paymentSettings || "No payment instructions yet."}</p>
-              <p>{tour.cancellationPolicy || "No cancellation policy yet."}</p>
+              <h2>Төлбөр ба цуцлалт</h2>
+              <p>{tour.paymentSettings || "Төлбөрийн заавар оруулаагүй байна."}</p>
+              <p>{tour.cancellationPolicy || "Цуцлалтын журам оруулаагүй байна."}</p>
             </section>
           </div>
 
@@ -99,7 +99,7 @@ export default async function OwnerTravelTourPreviewPage({ params }: PreviewPage
 function CheckList({ items }: { items: string[] }) {
   return (
     <ul className="travel-check-list">
-      {items.length ? items.map((item) => <li key={item}><span>✓</span>{item}</li>) : <li><span>-</span>No data yet.</li>}
+      {items.length ? items.map((item) => <li key={item}><span>+</span>{item}</li>) : <li><span>-</span>Мэдээлэл оруулаагүй байна.</li>}
     </ul>
   )
 }

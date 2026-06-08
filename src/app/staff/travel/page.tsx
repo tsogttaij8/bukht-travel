@@ -1,6 +1,8 @@
 import DeveloperDashboard from "../../../components/DeveloperDashboard"
 import { requireRole } from "../../../lib/server/role-guard"
 
+export const dynamic = "force-dynamic"
+
 export default async function TravelStaffPage() {
   const session = await requireRole("travel_staff")
 

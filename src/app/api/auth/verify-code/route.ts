@@ -4,6 +4,8 @@ import { checkRateLimit, readClientIp } from "../../../../lib/server/rate-limit"
 import { findUserByEmail } from "../../../../lib/server/user-store"
 import { verifyAndConsumeLoginCode } from "../../../../lib/server/login-code-store"
 
+export const dynamic = "force-dynamic"
+
 type VerifyBody = {
   email?: string
   code?: string

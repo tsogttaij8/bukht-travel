@@ -160,12 +160,24 @@ function wait(ms: number): Promise<void> {
 }
 
 export async function syncClerkSession(token?: string | null): Promise<(ApiResult & { user?: SessionUser })> {
-  const headers = token ? { Authorization: `Bearer ${token}` } : undefined
+  if (!token) {
+    return { ok: false, message: "SESSION_NOT_READY" }
+  }
+
+  const headers = { Authorization: `Bearer ${token}` }
   let response = await fetch("/api/auth/clerk-sync", { method: "POST", cache: "no-store", headers })
 
   for (let attempt = 0; response.status === 401 && attempt < 3; attempt += 1) {
     await wait(250 * (attempt + 1))
     response = await fetch("/api/auth/clerk-sync", { method: "POST", cache: "no-store", headers })
+  }
+
+  if (response.status === 401) {
+    return { ok: false, message: "SESSION_NOT_READY" }
+  }
+
+  if (response.status === 404) {
+    return { ok: false, message: "USER_NOT_REGISTERED" }
   }
 
   if (!response.ok) {
@@ -181,5 +193,5 @@ export async function syncClerkSession(token?: string | null): Promise<(ApiResul
 }
 
 export async function logoutUser(): Promise<void> {
-  await fetch("/api/auth/logout", { method: "POST" })
+  await fetch("/api/auth/logout", { method: "POST", cache: "no-store", credentials: "same-origin" })
 }

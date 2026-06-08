@@ -3,7 +3,8 @@
 import { useAuth } from "@clerk/nextjs"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
-import { syncClerkSession } from "../../lib/auth"
+import { syncClerkSession, type SessionUser } from "../../lib/auth"
+import { roleHomePath } from "../../lib/role-path"
 import { glassCard, pageSection, shell } from "../ui/tw"
 import AuthModeSwitch from "./AuthModeSwitch"
 import ClerkLoginForm from "./ClerkLoginForm"
@@ -11,7 +12,7 @@ import ClerkSignupForm from "./ClerkSignupForm"
 import { AuthMode, loginTarget } from "./clerk-auth-utils"
 
 export default function ClerkAuthShell() {
-  const { isLoaded, isSignedIn } = useAuth()
+  const { getToken, isLoaded, isSignedIn } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialMode = searchParams.get("mode") === "register" ? "signup" : "login"
@@ -20,8 +21,8 @@ export default function ClerkAuthShell() {
   const [syncError, setSyncError] = useState("")
   const nextPath = searchParams.get("next")
 
-  const goLanding = useCallback(() => {
-    router.replace(loginTarget(nextPath))
+  const goLanding = useCallback((user?: SessionUser) => {
+    router.replace(nextPath && nextPath.startsWith("/") ? loginTarget(nextPath) : roleHomePath(user?.roles))
     router.refresh()
   }, [nextPath, router])
 
@@ -29,16 +30,16 @@ export default function ClerkAuthShell() {
     if (!isLoaded || !isSignedIn) return
 
     let active = true
-    syncClerkSession().then((result) => {
+    getToken({ skipCache: true }).then((token) => syncClerkSession(token)).then((result) => {
       if (!active) return
-      if (result.ok) goLanding()
-      else setSyncError(result.message)
+      if (result.ok) goLanding(result.user)
+      else if (result.message !== "SESSION_NOT_READY") setSyncError(result.message)
     })
 
     return () => {
       active = false
     }
-  }, [goLanding, isLoaded, isSignedIn])
+  }, [getToken, goLanding, isLoaded, isSignedIn])
 
   return (
     <main className={pageSection}>

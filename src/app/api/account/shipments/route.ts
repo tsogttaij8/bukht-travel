@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { listShipmentsWithEventsByCustomerEmail } from "../../../../lib/server/shipment-store"
 import { readSessionFromCookieHeader } from "../../../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 function readSession(request: Request) {
   return readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
 }

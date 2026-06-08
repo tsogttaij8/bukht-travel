@@ -3,6 +3,8 @@ import { acceptRoleInvite } from "../../../../lib/server/role-invite-store"
 import { createSessionToken, readSessionFromCookieHeader, sessionConfig } from "../../../../lib/server/session"
 import { findUserByEmail } from "../../../../lib/server/user-store"
 
+export const dynamic = "force-dynamic"
+
 export async function POST(request: Request): Promise<NextResponse> {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
   if (!session) return NextResponse.json({ message: "Эхлээд нэвтэрнэ үү" }, { status: 401 })

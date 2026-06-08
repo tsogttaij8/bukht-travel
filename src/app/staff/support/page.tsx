@@ -3,6 +3,8 @@ import Footer from "../../../components/Footer"
 import Navbar from "../../../components/Navbar"
 import { requireRole } from "../../../lib/server/role-guard"
 
+export const dynamic = "force-dynamic"
+
 export default async function SupportStaffPage() {
   const session = await requireRole("support_staff")
 

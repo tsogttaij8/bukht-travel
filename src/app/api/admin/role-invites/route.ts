@@ -4,6 +4,8 @@ import { readSessionFromCookieHeader, sessionHasRole } from "../../../../lib/ser
 import { sendRoleInviteEmail } from "../../../../lib/server/mailer"
 import { findUserByEmail, normalizeUserRoles, userRoles } from "../../../../lib/server/user-store"
 
+export const dynamic = "force-dynamic"
+
 function ensureOwner(request: Request) {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
   if (!session || !sessionHasRole(session, "owner")) {

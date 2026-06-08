@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { createEsimPackage, listEsimPackages } from "../../../../lib/server/esim-package-store"
 import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 function ensureEsimAccess(request: Request) {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
   if (!session || !sessionHasAnyRole(session, ["owner", "esim_staff"])) {

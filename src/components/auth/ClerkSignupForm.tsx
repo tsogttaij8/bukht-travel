@@ -73,7 +73,7 @@ export default function ClerkSignupForm(props: { onRegistered: (email: string) =
       if (result.status === "complete") {
         if (result.createdSessionId) {
           await setActive({ session: result.createdSessionId })
-          await syncClerkSession(await getToken())
+          await syncClerkSession(await getToken({ skipCache: true }))
         }
         props.onRegistered(normalizeEmail(email))
         return

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { createServiceRequest, listServiceRequestsByEmail, type ServiceType } from "../../../../lib/server/customer-store"
 import { readSessionFromCookieHeader } from "../../../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 const validServiceTypes: ServiceType[] = ["travel", "cargo", "esim", "product_sourcing"]
 
 function readSession(request: Request) {

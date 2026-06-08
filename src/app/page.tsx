@@ -8,6 +8,8 @@ import { roleHomePath } from "../lib/role-path"
 import { sessionCanAccessAdmin, sessionConfig, verifySessionToken } from "../lib/server/session"
 import { listTravelPackages, type StoredTravelPackage } from "../lib/server/travel-package-store"
 
+export const dynamic = "force-dynamic"
+
 export default async function Home(){
 const cookieStore = await cookies()
 const token = cookieStore.get(sessionConfig.name)?.value

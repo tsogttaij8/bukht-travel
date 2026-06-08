@@ -1,11 +1,13 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { ensureUserProfile, findUserProfileByEmail } from "../../../../lib/server/customer-store"
 import { createSessionToken, readSessionFromCookieHeader, sessionConfig, type SessionPayload } from "../../../../lib/server/session"
-import { findUserByEmail, isAdminEmail, upsertUserByEmail, type StoredUser, type UserRole } from "../../../../lib/server/user-store"
+import { findUserByEmail, upsertUserByEmail } from "../../../../lib/server/user-store"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const payload = await refreshPayload(readSessionFromCookieHeader(request.headers.get("cookie") ?? "")) ?? (await clerkPayload())
+  const cookieHeader = request.headers.get("cookie") ?? ""
+  const payload = await refreshPayload(readSessionFromCookieHeader(cookieHeader))
 
   if (!payload) {
     return NextResponse.json({ user: null }, { status: 200 })
@@ -34,29 +36,6 @@ async function refreshPayload(payload: SessionPayload | null): Promise<SessionPa
     return { name: user.name, email: user.email, role: user.role, roles: user.roles, exp: payload.exp }
   } catch {
     return payload
-  }
-}
-
-async function clerkPayload(): Promise<SessionPayload | null> {
-  const { userId } = await auth({ acceptsToken: "session_token" })
-  if (!userId) return null
-  const clerkUser = await currentUser()
-  const email = clerkUser?.primaryEmailAddress?.emailAddress
-  if (!email) return null
-
-  const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || email.split("@")[0]
-  const user = await syncUser(email, name)
-  return { name: user.name, email: user.email, role: user.role, roles: user.roles, exp: Date.now() + sessionConfig.maxAge * 1000 }
-}
-
-async function syncUser(email: string, name: string): Promise<StoredUser> {
-  try {
-    const user = await upsertUserByEmail({ email, name })
-    await ensureUserProfile(user)
-    return user
-  } catch {
-    const roles: UserRole[] = isAdminEmail(email) ? ["owner"] : ["customer"]
-    return { id: `clerk:${email}`, name, email: email.trim().toLowerCase(), role: roles.includes("owner") ? "developer" : "user", roles, status: "active", createdAt: new Date().toISOString() }
   }
 }
 

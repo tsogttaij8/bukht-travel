@@ -10,6 +10,8 @@ import {
 } from "../../../../lib/server/shipment-store"
 import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 const validStatuses: ShipmentStatus[] = ["registered", "received", "in_transit", "arrived", "delivered"]
 
 function isValidStatus(value: string): value is ShipmentStatus {

@@ -7,9 +7,9 @@ export default async function NewOwnerTravelTourPage() {
 
   return (
     <OwnerWorkspaceShell
-      title="Create tour"
-      eyebrow="Travel"
-      description="Create a draft tour, then publish it when ready."
+      title="Аялал үүсгэх"
+      eyebrow="Аялал"
+      description="Эхлээд ноорог аялал үүсгээд, бэлэн болсон үед нь нийтэлнэ."
       user={{ name: session.name, email: session.email }}
     >
       <OwnerTravelManager mode="new" />

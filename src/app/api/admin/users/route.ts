@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { readSessionFromCookieHeader, sessionHasRole } from "../../../../lib/server/session"
 import { normalizeUserRoles, readUsers, updateUserAccess, upsertStaffUser, userRoles } from "../../../../lib/server/user-store"
 
+export const dynamic = "force-dynamic"
+
 function ensureOwner(request: Request) {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
 

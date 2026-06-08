@@ -12,9 +12,9 @@ export default async function EditOwnerTravelTourPage({ params }: PageProps) {
 
   return (
     <OwnerWorkspaceShell
-      title="Edit tour"
-      eyebrow="Travel"
-      description="Update tour content using the real owner tour backend."
+      title="Аялал засах"
+      eyebrow="Аялал"
+      description="Owner аяллын backend дээр хадгалагдсан мэдээллийг шинэчилнэ."
       user={{ name: session.name, email: session.email }}
     >
       <OwnerTravelManager mode="edit" tourId={id} />

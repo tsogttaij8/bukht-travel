@@ -3,6 +3,8 @@ import Navbar from "../../../components/Navbar"
 import StaffRoleConsole from "../../../components/StaffRoleConsole"
 import { requireRole } from "../../../lib/server/role-guard"
 
+export const dynamic = "force-dynamic"
+
 export default async function FinanceStaffPage() {
   const session = await requireRole("finance_staff")
 

@@ -3,7 +3,7 @@
 import { useClerk } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { LogOut, MessageSquare, Package, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
 import { logoutUser } from "../../lib/auth"
@@ -21,20 +21,19 @@ const navItems = [
 export default function OwnerSidebar({ user }: { user?: { name: string; email: string } }) {
   const { signOut } = useClerk()
   const pathname = usePathname()
-  const router = useRouter()
-  const [accountOpen, setAccountOpen] = useState(false)
+  const [accountHovered, setAccountHovered] = useState(false)
+  const [accountPinned, setAccountPinned] = useState(false)
   const [logoutBusy, setLogoutBusy] = useState(false)
+  const accountOpen = accountHovered || accountPinned
 
   async function logout(): Promise<void> {
     setLogoutBusy(true)
     await logoutUser()
-    await signOut()
-    router.push("/login")
-    router.refresh()
+    await signOut({ redirectUrl: "/" })
   }
 
   return (
-    <aside className="flex min-h-screen w-[260px] shrink-0 flex-col border-r border-[#e3d4bd] bg-[#fff8ef] px-4 py-5 text-[#2f241b] max-lg:min-h-0 max-lg:w-full max-lg:border-r-0 max-lg:border-b">
+    <aside className="sticky top-0 z-40 flex h-screen w-[260px] shrink-0 flex-col border-r border-[#e3d4bd] bg-[#fff8ef] px-4 py-5 text-[#2f241b] max-lg:h-auto max-lg:w-full max-lg:border-r-0 max-lg:border-b">
       <Link href="/owner" className="mb-5 border-b border-[#eadcca] px-2 pb-5">
         <div className="flex items-center gap-2">
           <div className="relative h-14 w-14 shrink-0">
@@ -65,14 +64,18 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
       </nav>
 
       {user ? (
-        <div className="relative mt-auto pt-4 max-lg:mt-4" onMouseEnter={() => setAccountOpen(true)} onMouseLeave={() => setAccountOpen(false)}>
+        <div
+          className="relative mt-auto pt-4 max-lg:mt-4"
+          onMouseEnter={() => setAccountHovered(true)}
+          onMouseLeave={() => setAccountHovered(false)}
+        >
           {accountOpen ? (
-            <div className="absolute bottom-full left-0 z-30 mb-2 w-full rounded-lg border border-[#e3d4bd] bg-[#fffdf8] p-2 text-sm font-bold shadow-[0_18px_40px_rgba(55,39,25,0.14)]">
-              <Link href="/owner/settings" className="flex items-center gap-2 rounded-md px-3 py-2 text-[#4f473e] hover:bg-[#fff0dd]">
+            <div className="absolute bottom-full left-0 z-30 w-full rounded-t-lg border border-[#e3d4bd] bg-[#fffdf8] p-2 text-sm font-bold shadow-[0_18px_40px_rgba(55,39,25,0.14)]">
+              <Link href="/owner/settings" className="flex items-center gap-2 rounded-md px-3 py-2 text-[#4f473e] hover:bg-[#fff0dd]" onClick={() => setAccountPinned(false)}>
                 <UserRound size={15} />
                 Account
               </Link>
-              <Link href="/owner/settings" className="flex items-center gap-2 rounded-md px-3 py-2 text-[#4f473e] hover:bg-[#fff0dd]">
+              <Link href="/owner/settings" className="flex items-center gap-2 rounded-md px-3 py-2 text-[#4f473e] hover:bg-[#fff0dd]" onClick={() => setAccountPinned(false)}>
                 <Settings size={15} />
                 Settings
               </Link>
@@ -84,8 +87,9 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
           ) : null}
           <button
             type="button"
-            className="flex w-full items-center gap-3 rounded-lg border border-[#e3d4bd] bg-[#fffdf8] p-3 text-left shadow-sm hover:bg-[#fff0dd]"
-            onClick={() => setAccountOpen((current) => !current)}
+            aria-expanded={accountOpen}
+            className={`flex w-full items-center gap-3 border border-[#e3d4bd] bg-[#fffdf8] p-3 text-left shadow-sm hover:bg-[#fff0dd] ${accountOpen ? "rounded-b-lg rounded-t-none border-t-0" : "rounded-lg"}`}
+            onClick={() => setAccountPinned((current) => !current)}
           >
             <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[#d8c5ad] bg-[#fff8ef]">
               <Image src="/icon.jpeg" alt="Account" fill sizes="36px" className="object-contain mix-blend-multiply" />

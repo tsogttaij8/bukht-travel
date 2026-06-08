@@ -10,7 +10,9 @@ export type SessionPayload = {
 }
 
 const SESSION_COOKIE_NAME = "buhkt_session"
+const LOGOUT_MARKER_COOKIE_NAME = "buhkt_logged_out"
 const SESSION_AGE_SECONDS = 60 * 60 * 24 * 7
+const LOGOUT_MARKER_AGE_SECONDS = 60 * 5
 const SESSION_SECRET = process.env.SESSION_SECRET ?? "buhkt-dev-secret-change-me"
 
 function toBase64Url(value: string): string {
@@ -88,7 +90,9 @@ export function readSessionFromCookieHeader(cookieHeader: string): SessionPayloa
 
 export const sessionConfig = {
   name: SESSION_COOKIE_NAME,
+  logoutMarkerName: LOGOUT_MARKER_COOKIE_NAME,
   maxAge: SESSION_AGE_SECONDS,
+  logoutMarkerMaxAge: LOGOUT_MARKER_AGE_SECONDS,
 }
 
 export function sessionHasRole(session: Pick<SessionPayload, "roles">, role: UserRole): boolean {

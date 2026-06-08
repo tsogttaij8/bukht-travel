@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { createTravelPackage, listTravelPackages, type TravelItineraryDay } from "../../../../lib/server/travel-package-store"
 import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 function readTravelManager(request: Request) {
   const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
 

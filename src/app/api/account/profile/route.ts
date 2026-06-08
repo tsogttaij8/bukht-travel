@@ -3,6 +3,8 @@ import { readSessionFromCookieHeader } from "../../../../lib/server/session"
 import { ensureUserProfile, findUserProfileByEmail, upsertUserProfileByEmail, type CustomerType } from "../../../../lib/server/customer-store"
 import { findUserByEmail } from "../../../../lib/server/user-store"
 
+export const dynamic = "force-dynamic"
+
 const validCustomerTypes: CustomerType[] = ["traveler", "merchant", "cargo_customer", "esim_customer"]
 
 function readSession(request: Request) {

@@ -8,10 +8,10 @@ export default async function OwnerTravelPage() {
 
   return (
     <OwnerWorkspaceShell
-      title="Travel management"
-      description="Manage tours, drafts, published packages, and customer previews."
+      title="Аяллын удирдлага"
+      description="Аяллын ноорог, нийтлэгдсэн багц болон хэрэглэгчийн харагдах байдлыг удирдана."
       user={{ name: session.name, email: session.email }}
-      action={<Link href="/owner/travel/tours/new" className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white">New tour</Link>}
+      action={<Link href="/owner/travel/tours/new" className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white">Шинэ аялал</Link>}
     >
       <OwnerTravelManager mode="dashboard" />
     </OwnerWorkspaceShell>

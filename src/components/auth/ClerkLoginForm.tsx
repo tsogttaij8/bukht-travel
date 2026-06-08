@@ -1,17 +1,32 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
+import { useAuth, useClerk } from "@clerk/nextjs"
 import { useSignIn } from "@clerk/nextjs/legacy"
 import { useEffect, useState } from "react"
-import { syncClerkSession } from "../../lib/auth"
+import { logoutUser, syncClerkSession, type SessionUser } from "../../lib/auth"
 import { clerkMessage, isAlreadySignedInError, isStrongPassword, normalizeEmail } from "./clerk-auth-utils"
 import FloatingField from "./FloatingField"
 import PasswordMeter from "./PasswordMeter"
 
 type LoginStep = "login" | "resetEmail" | "resetVerify"
 
-export default function ClerkLoginForm(props: { initialEmail?: string; onDone: () => void }) {
-  const { getToken } = useAuth()
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function waitForToken(getToken: () => Promise<string | null>): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const token = await getToken()
+    if (token) return token
+    await wait(300)
+  }
+
+  throw new Error("SESSION_NOT_READY")
+}
+
+export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (user?: SessionUser) => void }) {
+  const { signOut } = useClerk()
+  const { getToken, isSignedIn } = useAuth()
   const { isLoaded, signIn, setActive } = useSignIn()
   const [email, setEmail] = useState(props.initialEmail ?? "")
   const [password, setPassword] = useState("")
@@ -39,6 +54,9 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
     setBusy(true)
 
     try {
+      await logoutUser()
+      if (isSignedIn) await signOut()
+
       const result = await signIn.create({ identifier: normalizeEmail(email), password })
       if (result.status !== "complete" || !result.createdSessionId) {
         setError("Нэвтрэлт дууссангүй. Нууц үг болон мэйлээ шалгана уу.")
@@ -46,21 +64,36 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
       }
 
       await setActive({ session: result.createdSessionId })
-      const synced = await syncClerkSession(await getToken())
-      if (!synced.ok) return setError(synced.message)
-      props.onDone()
+      const synced = await syncActiveSession()
+      if (!synced.ok) throw new Error(synced.message === "USER_NOT_REGISTERED" ? "USER_NOT_REGISTERED" : "SYNC_FAILED")
+      props.onDone(synced.user)
     } catch (caught) {
       if (isAlreadySignedInError(caught)) {
-        const synced = await syncClerkSession(await getToken())
-        if (!synced.ok) return setError(synced.message)
-        props.onDone()
-        return
+        setError("Өмнөх нэвтрэлт бүрэн гараагүй байна. Дахин оролдоно уу.")
+      } else {
+        setError(loginErrorMessage(caught))
       }
-
-      setError(clerkMessage(caught))
     } finally {
       setBusy(false)
     }
+  }
+
+  async function syncActiveSession() {
+    const token = await waitForToken(() => getToken({ skipCache: true }))
+    return syncClerkSession(token)
+  }
+
+  function loginErrorMessage(error: unknown): string {
+    const code = (error as { errors?: Array<{ code?: string }> })?.errors?.[0]?.code
+    if (code === "form_identifier_not_found") return "Энэ мэйлээр бүртгэл үүсээгүй байна. Эхлээд бүртгүүлнэ үү."
+    if (code === "form_password_incorrect") return "Нууц үг буруу байна."
+    if (error instanceof Error && error.message === "USER_NOT_REGISTERED") {
+      return "Энэ мэйлээр бүртгэл үүсээгүй байна. Эхлээд бүртгүүлнэ үү."
+    }
+    if (error instanceof Error && (error.message === "SESSION_NOT_READY" || error.message === "SYNC_FAILED")) {
+      return "Нэвтрэхэд алдаа гарлаа. Дахин оролдоно уу."
+    }
+    return clerkMessage(error)
   }
 
   async function startReset(event: React.FormEvent<HTMLFormElement>) {
@@ -186,7 +219,7 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
       <FloatingField label="Нууц үг" value={password} onChange={setPassword} type="password" autoComplete="current-password" required />
       {notice ? <p className="m-0 text-sm font-semibold text-[#1d6b42]">{notice}</p> : null}
       {error ? <p className="m-0 rounded-[10px] bg-[#fff0ed] p-3 font-semibold text-[#9a3412]">{error}</p> : null}
-      <button className="btn btn-primary" disabled={busy || !isLoaded}>{busy ? "Түр хүлээнэ үү..." : "Нэвтрэх"}</button>
+      <button className="btn btn-primary" disabled={busy || !isLoaded}>{busy ? "Нэвтрэлт баталгаажиж байна..." : "Нэвтрэх"}</button>
       <button type="button" className="text-sm font-bold text-[#7d4d34] underline" onClick={() => {
         setError("")
         setNotice("")

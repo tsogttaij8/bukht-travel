@@ -6,7 +6,7 @@ type OwnerTopbarProps = {
   action?: React.ReactNode
 }
 
-export default function OwnerTopbar({ title, eyebrow = "BUKHT owner", description, user, action }: OwnerTopbarProps) {
+export default function OwnerTopbar({ title, eyebrow = "BUKHT owner", description, action }: OwnerTopbarProps) {
   return (
     <header className="flex items-center justify-between gap-4 border-b border-[#e3d4bd] bg-[#fffdf8] px-6 py-4 max-md:flex-col max-md:items-stretch">
       <div>
@@ -16,12 +16,6 @@ export default function OwnerTopbar({ title, eyebrow = "BUKHT owner", descriptio
       </div>
       <div className="flex items-center justify-end gap-3">
         {action}
-        {user ? (
-          <div className="min-w-[190px] rounded-lg border border-[#eadcca] bg-[#fff8ef] px-3 py-2 text-right">
-            <strong className="block truncate text-sm text-[#241a12]">{user.name}</strong>
-            <span className="block truncate text-xs font-semibold text-[#7a6a5c]">{user.email}</span>
-          </div>
-        ) : null}
       </div>
     </header>
   )

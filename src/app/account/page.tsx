@@ -5,6 +5,8 @@ import Footer from "../../components/Footer"
 import Navbar from "../../components/Navbar"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 
+export const dynamic = "force-dynamic"
+
 type AccountPageProps = {
   searchParams?: Promise<{ service?: string; title?: string }>
 }

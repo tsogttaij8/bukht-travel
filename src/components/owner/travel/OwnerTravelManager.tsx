@@ -35,10 +35,10 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     try {
       const response = await fetch("/api/owner/tours", { cache: "no-store" })
       const body = (await response.json()) as { tours?: StoredTravelPackage[]; message?: string }
-      if (!response.ok) throw new Error(body.message ?? "Failed to load tours.")
+      if (!response.ok) throw new Error(body.message ?? "Аяллын жагсаалт ачаалахад алдаа гарлаа.")
       setTours(body.tours ?? [])
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Failed to load tours.")
+      setError(caught instanceof Error ? caught.message : "Аяллын жагсаалт ачаалахад алдаа гарлаа.")
     } finally {
       setLoading(false)
     }
@@ -59,11 +59,11 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
         body: JSON.stringify(payload),
       })
       const body = (await response.json()) as { tour?: StoredTravelPackage; message?: string }
-      if (!response.ok || !body.tour) throw new Error(body.message ?? "Failed to save tour.")
+      if (!response.ok || !body.tour) throw new Error(body.message ?? "Аялал хадгалахад алдаа гарлаа.")
       setTours((current) => form.id ? current.map((tour) => tour.id === body.tour!.id ? body.tour! : tour) : [body.tour!, ...current])
       return body.tour
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Failed to save tour.")
+      setError(caught instanceof Error ? caught.message : "Аялал хадгалахад алдаа гарлаа.")
       return null
     } finally {
       setSaving(false)
@@ -79,26 +79,26 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     })
     const body = (await response.json()) as { tour?: StoredTravelPackage; message?: string }
     if (!response.ok || !body.tour) {
-      setError(body.message ?? "Failed to update status.")
+      setError(body.message ?? "Аяллын төлөв шинэчлэхэд алдаа гарлаа.")
       return
     }
     setTours((current) => current.map((item) => item.id === body.tour!.id ? body.tour! : item))
   }
 
   async function deleteTour(tour: StoredTravelPackage): Promise<void> {
-    if (!window.confirm(`Delete "${tour.title}"?`)) return
+    if (!window.confirm(`"${tour.title}" аяллыг устгах уу?`)) return
     setError("")
     const response = await fetch(`/api/owner/tours/${encodeURIComponent(tour.id)}`, { method: "DELETE" })
     if (!response.ok) {
       const body = (await response.json()) as { message?: string }
-      setError(body.message ?? "Failed to delete tour.")
+      setError(body.message ?? "Аялал устгахад алдаа гарлаа.")
       return
     }
     setTours((current) => current.filter((item) => item.id !== tour.id))
   }
 
   if (loading) {
-    return <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600 shadow-sm">Loading tours from /api/owner/tours...</div>
+    return <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600 shadow-sm">Аяллын мэдээлэл ачаалж байна...</div>
   }
 
   if (mode === "new") {
@@ -107,7 +107,7 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
 
   if (mode === "edit") {
     if (!selectedTour) {
-      return <OwnerEmptyState title="Tour not found" body="This tour is not available for the current owner session." action={<Link className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white" href="/owner/travel/tours">Back to tours</Link>} />
+      return <OwnerEmptyState title="Аялал олдсонгүй" body="Энэ аялал одоогийн owner эрхээр харагдах боломжгүй байна." action={<Link className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white" href="/owner/travel/tours">Аяллын жагсаалт руу буцах</Link>} />
     }
     return <OwnerTourEditor initialForm={formFromTour(selectedTour)} saving={saving} error={error} onSave={saveTour} />
   }
@@ -116,11 +116,11 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     <div className="grid gap-5">
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div> : null}
       <div className="grid grid-cols-5 gap-4 max-xl:grid-cols-2 max-sm:grid-cols-1">
-        <OwnerStat label="Total tours" value={String(stats.total)} detail="Real owner tours" />
-        <OwnerStat label="Draft tours" value={String(stats.draft)} detail="Owner-only" />
-        <OwnerStat label="Published tours" value={String(stats.published)} detail="Publicly visible" />
-        <OwnerStat label="Bookings" value="0" detail="No booking data yet" />
-        <OwnerStat label="Revenue" value="0" detail="No payment data yet" />
+        <OwnerStat label="Нийт аялал" value={String(stats.total)} detail="Owner-ийн бодит аяллууд" />
+        <OwnerStat label="Ноорог" value={String(stats.draft)} detail="Зөвхөн owner харна" />
+        <OwnerStat label="Нийтлэгдсэн" value={String(stats.published)} detail="Хэрэглэгчдэд харагдана" />
+        <OwnerStat label="Захиалга" value="0" detail="Захиалгын мэдээлэл алга" />
+        <OwnerStat label="Орлого" value="0" detail="Төлбөрийн мэдээлэл алга" />
       </div>
       <ToursTable tours={tours} onStatus={updateStatus} onDelete={deleteTour} />
     </div>
@@ -135,9 +135,9 @@ function ToursTable(props: {
   if (props.tours.length === 0) {
     return (
       <OwnerEmptyState
-        title="No tours yet"
-        body="Create a draft tour to start building Travel inventory. No mock tours are shown here."
-        action={<Link className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white" href="/owner/travel/tours/new"><Plus size={16} className="mr-2 inline" />New tour</Link>}
+        title="Аялал хараахан алга"
+        body="Эхний аяллаа ноорог байдлаар үүсгээд, бэлэн болсон үед нь нийтэлнэ."
+        action={<Link className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white" href="/owner/travel/tours/new"><Plus size={16} className="mr-2 inline" />Шинэ аялал</Link>}
       />
     )
   }
@@ -147,20 +147,20 @@ function ToursTable(props: {
       rows={props.tours}
       getRowKey={(tour) => tour.id}
       columns={[
-        { key: "title", label: "Title", render: (tour) => <div><strong className="block text-slate-950">{tour.title}</strong><span className="text-xs text-slate-500">{tour.shortDescription || "No short description"}</span></div> },
-        { key: "destination", label: "Destination", render: (tour) => tour.destination || "-" },
-        { key: "price", label: "Price", render: (tour) => formatMoney(tour.price) },
-        { key: "status", label: "Status", render: (tour) => <span className={`rounded-full px-2.5 py-1 text-xs font-black ${tour.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{tour.status}</span> },
-        { key: "created", label: "Created", render: (tour) => formatDate(tour.createdAt) },
-        { key: "updated", label: "Updated", render: (tour) => formatDate(tour.updatedAt) },
-        { key: "actions", label: "Actions", render: (tour) => (
+        { key: "title", label: "Нэр", render: (tour) => <div><strong className="block text-slate-950">{tour.title}</strong><span className="text-xs text-slate-500">{tour.shortDescription || "Богино танилцуулга оруулаагүй"}</span></div> },
+        { key: "destination", label: "Очих газар", render: (tour) => tour.destination || "-" },
+        { key: "price", label: "Үнэ", render: (tour) => formatMoney(tour.price) },
+        { key: "status", label: "Төлөв", render: (tour) => <span className={`rounded-full px-2.5 py-1 text-xs font-black ${tour.status === "published" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{tour.status === "published" ? "Нийтлэгдсэн" : "Ноорог"}</span> },
+        { key: "created", label: "Үүссэн", render: (tour) => formatDate(tour.createdAt) },
+        { key: "updated", label: "Шинэчилсэн", render: (tour) => formatDate(tour.updatedAt) },
+        { key: "actions", label: "Үйлдэл", render: (tour) => (
           <div className="flex flex-wrap gap-2">
-            <Link href={`/owner/travel/tours/${tour.id}`} className="rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50" title="Edit"><Edit size={15} /></Link>
-            <Link href={`/owner/travel/tours/${tour.id}/preview`} className="rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50" title="Preview"><Eye size={15} /></Link>
+            <Link href={`/owner/travel/tours/${tour.id}`} className="rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50" title="Засах"><Edit size={15} /></Link>
+            <Link href={`/owner/travel/tours/${tour.id}/preview`} className="rounded-md border border-slate-200 p-2 text-slate-700 hover:bg-slate-50" title="Харах"><Eye size={15} /></Link>
             <button type="button" className="rounded-md border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50" onClick={() => props.onStatus(tour, tour.status === "published" ? "draft" : "published")}>
-              {tour.status === "published" ? "Unpublish" : "Publish"}
+              {tour.status === "published" ? "Нуух" : "Нийтлэх"}
             </button>
-            <button type="button" className="rounded-md border border-red-200 p-2 text-red-700 hover:bg-red-50" onClick={() => props.onDelete(tour)} title="Delete"><Trash2 size={15} /></button>
+            <button type="button" className="rounded-md border border-red-200 p-2 text-red-700 hover:bg-red-50" onClick={() => props.onDelete(tour)} title="Устгах"><Trash2 size={15} /></button>
           </div>
         ) },
       ]}
@@ -193,7 +193,7 @@ function formToPayload(form: OwnerTourForm) {
 function parseItinerary(value: string) {
   return value.split("\n").map((line, index) => {
     const [day, title, details] = line.split("|").map((part) => part.trim())
-    return { day: day || `Day ${index + 1}`, date: "", title: title ?? "", details: details ?? "" }
+    return { day: day || `${index + 1}-р өдөр`, date: "", title: title ?? "", details: details ?? "" }
   }).filter((day) => day.title || day.details)
 }
 
