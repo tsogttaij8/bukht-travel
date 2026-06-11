@@ -73,17 +73,25 @@ export default function ClerkSignupForm(props: { onRegistered: (email: string) =
       if (result.status === "complete") {
         if (result.createdSessionId) {
           await setActive({ session: result.createdSessionId })
-          await syncClerkSession(await getToken({ skipCache: true }))
+          const synced = await syncClerkSession(await getToken({ skipCache: true }))
+          if (!synced.ok) throw new Error(synced.message === "SESSION_NOT_READY" ? "SESSION_NOT_READY" : "SYNC_FAILED")
         }
         props.onRegistered(normalizeEmail(email))
         return
       }
       setError(`Бүртгэл дуусаагүй байна. Missing: ${result.missingFields.join(", ") || "none"}.`)
     } catch (caught) {
-      setError(clerkMessage(caught))
+      setError(signupErrorMessage(caught))
     } finally {
       setBusy(false)
     }
+  }
+
+  function signupErrorMessage(error: unknown): string {
+    if (error instanceof Error && (error.message === "SESSION_NOT_READY" || error.message === "SYNC_FAILED")) {
+      return "Бүртгэл баталгаажсан ч session/database sync амжилтгүй боллоо. Дахин нэвтрээд үзнэ үү."
+    }
+    return clerkMessage(error)
   }
 
   if (step === "verify") return (

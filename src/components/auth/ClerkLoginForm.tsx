@@ -65,7 +65,7 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
 
       await setActive({ session: result.createdSessionId })
       const synced = await syncActiveSession()
-      if (!synced.ok) throw new Error(synced.message === "USER_NOT_REGISTERED" ? "USER_NOT_REGISTERED" : "SYNC_FAILED")
+      if (!synced.ok) throw new Error(synced.message === "SESSION_NOT_READY" ? "SESSION_NOT_READY" : "SYNC_FAILED")
       props.onDone(synced.user)
     } catch (caught) {
       if (isAlreadySignedInError(caught)) {
@@ -85,13 +85,9 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
 
   function loginErrorMessage(error: unknown): string {
     const code = (error as { errors?: Array<{ code?: string }> })?.errors?.[0]?.code
-    if (code === "form_identifier_not_found") return "Энэ мэйлээр бүртгэл үүсээгүй байна. Эхлээд бүртгүүлнэ үү."
-    if (code === "form_password_incorrect") return "Нууц үг буруу байна."
-    if (error instanceof Error && error.message === "USER_NOT_REGISTERED") {
-      return "Энэ мэйлээр бүртгэл үүсээгүй байна. Эхлээд бүртгүүлнэ үү."
-    }
+    if (code === "form_identifier_not_found" || code === "form_password_incorrect") return "Мэйл эсвэл нууц үг буруу байна."
     if (error instanceof Error && (error.message === "SESSION_NOT_READY" || error.message === "SYNC_FAILED")) {
-      return "Нэвтрэхэд алдаа гарлаа. Дахин оролдоно уу."
+      return "Нэвтрэлт баталгаажсан ч session/database sync амжилтгүй боллоо. Дахин оролдоно уу."
     }
     return clerkMessage(error)
   }

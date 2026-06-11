@@ -61,8 +61,29 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(216, 185, 138, 0.5);
+  color: #4d3829;
+  cursor: pointer;
   font-size: 0.92rem;
   font-weight: 700;
+  transition: 160ms ease;
+}
+
+.shop-chip:hover,
+.shop-chip-active {
+  background: #7d4d34;
+  border-color: #7d4d34;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(125, 77, 52, 0.18);
+}
+
+.shop-empty-result {
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px solid rgba(216, 185, 138, 0.42);
+  background: rgba(255, 252, 247, 0.74);
+  color: #6b5b4c;
+  font-weight: 800;
+  text-align: center;
 }
 
 .shop-hero-panel {

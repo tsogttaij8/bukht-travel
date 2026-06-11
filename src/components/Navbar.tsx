@@ -68,6 +68,7 @@ export default function Navbar() {
         <div className={`flex items-center gap-[18px] text-[0.95rem] max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-3 ${menuOpen ? "max-sm:flex" : "max-sm:hidden"}`}>
           <Link href="/travel" className={navLinkClass}>Аялал</Link>
           <Link href="/shop" className={navLinkClass}>Худалдаа</Link>
+          <Link href="/commerce" className={navLinkClass}>Commerce</Link>
           <Link href="/esim" className={navLinkClass}>eSIM</Link>
           <Link href="/cargo" className={navLinkClass}>Карго</Link>
           {user ? <AccountMenu email={email} initial={initial} imageUrl={clerkUser?.imageUrl} open={accountOpen} onToggle={() => setAccountOpen((current) => !current)} onLogout={logout} /> : null}

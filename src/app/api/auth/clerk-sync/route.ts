@@ -19,27 +19,37 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!email) return NextResponse.json({ message: "Email hayag oldsonggui" }, { status: 400 })
 
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || email.split("@")[0]
-  const existing = await findUserByEmail(email).catch(() => null)
-  if (!existing) return NextResponse.json({ code: "USER_NOT_REGISTERED" }, { status: 404 })
-
-  const user = await syncUser(email, name).catch(() => null)
+  const user = await syncUser(email, name).catch((error) => {
+    console.error("[clerk-sync] syncUser failed", error)
+    return null
+  })
   if (!user) return NextResponse.json({ code: "SYNC_FAILED" }, { status: 500 })
+  if (user.status === "disabled") return NextResponse.json({ code: "USER_DISABLED", message: "User account is disabled or suspended" }, { status: 403 })
 
   const response = NextResponse.json({ user: { name: user.name, email: user.email, role: user.role, roles: user.roles } })
-  response.cookies.set(sessionConfig.name, createSessionToken(user.name, user.email, user.roles), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: sessionConfig.maxAge,
-  })
-  response.cookies.set(sessionConfig.logoutMarkerName, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  })
+  try {
+    console.error("[clerk-sync] createSessionToken start", { email: user.email, roles: user.roles })
+    const sessionToken = createSessionToken(user.name, user.email, user.roles)
+    console.error("[clerk-sync] createSessionToken ok", { email: user.email })
+    response.cookies.set(sessionConfig.name, sessionToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: sessionConfig.maxAge,
+    })
+    response.cookies.set(sessionConfig.logoutMarkerName, "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 0,
+    })
+    console.error("[clerk-sync] cookie creation ok", { email: user.email })
+  } catch (error) {
+    console.error("[clerk-sync] createSessionToken/cookie failed", error)
+    return NextResponse.json({ code: "SESSION_COOKIE_FAILED" }, { status: 500 })
+  }
   return response
 }
 
@@ -49,7 +59,16 @@ function readBearerToken(header: string | null): string {
 }
 
 async function syncUser(email: string, name: string): Promise<StoredUser> {
-  const user = await upsertUserByEmail({ email, name })
+  console.error("[clerk-sync] findUserByEmail start", { email })
+  let user = await findUserByEmail(email)
+  console.error("[clerk-sync] findUserByEmail ok", { email, found: Boolean(user), status: user?.status, roles: user?.roles })
+  if (!user) {
+    console.error("[clerk-sync] upsertUserByEmail start", { email, name })
+    user = await upsertUserByEmail({ email, name })
+    console.error("[clerk-sync] upsertUserByEmail ok", { email: user.email, id: user.id, status: user.status, roles: user.roles })
+  }
+  console.error("[clerk-sync] ensureUserProfile start", { email: user.email, id: user.id })
   await ensureUserProfile(user)
+  console.error("[clerk-sync] ensureUserProfile ok", { email: user.email, id: user.id })
   return user
 }

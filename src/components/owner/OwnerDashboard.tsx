@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Package, Plane, Smartphone, Truck } from "lucide-react"
 import OwnerModuleCard from "./OwnerModuleCard"
 import type { StoredTravelPackage } from "../../lib/server/travel-package-store"
-import type { StoredProduct } from "../../lib/server/product-store"
+import type { StoredCommerceProduct } from "../../lib/server/commerce-store"
 import type { StoredEsimPackage } from "../../lib/server/esim-package-store"
 import type { StoredShipment } from "../../lib/server/shipment-store"
 
@@ -42,7 +42,7 @@ export default function OwnerDashboard() {
       try {
         const [travel, commerce, cargo, esim] = await Promise.all([
           fetchJson<{ tours?: StoredTravelPackage[] }>("/api/owner/tours"),
-          fetchJson<{ products?: StoredProduct[] }>("/api/admin/products"),
+          fetchJson<{ products?: StoredCommerceProduct[] }>("/api/commerce/products?scope=admin"),
           fetchJson<{ shipments?: StoredShipment[] }>("/api/admin/shipments"),
           fetchJson<{ esimPackages?: StoredEsimPackage[] }>("/api/admin/esim-packages"),
         ])
@@ -62,7 +62,7 @@ export default function OwnerDashboard() {
           } : disconnected,
           commerce: products ? {
             total: String(products.length),
-            active: "No active status field",
+            active: String(products.filter((product) => product.status === "available").length),
             status: "Connected",
           } : disconnected,
           cargo: shipments ? {

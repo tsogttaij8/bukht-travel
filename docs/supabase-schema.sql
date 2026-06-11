@@ -135,6 +135,43 @@ create table if not exists public.products (
 
 create index if not exists products_updated_at_idx on public.products (updated_at);
 
+create table if not exists public.commerce_products (
+  id uuid primary key,
+  owner_id text not null default '',
+  name text not null,
+  description text,
+  price numeric not null,
+  currency text not null default 'MNT',
+  category text,
+  condition text,
+  country text,
+  city text,
+  image_url text,
+  seller_name text,
+  seller_contact text,
+  status text not null default 'available' check (status in ('available', 'sold', 'hidden')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists commerce_products_owner_id_idx on public.commerce_products (owner_id);
+create index if not exists commerce_products_status_idx on public.commerce_products (status);
+create index if not exists commerce_products_updated_at_idx on public.commerce_products (updated_at);
+
+create table if not exists public.commerce_purchase_requests (
+  id uuid primary key,
+  product_id uuid not null references public.commerce_products(id) on delete cascade,
+  buyer_name text not null,
+  buyer_contact text not null,
+  message text,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists commerce_purchase_requests_product_id_idx on public.commerce_purchase_requests (product_id);
+create index if not exists commerce_purchase_requests_status_idx on public.commerce_purchase_requests (status);
+
 create table if not exists public.travel_packages (
   id text primary key,
   owner_id text not null default '',
