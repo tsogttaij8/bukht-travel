@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import type { TravelPackageStatus } from "../../lib/server/travel-package-store"
+import type { TravelPackageStatus } from "@/src/lib/server/travel-package-store"
 
 export default function OwnerTourPreviewActions({ tourId, status }: { tourId: string; status: TravelPackageStatus }) {
   const router = useRouter()

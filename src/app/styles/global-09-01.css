@@ -1,0 +1,151 @@
+.travel-step-item {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.travel-step-item span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(138, 90, 60, 0.16), rgba(240, 189, 114, 0.3));
+  color: var(--brown-deep);
+  font-weight: 800;
+}
+
+.page-cta-shell {
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 220, 173, 0.28), transparent 22%),
+    linear-gradient(180deg, rgba(255, 251, 246, 0.98), rgba(252, 240, 222, 0.84));
+  border-color: rgba(228, 199, 162, 0.92);
+  box-shadow: 0 28px 56px rgba(121, 89, 59, 0.12);
+}
+
+.developer-dashboard {
+  position: relative;
+}
+
+.office-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #cfd6df;
+  border-bottom: 1px solid #cfd6df;
+  padding: 18px 0;
+  margin-bottom: 18px;
+}
+
+.office-header p,
+.office-header h2,
+.office-header span {
+  margin: 0;
+}
+
+.office-header p {
+  color: #667085;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.office-header h2 {
+  margin-top: 6px;
+  color: #172033;
+  font-size: 1.45rem;
+}
+
+.office-header span {
+  display: block;
+  margin-top: 4px;
+  color: #516071;
+  font-weight: 700;
+}
+
+.office-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #cfd6df;
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+
+.office-tabs button {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: #516071;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 14px 18px 12px;
+}
+
+.office-tabs button:hover,
+.office-tabs button.active {
+  color: #172033;
+  border-bottom-color: #172033;
+}
+
+.office-panel {
+  border-top: 1px solid #d8dee7;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 24px 0 28px;
+}
+
+.office-panel + .office-panel,
+.office-panel + .card-grid,
+.card-grid + .office-panel {
+  margin-top: 4px;
+}
+
+.office-panel h3 {
+  margin-top: 0;
+  color: #172033;
+}
+
+.office-row {
+  border-top: 1px solid #d8dee7;
+  padding: 16px 0;
+  background: transparent;
+}
+
+.office-row:last-child {
+  border-bottom: 1px solid #d8dee7;
+}
+
+.office-metric {
+  border-top: 1px solid #d8dee7;
+  padding: 18px 0;
+  background: transparent;
+}
+
+.office-metric h3 {
+  margin: 0 0 8px;
+  color: #172033;
+}
+
+.office-metric p {
+  margin: 0;
+  color: #516071;
+  font-weight: 600;
+}
+
+.developer-stat-card {
+  min-height: 148px;
+}
+
+.developer-stat-card h3 {
+  color: #6f432b;
+}
+
+.developer-stat-card p {
+  color: #5f5145;
+  font-weight: 600;
+}
+
+.developer-panel {
+  color: #172033;
+}

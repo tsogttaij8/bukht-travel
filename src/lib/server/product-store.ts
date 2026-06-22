@@ -6,7 +6,7 @@ import { getSupabaseAdmin, isSupabaseEnabled } from "./supabase"
 
 export type { StoredProduct } from "./product-model"
 
-const productSelect = "id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at"
+const productSelect = "id, name, category, price, moq, origin, lead_time, badge, summary, image_url, seller_name, seller_email, created_at, updated_at"
 const fallbackProducts: StoredProduct[] = [
   {
     id: "fallback-kitchen-storage-set",
@@ -18,6 +18,9 @@ const fallbackProducts: StoredProduct[] = [
     leadTime: "7-10 honog",
     badge: "Hot deal",
     summary: "Home goods and reseller-friendly storage bundle.",
+    imageUrl: "",
+    sellerName: "BUKHT",
+    sellerEmail: "",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
   },
@@ -31,6 +34,9 @@ const fallbackProducts: StoredProduct[] = [
     leadTime: "5-8 honog",
     badge: "Trending",
     summary: "Compact beauty gadget suited for online sales.",
+    imageUrl: "",
+    sellerName: "BUKHT",
+    sellerEmail: "",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
   },
@@ -44,6 +50,9 @@ const fallbackProducts: StoredProduct[] = [
     leadTime: "8-12 honog",
     badge: "New arrival",
     summary: "Youth-focused capsule collection for small batches.",
+    imageUrl: "",
+    sellerName: "BUKHT",
+    sellerEmail: "",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
   },
@@ -73,7 +82,7 @@ export async function listProducts(): Promise<StoredProduct[]> {
   try {
     const db = await getDb()
     const result = await db.query<ProductRow>(
-      `SELECT id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at
+      `SELECT id, name, category, price, moq, origin, lead_time, badge, summary, image_url, seller_name, seller_email, created_at, updated_at
        FROM products
        ORDER BY updated_at DESC`
     )
@@ -94,6 +103,9 @@ export async function createProduct(input: {
   leadTime: string
   badge?: string
   summary: string
+  imageUrl?: string
+  sellerName?: string
+  sellerEmail?: string
 }): Promise<StoredProduct> {
   const product = buildProduct(input)
 
@@ -112,8 +124,8 @@ export async function createProduct(input: {
   const db = await getDb()
   await db.query(
     `INSERT INTO products (
-      id, name, category, price, moq, origin, lead_time, badge, summary, created_at, updated_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      id, name, category, price, moq, origin, lead_time, badge, summary, image_url, seller_name, seller_email, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [
       product.id,
       product.name,
@@ -124,6 +136,9 @@ export async function createProduct(input: {
       product.leadTime,
       product.badge,
       product.summary,
+      product.imageUrl,
+      product.sellerName,
+      product.sellerEmail,
       product.createdAt,
       product.updatedAt,
     ]
@@ -144,6 +159,9 @@ function buildProduct(input: Parameters<typeof createProduct>[0]): StoredProduct
     leadTime: input.leadTime.trim(),
     badge: input.badge?.trim() || "New",
     summary: input.summary.trim(),
+    imageUrl: input.imageUrl?.trim() ?? "",
+    sellerName: input.sellerName?.trim() || "BUKHT",
+    sellerEmail: input.sellerEmail?.trim().toLowerCase() ?? "",
     createdAt: now,
     updatedAt: now,
   }
@@ -160,6 +178,9 @@ function toProductRow(product: StoredProduct): ProductRow {
     lead_time: product.leadTime,
     badge: product.badge,
     summary: product.summary,
+    image_url: product.imageUrl,
+    seller_name: product.sellerName,
+    seller_email: product.sellerEmail,
     created_at: product.createdAt,
     updated_at: product.updatedAt,
   }

@@ -28,6 +28,7 @@ export type StoredTravelPackage = {
   mapCoordinates: string
   transportationTypes: string[]
   price: number
+  priceCurrency: "MNT" | "CNY"
   maxParticipants: number
   paymentSettings: string
   cancellationPolicy: string
@@ -68,6 +69,7 @@ export type TravelPackageRow = {
   map_coordinates?: string | null
   transportation_types?: string | string[] | null
   price?: number | null
+  price_currency?: string | null
   max_participants?: number | null
   payment_settings?: string | null
   cancellation_policy?: string | null
@@ -118,6 +120,7 @@ export function mapTravelPackage(row: TravelPackageRow): StoredTravelPackage {
     mapCoordinates: row.map_coordinates ?? "",
     transportationTypes: transportationTypes.length ? transportationTypes : transport.split(",").map((item) => item.trim()).filter(Boolean),
     price,
+    priceCurrency: normalizePriceCurrency(row.price_currency),
     maxParticipants,
     paymentSettings: row.payment_settings ?? "",
     cancellationPolicy: row.cancellation_policy ?? "",
@@ -150,7 +153,14 @@ export function mapTravelPackageStoreError(error: unknown): Error {
   if (message.includes(`relation "travel_packages" does not exist`) || message.includes(`Could not find the table 'public.travel_packages'`)) {
     return new Error("Supabase deer `travel_packages` husnegt alga baina. `docs/supabase-schema.sql` schema-g shinechlene uu.")
   }
+  if (message.includes("price_currency")) {
+    return new Error("Supabase deer `travel_packages.price_currency` bagana alga baina. `docs/supabase-schema.sql` schema-g shinechlene uu.")
+  }
   return error instanceof Error ? error : new Error(message)
+}
+
+function normalizePriceCurrency(value: string | null | undefined): "MNT" | "CNY" {
+  return value === "CNY" ? "CNY" : "MNT"
 }
 
 function parseJson<T>(value: string | T, fallback: T): T {

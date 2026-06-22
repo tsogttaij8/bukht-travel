@@ -3,26 +3,13 @@
 import { useAuth, useClerk } from "@clerk/nextjs"
 import { useSignIn } from "@clerk/nextjs/legacy"
 import { useEffect, useState } from "react"
-import { logoutUser, syncClerkSession, type SessionUser } from "../../lib/auth"
+import { logoutUser, type SessionUser } from "../../lib/auth"
 import { clerkMessage, isAlreadySignedInError, isStrongPassword, normalizeEmail } from "./clerk-auth-utils"
+import { loginErrorMessage, syncActiveClerkSession } from "./clerk-login-helpers"
+import { ResetEmailForm, ResetVerifyForm } from "./ClerkLoginResetForms"
 import FloatingField from "./FloatingField"
-import PasswordMeter from "./PasswordMeter"
 
 type LoginStep = "login" | "resetEmail" | "resetVerify"
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-async function waitForToken(getToken: () => Promise<string | null>): Promise<string> {
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    const token = await getToken()
-    if (token) return token
-    await wait(300)
-  }
-
-  throw new Error("SESSION_NOT_READY")
-}
 
 export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (user?: SessionUser) => void }) {
   const { signOut } = useClerk()
@@ -64,7 +51,7 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
       }
 
       await setActive({ session: result.createdSessionId })
-      const synced = await syncActiveSession()
+      const synced = await syncActiveClerkSession(() => getToken({ skipCache: true }))
       if (!synced.ok) throw new Error(synced.message === "SESSION_NOT_READY" ? "SESSION_NOT_READY" : "SYNC_FAILED")
       props.onDone(synced.user)
     } catch (caught) {
@@ -76,20 +63,6 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
     } finally {
       setBusy(false)
     }
-  }
-
-  async function syncActiveSession() {
-    const token = await waitForToken(() => getToken({ skipCache: true }))
-    return syncClerkSession(token)
-  }
-
-  function loginErrorMessage(error: unknown): string {
-    const code = (error as { errors?: Array<{ code?: string }> })?.errors?.[0]?.code
-    if (code === "form_identifier_not_found" || code === "form_password_incorrect") return "Мэйл эсвэл нууц үг буруу байна."
-    if (error instanceof Error && (error.message === "SESSION_NOT_READY" || error.message === "SYNC_FAILED")) {
-      return "Нэвтрэлт баталгаажсан ч session/database sync амжилтгүй боллоо. Дахин оролдоно уу."
-    }
-    return clerkMessage(error)
   }
 
   async function startReset(event: React.FormEvent<HTMLFormElement>) {
@@ -170,42 +143,43 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
 
   if (step === "resetEmail") {
     return (
-      <form onSubmit={startReset} className="grid gap-4">
-        <FloatingField label="Мэйл хаяг" value={resetEmail} onChange={setResetEmail} type="email" autoComplete="email" required />
-        {error ? <p className="m-0 rounded-[10px] bg-[#fff0ed] p-3 font-semibold text-[#9a3412]">{error}</p> : null}
-        <button className="btn btn-primary" disabled={busy || !isLoaded}>{busy ? "Илгээж байна..." : "Код авах"}</button>
-        <button type="button" className="btn btn-secondary" onClick={() => {
+      <ResetEmailForm
+        resetEmail={resetEmail}
+        busy={busy}
+        isLoaded={isLoaded}
+        error={error}
+        onResetEmail={setResetEmail}
+        onSubmit={startReset}
+        onBack={() => {
           setError("")
           setNotice("")
           setStep("login")
-        }}>
-          Нэвтрэх рүү буцах
-        </button>
-      </form>
+        }}
+      />
     )
   }
 
   if (step === "resetVerify") {
     return (
-      <form onSubmit={finishReset} className="grid gap-4">
-        <FloatingField label="Мэйлээр ирсэн код" value={resetCode} onChange={setResetCode} inputMode="numeric" autoComplete="one-time-code" required />
-        <FloatingField label="Шинэ нууц үг" value={newPassword} onChange={setNewPassword} type="password" autoComplete="new-password" required />
-        <FloatingField label="Шинэ нууц үг давтах" value={confirmPassword} onChange={setConfirmPassword} type="password" autoComplete="new-password" required />
-        <PasswordMeter password={newPassword} />
-        {notice ? <p className="m-0 text-sm font-semibold text-[#1d6b42]">{notice}</p> : null}
-        {error ? <p className="m-0 rounded-[10px] bg-[#fff0ed] p-3 font-semibold text-[#9a3412]">{error}</p> : null}
-        <button className="btn btn-primary" disabled={busy || !isLoaded}>{busy ? "Шинэчилж байна..." : "Нууц үг шинэчлэх"}</button>
-        <button type="button" className="text-sm font-bold text-[#7d4d34] underline" onClick={resendResetCode} disabled={busy || !isLoaded}>
-          Код дахин илгээх
-        </button>
-        <button type="button" className="btn btn-secondary" onClick={() => {
+      <ResetVerifyForm
+        resetCode={resetCode}
+        newPassword={newPassword}
+        confirmPassword={confirmPassword}
+        busy={busy}
+        isLoaded={isLoaded}
+        notice={notice}
+        error={error}
+        onResetCode={setResetCode}
+        onNewPassword={setNewPassword}
+        onConfirmPassword={setConfirmPassword}
+        onSubmit={finishReset}
+        onResend={resendResetCode}
+        onChangeEmail={() => {
           setError("")
           setNotice("")
           setStep("resetEmail")
-        }}>
-          Мэйл солих
-        </button>
-      </form>
+        }}
+      />
     )
   }
 

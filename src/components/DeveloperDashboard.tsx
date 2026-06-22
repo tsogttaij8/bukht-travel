@@ -3,18 +3,16 @@
 import { useState } from "react"
 import type { UserRole } from "../lib/server/user-store"
 import type { StoredEsimPackage } from "../lib/server/esim-package-store"
-import type { StoredProduct } from "../lib/server/product-store"
 import type { StoredTravelPackage } from "../lib/server/travel-package-store"
 import type { StoredUser } from "../lib/server/user-store"
 import DashboardStats from "./dashboard/DashboardStats"
 import { EsimPackageCreatePanel, EsimPackageListPanel } from "./dashboard/EsimPackagesPanel"
-import { ProductCreatePanel, ProductListPanel } from "./dashboard/ProductsPanel"
+import { ProductListPanel } from "./dashboard/ProductsPanel"
 import { ShipmentCreatePanel, ShipmentListPanel } from "./dashboard/ShipmentsPanel"
 import StaffAccessPanel from "./dashboard/StaffAccessPanel"
 import { TravelPackageCreatePanel, TravelPackageListPanel } from "./dashboard/TravelPackagesPanel"
 import UsersPanel from "./dashboard/UsersPanel"
 import { useDashboardData } from "./dashboard/useDashboardData"
-import { useProducts } from "./dashboard/useProducts"
 import { useEsimPackages } from "./dashboard/useEsimPackages"
 import { useShipments } from "./dashboard/useShipments"
 import { useStaffAccess } from "./dashboard/useStaffAccess"
@@ -51,12 +49,10 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
   const canManageShipments = tabEnabled("cargo") && (isOwner || currentRoles.includes("cargo_staff") || currentRoles.includes("support_staff"))
   const { data, setData, loading, loadError } = useDashboardData({ isOwner: canManageAccess, canManageProducts, canManageEsimPackages, canManageTravelPackages: canManageTravelPackages && !travelOnlyScope, canManageShipments })
   const setUsers = (updater: (users: StoredUser[]) => StoredUser[]) => setData((state) => ({ ...state, users: updater(state.users) }))
-  const setProducts = (updater: (products: StoredProduct[]) => StoredProduct[]) => setData((state) => ({ ...state, products: updater(state.products) }))
   const setEsimPackages = (updater: (packages: StoredEsimPackage[]) => StoredEsimPackage[]) => setData((state) => ({ ...state, esimPackages: updater(state.esimPackages) }))
   const setTravelPackages = (updater: (packages: StoredTravelPackage[]) => StoredTravelPackage[]) => setData((state) => ({ ...state, travelPackages: updater(state.travelPackages) }))
   const setShipments = (updater: (shipments: DashboardShipment[]) => DashboardShipment[]) => setData((state) => ({ ...state, shipments: updater(state.shipments) }))
   const staff = useStaffAccess(data.users, setUsers)
-  const products = useProducts(setProducts)
   const esimPackages = useEsimPackages(setEsimPackages)
   const travelPackages = useTravelPackages(setTravelPackages)
   const shipments = useShipments(setShipments)
@@ -107,10 +103,7 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
         </>
       ) : null}
       {activeTab === "commerce" && canManageProducts ? (
-        <>
-          <ProductCreatePanel products={data.products} {...products} />
-          <ProductListPanel products={data.products} />
-        </>
+        <ProductListPanel products={data.products} />
       ) : null}
       {activeTab === "esim" && canManageEsimPackages ? (
         <>

@@ -1,5 +1,5 @@
 import AdminCommerceDashboard from "../../../components/admin/commerce/AdminCommerceDashboard"
-import OwnerWorkspaceShell from "../../../components/owner/OwnerWorkspaceShell"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { listCommerceProducts, listCommercePurchaseRequests } from "../../../lib/server/commerce-store"
 import { requireRole } from "../../../lib/server/role-guard"
 

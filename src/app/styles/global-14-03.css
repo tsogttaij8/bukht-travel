@@ -1,0 +1,153 @@
+.tour-step-controls button,
+.tour-pagination button,
+.review-row button {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  color: #0f172a;
+  padding: 9px 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.tour-step-controls button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tour-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tour-form-grid.single {
+  grid-template-columns: 1fr;
+}
+
+.tour-field {
+  display: grid;
+  gap: 7px;
+}
+
+.tour-field span {
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.tour-field textarea,
+.itinerary-row textarea {
+  resize: vertical;
+}
+
+.tour-location-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 14px;
+}
+
+.tour-map-picker,
+.tour-upload-zone,
+.placeholder {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  min-height: 260px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #334155;
+  text-align: center;
+}
+
+.tour-map-picker span,
+.tour-upload-zone span,
+.placeholder p {
+  margin: 0;
+  max-width: 420px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.transport-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px;
+}
+
+.transport-selector button,
+.checkbox-like {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #334155;
+  padding: 12px;
+  font-weight: 850;
+}
+
+.transport-selector button {
+  cursor: pointer;
+}
+
+.transport-selector button.active,
+.checkbox-like.active {
+  border-color: #0f172a;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.checkbox-like span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+.tour-gallery-manager {
+  display: grid;
+  gap: 12px;
+}
+
+.tour-upload-zone input {
+  display: none;
+}
+
+.itinerary-builder {
+  display: grid;
+  gap: 10px;
+}
+
+.itinerary-row {
+  display: grid;
+  grid-template-columns: 34px 100px minmax(180px, 0.8fr) minmax(220px, 1.2fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.itinerary-row > button {
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #64748b;
+  cursor: grab;
+}
+
+.publish-review {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 18px;
+}

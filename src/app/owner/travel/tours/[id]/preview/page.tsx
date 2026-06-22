@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import Footer from "../../../../../../components/Footer"
 import Navbar from "../../../../../../components/Navbar"
 import TravelBookingPanel from "../../../../../../components/TravelBookingPanel"
-import OwnerTourPreviewActions from "../../../../../../components/owner/OwnerTourPreviewActions"
+import OwnerTourPreviewActions from "@/src/app/owner/_components/OwnerTourPreviewActions"
 import { requireRole } from "../../../../../../lib/server/role-guard"
 import { getOwnerTravelPackage } from "../../../../../../lib/server/travel-package-store"
 

@@ -1,0 +1,150 @@
+
+.publish-review p,
+.publish-review h3,
+.publish-review span {
+  margin: 0;
+}
+
+.publish-review p {
+  color: #64748b;
+  font-weight: 850;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.publish-review h3 {
+  margin-top: 5px;
+  color: #0f172a;
+}
+
+.publish-review span {
+  display: block;
+  margin-top: 6px;
+  color: #475569;
+  font-weight: 750;
+}
+
+.tour-error {
+  color: #b42318 !important;
+}
+
+.tour-table-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.tour-table-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 260px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  padding: 0 10px;
+}
+
+.tour-table-toolbar input,
+.tour-table-toolbar select {
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  font-weight: 750;
+  outline: 0;
+}
+
+.tour-table-toolbar select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  padding: 0 10px;
+}
+
+.tour-table-wrap {
+  overflow-x: auto;
+}
+
+.tour-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.tour-data-table th,
+.tour-data-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 10px;
+  color: #334155;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tour-data-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tour-data-table td {
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.tour-table-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tour-table-title .travel-admin-thumb {
+  width: 58px;
+  height: 42px;
+}
+
+.tour-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  padding: 0 9px;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.tour-status.paid,
+.tour-status.confirmed,
+.tour-status.published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tour-status.pending,
+.tour-status.deposit,
+.tour-status.contacted,
+.tour-status.quoted {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tour-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  color: #64748b;
+  font-weight: 800;
+}
+
+.review-list {
+  display: grid;
+  gap: 10px;
+}
+

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import type { StoredCommerceProduct } from "../../../lib/server/commerce-store"
+import type { StoredCommerceProduct } from "@/src/lib/server/commerce-store"
 
 type FormState = {
   name: string

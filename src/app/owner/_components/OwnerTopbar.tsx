@@ -1,9 +1,11 @@
+import type { ReactNode } from "react"
+
 type OwnerTopbarProps = {
   title: string
   eyebrow?: string
   description?: string
   user?: { name: string; email: string }
-  action?: React.ReactNode
+  action?: ReactNode
 }
 
 export default function OwnerTopbar({ title, eyebrow = "BUKHT owner", description, action }: OwnerTopbarProps) {

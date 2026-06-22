@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { Package, Plane, Smartphone, Truck } from "lucide-react"
 import OwnerModuleCard from "./OwnerModuleCard"
-import type { StoredTravelPackage } from "../../lib/server/travel-package-store"
-import type { StoredCommerceProduct } from "../../lib/server/commerce-store"
-import type { StoredEsimPackage } from "../../lib/server/esim-package-store"
-import type { StoredShipment } from "../../lib/server/shipment-store"
+import type { StoredTravelPackage } from "@/src/lib/server/travel-package-store"
+import type { StoredCommerceProduct } from "@/src/lib/server/commerce-store"
+import type { StoredEsimPackage } from "@/src/lib/server/esim-package-store"
+import type { StoredShipment } from "@/src/lib/server/shipment-store"
 
 type ModuleState = {
   total: string

@@ -1,5 +1,7 @@
+import type { ReactNode } from "react"
+
 type OwnerDataTableProps<T> = {
-  columns: Array<{ key: string; label: string; render: (item: T) => React.ReactNode }>
+  columns: Array<{ key: string; label: string; render: (item: T) => ReactNode }>
   rows: T[]
   getRowKey: (item: T) => string
 }

@@ -1,4 +1,4 @@
-﻿.shop-product-cover span {
+.shop-product-cover span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -69,43 +69,6 @@
 
 .shop-info-panel-warm {
   background: linear-gradient(180deg, rgba(246, 234, 215, 0.9), rgba(240, 224, 202, 0.82));
-}
-
-.shop-steps,
-.shop-benefits {
-  display: grid;
-  gap: 14px;
-}
-
-.shop-step {
-  display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 12px;
-  align-items: start;
-}
-
-.shop-step span {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: rgba(138, 90, 60, 0.12);
-  color: var(--brown);
-  font-weight: 800;
-}
-
-.shop-step strong,
-.shop-benefits strong {
-  display: block;
-  margin-bottom: 6px;
-}
-
-.shop-step p,
-.shop-benefits p {
-  margin: 0;
-  color: #584f46;
-  line-height: 1.6;
 }
 
 .travel-page {

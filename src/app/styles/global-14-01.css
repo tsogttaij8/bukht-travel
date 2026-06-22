@@ -1,0 +1,150 @@
+.developer-form-block {
+  display: grid;
+  gap: 8px;
+  font-weight: 800;
+  color: #2f2a25;
+}
+
+.travel-admin-preview,
+.travel-admin-thumb,
+.travel-gallery-image {
+  background-size: cover;
+  background-position: center;
+  background-color: #e8ded2;
+}
+
+.travel-admin-preview {
+  margin-top: 12px;
+  min-height: 220px;
+  border-radius: 8px;
+  border: 1px solid #e5ddcf;
+}
+
+.travel-admin-thumb {
+  width: 120px;
+  height: 78px;
+  border-radius: 8px;
+  border: 1px solid #e5ddcf;
+  flex: 0 0 auto;
+}
+
+.tour-provider-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 760px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #f6f8fb;
+  overflow: hidden;
+  box-shadow: 0 18px 48px rgba(16, 24, 40, 0.08);
+}
+
+.tour-provider-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  border-right: 1px solid #d9e1ea;
+  background: #0f172a;
+  padding: 18px 14px;
+  color: white;
+}
+
+.tour-provider-brand {
+  display: grid;
+  gap: 4px;
+  padding: 10px 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tour-provider-brand strong {
+  font-size: 1rem;
+}
+
+.tour-provider-brand span {
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tour-provider-sidebar nav {
+  display: grid;
+  gap: 4px;
+}
+
+.tour-provider-sidebar button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #cbd5e1;
+  padding: 10px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tour-provider-sidebar button:hover,
+.tour-provider-sidebar button.active {
+  background: #1e293b;
+  color: white;
+}
+
+.tour-provider-main {
+  min-width: 0;
+  padding: 22px;
+}
+
+.tour-provider-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.tour-provider-topbar p,
+.tour-provider-topbar h2 {
+  margin: 0;
+}
+
+.tour-provider-topbar p,
+.tour-workflow-head p {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tour-provider-topbar h2 {
+  margin-top: 5px;
+  color: #0f172a;
+  font-size: 1.45rem;
+}
+
+.tour-primary-action,
+.tour-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  border-radius: 6px;
+  border: 1px solid #0f172a;
+  padding: 0 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tour-primary-action {
+  background: #0f172a;
+  color: white;
+}
+
+.tour-primary-action:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+

@@ -40,7 +40,13 @@ export function ProductListPanel({ products }: { products: StoredProduct[] }) {
         {products.map((product) => (
           <article key={product.id} className="office-row developer-item-card">
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <div><strong>{product.name}</strong><p style={{ margin: "6px 0 0" }}>{product.category} - {product.origin}</p></div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                {product.imageUrl ? <span style={{ width: 54, height: 54, borderRadius: 10, backgroundImage: `url(${product.imageUrl})`, backgroundSize: "cover", backgroundPosition: "center", flex: "0 0 auto" }} /> : null}
+                <div>
+                  <strong>{product.name}</strong>
+                  <p style={{ margin: "6px 0 0" }}>{product.category} - {product.sellerName}</p>
+                </div>
+              </div>
               <span style={{ fontWeight: 700, color: "#8a5a3c" }}>{product.badge}</span>
             </div>
             <p style={{ margin: "10px 0 0" }}>{product.summary}</p>

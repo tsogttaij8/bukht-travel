@@ -1,5 +1,5 @@
-import OwnerConnectedModulePage from "../../../components/owner/OwnerConnectedModulePage"
-import OwnerWorkspaceShell from "../../../components/owner/OwnerWorkspaceShell"
+import OwnerConnectedModulePage from "@/src/app/owner/_components/OwnerConnectedModulePage"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../../lib/server/role-guard"
 
 export default async function OwnerEsimPage() {

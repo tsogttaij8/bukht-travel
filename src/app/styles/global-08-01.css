@@ -1,0 +1,150 @@
+.travel-muted-box {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(255, 252, 247, 0.82);
+  border: 1px dashed rgba(151, 114, 69, 0.48);
+  color: #6b5b4c;
+  font-weight: 600;
+}
+
+.travel-city-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.travel-city-card {
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(255, 251, 244, 0.92);
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.travel-city-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 34px rgba(111, 78, 49, 0.12);
+}
+
+.travel-city-summary {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  list-style: none;
+  text-align: left;
+}
+
+.travel-city-summary::marker {
+  display: none;
+}
+
+.travel-city-summary::-webkit-details-marker {
+  display: none;
+}
+
+.travel-city-visual {
+  min-height: 210px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 18px;
+  border-bottom: 1px solid rgba(143, 108, 70, 0.2);
+}
+
+.travel-city-visual::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 54%;
+  background: linear-gradient(180deg, transparent, rgba(20, 15, 10, 0.62));
+}
+
+.travel-city-visual span {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(20, 15, 10, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.travel-city-visual-guangzhou {
+  background: url("/travel-guangzhou-city-highlights.jpeg") center / cover;
+}
+
+.travel-city-visual-yiwu {
+  background: url("/travel-yiwu-international-trade-center.jpeg") center / cover;
+}
+
+.travel-city-visual-shenzhen {
+  background: url("/travel-shenzhen-bay-waterfront-skyline.jpeg") center / cover;
+}
+
+.travel-city-copy {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.travel-city-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.travel-city-topline h3 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+}
+
+.travel-city-topline span {
+  display: inline-flex;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: rgba(216, 185, 138, 0.18);
+  color: var(--brown-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.travel-city-copy p,
+.travel-benefit-list p,
+.travel-step-item p {
+  margin: 0;
+  color: #58514a;
+  line-height: 1.6;
+}
+
+.travel-city-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.travel-city-tags span {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: rgba(255, 252, 247, 0.88);
+  border: 1px solid rgba(216, 185, 138, 0.38);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.travel-route-panel {
+  display: grid;
+  gap: 16px;
+  margin: 0 14px 14px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #2f332c;
+  border: 1px solid rgba(255, 232, 190, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}

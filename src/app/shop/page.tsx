@@ -1,39 +1,38 @@
-﻿import { cookies } from "next/headers"
-import DeveloperDashboard from "../../components/DeveloperDashboard"
-import Navbar from "../../components/Navbar"
+import { cookies } from "next/headers"
 import Footer from "../../components/Footer"
-import ShopCatalog from "../../components/ShopCatalog"
+import Navbar from "../../components/Navbar"
+import ShopMarketplace from "../../components/ShopMarketplace"
+import { listProducts, type StoredProduct } from "../../lib/server/product-store"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 
 export const dynamic = "force-dynamic"
 
-export default async function ShopPage(){
+export default async function ShopPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get(sessionConfig.name)?.value
   const session = token ? verifySessionToken(token) : null
-  const isOwner = session?.roles.includes("owner") ?? false
 
-  return(
+  let products: StoredProduct[] = []
+  let loadError = ""
+
+  try {
+    products = await listProducts()
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Барааны мэдээлэл уншихад алдаа гарлаа."
+    console.error("Failed to load shop products", error)
+  }
+
+  return (
     <>
-      <Navbar/>
+      <Navbar />
       <main className="section shop-page">
-        <div className="container shop-page-shell">
-          <section className="shop-section-block shop-section-shell">
-            <div className="shop-section-head">
-              <div>
-                <h2 className="section-title" style={{ marginBottom: 10 }}>Онцлох бараанууд</h2>
-              </div>
-            </div>
-            <ShopCatalog signedIn={Boolean(session)} />
-          </section>
-          {session && isOwner ? (
-            <section style={{ marginTop: 28 }}>
-              <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["commerce"]} />
-            </section>
-          ) : null}
-        </div>
+        <ShopMarketplace
+          initialProducts={products}
+          loadError={loadError}
+          session={session ? { name: session.name, email: session.email } : null}
+        />
       </main>
-      <Footer/>
+      <Footer />
     </>
   )
 }

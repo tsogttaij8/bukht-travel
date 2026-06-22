@@ -12,12 +12,14 @@ type TourBody = {
   startLocation?: string
   endLocation?: string
   mapCoordinates?: string
+  startDate?: string
   duration?: string
   transportationTypes?: string[]
   itinerary?: TravelItineraryDay[]
   included?: string[]
   excluded?: string[]
   price?: number | string
+  priceCurrency?: "MNT" | "CNY"
   maxParticipants?: number | string
   galleryImages?: string[]
   paymentSettings?: string
@@ -73,6 +75,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       mapCoordinates: body.mapCoordinates ?? "",
       transportationTypes: body.transportationTypes ?? [],
       price,
+      priceCurrency: normalizeCurrency(body.priceCurrency),
       maxParticipants,
       paymentSettings: body.paymentSettings ?? "",
       cancellationPolicy: body.cancellationPolicy ?? "",
@@ -83,7 +86,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       transport: (body.transportationTypes ?? []).join(", "),
       hotel: "",
       language: "",
-      startDate: "",
+      startDate: body.startDate?.trim() ?? "",
       heroImage: body.galleryImages?.[0] ?? "",
       galleryImages: body.galleryImages ?? [],
       summary: body.shortDescription?.trim() || body.fullDescription?.trim() || title,
@@ -108,4 +111,8 @@ function toNumber(value: number | string | undefined): number {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0
   if (!value) return 0
   return Number(String(value).replace(/[^\d]/g, "")) || 0
+}
+
+function normalizeCurrency(value: string | undefined): "MNT" | "CNY" {
+  return value === "CNY" ? "CNY" : "MNT"
 }

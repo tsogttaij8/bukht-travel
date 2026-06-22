@@ -1,0 +1,150 @@
+
+@media (max-width: 760px) {
+  .tour-provider-main {
+    padding: 14px;
+  }
+
+  .tour-provider-topbar,
+  .tour-workflow-head,
+  .publish-review {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tour-provider-sidebar nav,
+  .tour-workflow-steps,
+  .tour-admin-metrics,
+  .tour-form-grid,
+  .itinerary-row,
+  .performance-bars > div,
+  .review-row.large {
+    grid-template-columns: 1fr;
+  }
+
+  .tour-provider-sidebar button,
+  .tour-workflow-steps button {
+    min-height: 42px;
+  }
+
+  .tour-step-controls,
+  .tour-table-toolbar {
+    width: 100%;
+  }
+
+  .tour-step-controls button,
+  .tour-table-toolbar label,
+  .tour-table-toolbar select,
+  .tour-primary-action,
+  .tour-secondary-action {
+    width: 100%;
+  }
+
+  .tour-pagination {
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+}
+
+.travel-detail-page {
+  background: #edf4fd;
+  padding: 70px 0;
+}
+
+.travel-detail-shell {
+  width: min(1680px, 92vw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 548px;
+  gap: 20px;
+  align-items: start;
+}
+
+.travel-detail-main {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.travel-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: 500px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 18px 42px rgba(44, 62, 80, 0.1);
+}
+
+.travel-gallery-image {
+  min-height: 500px;
+}
+
+.travel-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.travel-title-row h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  color: #121923;
+}
+
+.travel-title-row p {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: #27445a;
+}
+
+.travel-share-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.travel-small-button {
+  border-radius: 6px;
+  background: #2f5a9f;
+  color: white;
+  padding: 10px 20px;
+  font-weight: 800;
+}
+
+.travel-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 10px 28px rgba(44, 62, 80, 0.08);
+}
+
+.travel-tabs a {
+  padding: 16px;
+  text-align: center;
+  font-weight: 800;
+  color: #152536;
+  border-bottom: 3px solid transparent;
+}
+
+.travel-tabs a:hover {
+  color: #f95b63;
+  border-bottom-color: #f95b63;
+}
+
+.travel-detail-card {
+  border-radius: 8px;
+  background: white;
+  padding: 26px;
+  box-shadow: 0 14px 34px rgba(44, 62, 80, 0.08);
+}
+
+.travel-detail-card h2 {
+  margin: 0 0 18px;
+  color: #121923;
+}
+

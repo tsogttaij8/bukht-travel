@@ -1,6 +1,6 @@
 import Link from "next/link"
-import OwnerTravelManager from "../../../components/owner/travel/OwnerTravelManager"
-import OwnerWorkspaceShell from "../../../components/owner/OwnerWorkspaceShell"
+import OwnerTravelManager from "@/src/app/owner/travel/_components/OwnerTravelManager"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../../lib/server/role-guard"
 
 export default async function OwnerTravelPage() {

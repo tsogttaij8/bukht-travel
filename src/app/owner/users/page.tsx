@@ -1,5 +1,5 @@
-import OwnerUsersManager from "../../../components/owner/OwnerUsersManager"
-import OwnerWorkspaceShell from "../../../components/owner/OwnerWorkspaceShell"
+import OwnerUsersManager from "@/src/app/owner/_components/OwnerUsersManager"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../../lib/server/role-guard"
 
 export default async function OwnerUsersPage() {

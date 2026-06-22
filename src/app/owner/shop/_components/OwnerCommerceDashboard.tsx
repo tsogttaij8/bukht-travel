@@ -3,9 +3,9 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, Plus } from "lucide-react"
-import type { StoredCommerceProduct, StoredCommercePurchaseRequest } from "../../../lib/server/commerce-store"
-import OwnerEmptyState from "../OwnerEmptyState"
-import OwnerStat from "../OwnerStat"
+import type { StoredCommerceProduct, StoredCommercePurchaseRequest } from "@/src/lib/server/commerce-store"
+import OwnerEmptyState from "../../_components/OwnerEmptyState"
+import OwnerStat from "../../_components/OwnerStat"
 
 export default function OwnerCommerceDashboard({ products, requests }: { products: StoredCommerceProduct[]; requests: StoredCommercePurchaseRequest[] }) {
   const router = useRouter()

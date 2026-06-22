@@ -129,9 +129,16 @@ create table if not exists public.products (
   lead_time text not null,
   badge text not null default 'New',
   summary text not null,
+  image_url text not null default '',
+  seller_name text not null default 'BUKHT',
+  seller_email text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.products add column if not exists image_url text not null default '';
+alter table public.products add column if not exists seller_name text not null default 'BUKHT';
+alter table public.products add column if not exists seller_email text not null default '';
 
 create index if not exists products_updated_at_idx on public.products (updated_at);
 
@@ -186,6 +193,7 @@ create table if not exists public.travel_packages (
   map_coordinates text not null default '',
   transportation_types jsonb not null default '[]'::jsonb,
   price integer not null default 0,
+  price_currency text not null default 'MNT',
   max_participants integer not null default 0,
   payment_settings text not null default '',
   cancellation_policy text not null default '',
@@ -222,6 +230,7 @@ alter table public.travel_packages add column if not exists end_location text no
 alter table public.travel_packages add column if not exists map_coordinates text not null default '';
 alter table public.travel_packages add column if not exists transportation_types jsonb not null default '[]'::jsonb;
 alter table public.travel_packages add column if not exists price integer not null default 0;
+alter table public.travel_packages add column if not exists price_currency text not null default 'MNT';
 alter table public.travel_packages add column if not exists max_participants integer not null default 0;
 alter table public.travel_packages add column if not exists payment_settings text not null default '';
 alter table public.travel_packages add column if not exists cancellation_policy text not null default '';

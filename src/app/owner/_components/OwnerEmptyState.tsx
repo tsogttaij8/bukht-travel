@@ -1,7 +1,9 @@
+import type { ReactNode } from "react"
+
 type OwnerEmptyStateProps = {
   title: string
   body: string
-  action?: React.ReactNode
+  action?: ReactNode
 }
 
 export default function OwnerEmptyState({ title, body, action }: OwnerEmptyStateProps) {

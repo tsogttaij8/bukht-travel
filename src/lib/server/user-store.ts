@@ -22,11 +22,16 @@ const bootstrapAdminEmails = ["tsogttaij8@gmail.com"]
 
 export async function readUsers(): Promise<StoredUser[]> {
   if (isSupabaseEnabled()) {
-    const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase.from("users").select(userSelect).order("created_at", { ascending: false })
-    if (error) throw error
-    const rolesByUserId = await readRolesByUserIds((data ?? []).map((user) => user.id))
-    return (data ?? []).map((user) => mapUser(user, rolesByUserId.get(user.id) ?? []))
+    try {
+      const supabase = getSupabaseAdmin()
+      const { data, error } = await supabase.from("users").select(userSelect).order("created_at", { ascending: false })
+      if (error) throw error
+      const rolesByUserId = await readRolesByUserIds((data ?? []).map((user) => user.id))
+      return (data ?? []).map((user) => mapUser(user, rolesByUserId.get(user.id) ?? []))
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) throw error
+      console.warn("Reading users from local DB because Supabase is unreachable.", error)
+    }
   }
 
   const db = await getDb()

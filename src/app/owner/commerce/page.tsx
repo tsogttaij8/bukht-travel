@@ -1,6 +1,6 @@
 import Link from "next/link"
-import OwnerCommerceDashboard from "../../../components/owner/commerce/OwnerCommerceDashboard"
-import OwnerWorkspaceShell from "../../../components/owner/OwnerWorkspaceShell"
+import OwnerCommerceDashboard from "@/src/app/owner/shop/_components/OwnerCommerceDashboard"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { listCommerceProducts, listCommercePurchaseRequests } from "../../../lib/server/commerce-store"
 import { requireRole } from "../../../lib/server/role-guard"
 

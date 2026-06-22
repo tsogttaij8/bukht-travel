@@ -1,0 +1,150 @@
+.tour-secondary-action {
+  width: fit-content;
+  background: white;
+  color: #0f172a;
+}
+
+.tour-admin-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.tour-admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tour-metric,
+.tour-admin-panel,
+.tour-workflow {
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: white;
+}
+
+.tour-metric {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.tour-metric span,
+.tour-metric p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.tour-metric strong {
+  color: #0f172a;
+  font-size: 1.55rem;
+}
+
+.tour-admin-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.tour-admin-grid.two-columns {
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.65fr);
+}
+
+.tour-admin-panel {
+  min-width: 0;
+  padding: 16px;
+}
+
+.tour-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.tour-panel-head h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.tour-panel-head span {
+  color: #475569;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.tour-workflow {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.tour-workflow-steps {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.tour-workflow-steps button {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #475569;
+  padding: 9px;
+  text-align: left;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.tour-workflow-steps button span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.78rem;
+}
+
+.tour-workflow-steps button.active {
+  background: #e8eef8;
+  color: #0f172a;
+}
+
+.tour-workflow-steps button.active span {
+  background: #0f172a;
+  color: white;
+}
+
+.tour-workflow-body {
+  padding: 18px;
+}
+
+.tour-workflow-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.tour-workflow-head h3 {
+  margin: 5px 0 0;
+  color: #0f172a;
+}
+
+.tour-step-controls {
+  display: flex;
+  gap: 8px;
+}
+

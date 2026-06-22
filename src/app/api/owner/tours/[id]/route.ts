@@ -16,12 +16,14 @@ type TourBody = {
   startLocation?: string
   endLocation?: string
   mapCoordinates?: string
+  startDate?: string
   duration?: string
   transportationTypes?: string[]
   itinerary?: TravelItineraryDay[]
   included?: string[]
   excluded?: string[]
   price?: number | string
+  priceCurrency?: "MNT" | "CNY"
   maxParticipants?: number | string
   galleryImages?: string[]
   paymentSettings?: string
@@ -94,11 +96,13 @@ function toTourPatch(body: TourBody) {
     mapCoordinates: body.mapCoordinates,
     transportationTypes,
     price,
+    priceCurrency: body.priceCurrency,
     maxParticipants,
     paymentSettings: body.paymentSettings,
     cancellationPolicy: body.cancellationPolicy,
     location: destination,
     duration: body.duration,
+    startDate: body.startDate,
     groupSize: maxParticipants === undefined ? undefined : String(maxParticipants),
     transport: transportationTypes?.join(", "),
     heroImage: body.galleryImages?.[0],

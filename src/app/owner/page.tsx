@@ -1,5 +1,5 @@
-import OwnerDashboard from "../../components/owner/OwnerDashboard"
-import OwnerWorkspaceShell from "../../components/owner/OwnerWorkspaceShell"
+import OwnerDashboard from "@/src/app/owner/_components/OwnerDashboard"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../lib/server/role-guard"
 
 export const dynamic = "force-dynamic"

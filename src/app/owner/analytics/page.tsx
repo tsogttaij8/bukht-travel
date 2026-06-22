@@ -1,5 +1,5 @@
-import OwnerPlaceholderPage from "../../../components/owner/OwnerPlaceholderPage"
-import OwnerWorkspaceShell from "../../../components/owner/OwnerWorkspaceShell"
+import OwnerPlaceholderPage from "@/src/app/owner/_components/OwnerPlaceholderPage"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../../lib/server/role-guard"
 
 export default async function OwnerAnalyticsPage() {

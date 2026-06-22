@@ -1,0 +1,169 @@
+.review-row {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  align-items: start;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.review-row.large {
+  grid-template-columns: 54px 1fr auto;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.review-row span {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 950;
+}
+
+.review-row p {
+  margin: 0;
+  color: #334155;
+  font-weight: 750;
+}
+
+.performance-bars {
+  display: grid;
+  gap: 14px;
+}
+
+.performance-bars > div {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.9fr) minmax(180px, 1.5fr) 120px;
+  gap: 12px;
+  align-items: center;
+}
+
+.performance-bars span,
+.performance-bars strong {
+  color: #334155;
+  font-weight: 850;
+}
+
+.performance-bars div div {
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.performance-bars b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+}
+
+.tour-empty {
+  margin: 0;
+  color: #64748b;
+  font-weight: 750;
+}
+
+.tour-error-box {
+  margin: 0 0 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 12px 14px;
+  font-weight: 850;
+}
+
+.tour-row-actions,
+.tour-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tour-row-actions button,
+.tour-row-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  color: #0f172a;
+  padding: 0 9px;
+  font-size: 0.82rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.tour-editor-actions {
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.owner-preview-banner {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1e3a8a;
+  padding: 12px max(20px, 4vw);
+}
+
+.owner-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.owner-preview-actions button.travel-small-button {
+  border: 0;
+  cursor: pointer;
+}
+
+.owner-preview-actions span {
+  color: #991b1b;
+  font-weight: 800;
+}
+
+@media (max-width: 1180px) {
+  .tour-provider-shell,
+  .tour-workflow,
+  .tour-admin-grid.two-columns,
+  .tour-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tour-provider-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid #d9e1ea;
+    background: #0f172a;
+  }
+
+  .tour-provider-sidebar nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tour-workflow-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .tour-admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

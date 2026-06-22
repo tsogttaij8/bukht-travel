@@ -1,0 +1,150 @@
+
+.travel-route-panel strong {
+  color: #fff8ea;
+}
+
+.travel-route-head,
+.travel-route-metrics,
+.travel-slide-grid,
+.travel-price-table div {
+  display: grid;
+  gap: 10px;
+}
+
+.travel-route-head {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.travel-route-head .section-kicker {
+  color: #e1b86f;
+}
+
+.travel-route-head > span {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(42, 129, 83, 0.22);
+  color: #e8fff0;
+  font-weight: 800;
+}
+
+.travel-route-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.travel-route-metrics div,
+.travel-price-table,
+.travel-business-days,
+.travel-hotel-list {
+  border-radius: 10px;
+  background: rgba(255, 250, 239, 0.08);
+  border: 1px solid rgba(255, 232, 190, 0.14);
+}
+
+.travel-route-metrics div {
+  padding: 12px;
+}
+
+.travel-route-metrics small {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(255, 248, 234, 0.58);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.travel-route-metrics b {
+  color: #fff8ea;
+  font-size: 0.9rem;
+}
+
+.travel-price-note {
+  margin: 0;
+  color: rgba(255, 248, 234, 0.72);
+  line-height: 1.55;
+}
+
+.travel-route-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.travel-route-line span {
+  position: relative;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 250, 239, 0.1);
+  border: 1px solid rgba(255, 232, 190, 0.16);
+  color: #fff3d9;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.travel-route-line span:not(:last-child)::after {
+  content: ">";
+  margin-left: 8px;
+  color: #e1b86f;
+}
+
+.travel-slide-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+}
+
+.travel-slide-grid h4 {
+  margin: 0 0 10px;
+  color: #fff8ea;
+  font-size: 1rem;
+}
+
+.travel-business-days {
+  display: grid;
+}
+
+.travel-business-days > div {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 232, 190, 0.12);
+}
+
+.travel-business-days > div:last-child {
+  border-bottom: 0;
+}
+
+.travel-business-days span {
+  color: #e1b86f;
+  font-weight: 800;
+}
+
+.travel-business-days p {
+  margin: 4px 0 0;
+  color: rgba(255, 248, 234, 0.72);
+  line-height: 1.55;
+}
+
+.travel-hotel-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.travel-hotel-list span,
+.travel-included-row span {
+  color: rgba(255, 248, 234, 0.78);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.travel-price-table div {
+  grid-template-columns: 1fr auto;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 232, 190, 0.12);
+}
+
+.travel-price-table div:last-child {
+  border-bottom: 0;
+}

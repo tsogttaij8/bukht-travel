@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import OwnerDataTable from "./OwnerDataTable"
 import OwnerEmptyState from "./OwnerEmptyState"
-import type { StoredUser, UserRole } from "../../lib/server/user-store"
+import type { StoredUser, UserRole } from "@/src/lib/server/user-store"
 
 type RoleOption =
   | { key: "travel"; label: "Travel Owner"; role: UserRole; supported: true }

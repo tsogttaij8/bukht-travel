@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import OwnerSidebar from "./OwnerSidebar"
 import OwnerTopbar from "./OwnerTopbar"
 
@@ -6,8 +7,8 @@ type OwnerWorkspaceShellProps = {
   eyebrow?: string
   description?: string
   user?: { name: string; email: string }
-  action?: React.ReactNode
-  children: React.ReactNode
+  action?: ReactNode
+  children: ReactNode
 }
 
 export default function OwnerWorkspaceShell(props: OwnerWorkspaceShellProps) {

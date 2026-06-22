@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { LogOut, MessageSquare, Package, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
-import { logoutUser } from "../../lib/auth"
+import { logoutUser } from "@/src/lib/auth"
 
 const navItems = [
   { label: "Travel", href: "/owner/travel", icon: Plane },

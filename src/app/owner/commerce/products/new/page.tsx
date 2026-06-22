@@ -1,5 +1,5 @@
-import CommerceProductForm from "../../../../../components/owner/commerce/CommerceProductForm"
-import OwnerWorkspaceShell from "../../../../../components/owner/OwnerWorkspaceShell"
+import CommerceProductForm from "@/src/app/owner/shop/_components/CommerceProductForm"
+import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../../../../lib/server/role-guard"
 
 export default async function NewCommerceProductPage() {
