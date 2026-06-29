@@ -193,5 +193,8 @@ export async function syncClerkSession(token?: string | null): Promise<(ApiResul
 }
 
 export async function logoutUser(): Promise<void> {
-  await fetch("/api/auth/logout", { method: "POST", cache: "no-store", credentials: "same-origin" })
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    cache: "no-store",
+  }).catch(() => undefined)
 }

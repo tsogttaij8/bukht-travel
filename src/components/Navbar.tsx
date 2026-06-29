@@ -48,11 +48,16 @@ export default function Navbar() {
   }, [])
 
   async function logout() {
-    await logoutUser()
     setUser(null)
     setAccountOpen(false)
     setMenuOpen(false)
-    await signOut({ redirectUrl: "/" })
+
+    try {
+      await logoutUser()
+      await signOut()
+    } finally {
+      window.location.replace("/login")
+    }
   }
 
   const email = clerkUser?.primaryEmailAddress?.emailAddress ?? user?.email ?? ""

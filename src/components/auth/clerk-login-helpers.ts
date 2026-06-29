@@ -15,8 +15,21 @@ export async function waitForToken(getToken: () => Promise<string | null>): Prom
 }
 
 export async function syncActiveClerkSession(getToken: () => Promise<string | null>) {
-  const token = await waitForToken(() => getToken())
-  return syncClerkSession(token)
+  let lastResult: Awaited<ReturnType<typeof syncClerkSession>> | null = null
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const token = await waitForToken(() => getToken())
+
+    lastResult = await syncClerkSession(token)
+
+    if (lastResult.ok) return lastResult
+
+    if (lastResult.message !== "SESSION_NOT_READY") return lastResult
+
+    await wait(300 * (attempt + 1))
+  }
+
+  return lastResult ?? { ok: false, message: "SESSION_NOT_READY" }
 }
 
 export function loginErrorMessage(error: unknown): string {

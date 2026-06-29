@@ -11,9 +11,16 @@ import FloatingField from "./FloatingField"
 
 type LoginStep = "login" | "resetEmail" | "resetVerify"
 
-export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (user?: SessionUser) => void }) {
+async function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export default function ClerkLoginForm(props: {
+  initialEmail?: string
+  onDone: (user?: SessionUser) => void
+}) {
   const { signOut } = useClerk()
-  const { getToken, isSignedIn } = useAuth()
+  const { getToken } = useAuth()
   const { isLoaded, signIn, setActive } = useSignIn()
   const [email, setEmail] = useState(props.initialEmail ?? "")
   const [password, setPassword] = useState("")
@@ -35,28 +42,62 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!isLoaded || busy) return
+    if (!isLoaded || !signIn || busy) return
+
     setError("")
     setNotice("")
     setBusy(true)
 
     try {
-      await logoutUser()
-      if (isSignedIn) await signOut()
+      const activeSignIn = signIn
 
-      const result = await signIn.create({ identifier: normalizeEmail(email), password })
-      if (result.status !== "complete" || !result.createdSessionId) {
-        setError("Нэвтрэлт дууссангүй. Нууц үг болон мэйлээ шалгана уу.")
-        return
+      await logoutUser()
+
+      async function createClerkSession(): Promise<string> {
+        const result = await activeSignIn.create({
+          identifier: normalizeEmail(email),
+          password,
+        })
+
+        if (result.status !== "complete" || !result.createdSessionId) {
+          throw new Error("LOGIN_NOT_COMPLETE")
+        }
+
+        return result.createdSessionId
       }
 
-      await setActive({ session: result.createdSessionId })
-      const synced = await syncActiveClerkSession(() => getToken({ skipCache: true }))
-      if (!synced.ok) throw new Error(synced.message === "SESSION_NOT_READY" ? "SESSION_NOT_READY" : "SYNC_FAILED")
+      let sessionId: string
+
+      try {
+        sessionId = await createClerkSession()
+      } catch (caught) {
+        if (!isAlreadySignedInError(caught)) throw caught
+
+        await signOut()
+        await wait(500)
+        await logoutUser()
+
+        sessionId = await createClerkSession()
+      }
+
+      await setActive({ session: sessionId })
+
+      const synced = await syncActiveClerkSession(() =>
+        getToken({ skipCache: true })
+      )
+
+      if (!synced.ok) {
+        throw new Error(
+          synced.message === "SESSION_NOT_READY"
+            ? "SESSION_NOT_READY"
+            : "SYNC_FAILED"
+        )
+      }
+
       props.onDone(synced.user)
     } catch (caught) {
-      if (isAlreadySignedInError(caught)) {
-        setError("Өмнөх нэвтрэлт бүрэн гараагүй байна. Дахин оролдоно уу.")
+      if (caught instanceof Error && caught.message === "LOGIN_NOT_COMPLETE") {
+        setError("Нэвтрэлт дууссангүй. Нууц үг болон мэйлээ шалгана уу.")
       } else {
         setError(loginErrorMessage(caught))
       }
@@ -67,7 +108,7 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
 
   async function startReset(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!isLoaded || busy) return
+    if (!isLoaded || !signIn || busy) return
     setError("")
     setNotice("")
 
@@ -88,7 +129,7 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
   }
 
   async function resendResetCode() {
-    if (!isLoaded || busy) return
+    if (!isLoaded || !signIn || busy) return
     setError("")
     setNotice("")
     setBusy(true)
@@ -105,7 +146,7 @@ export default function ClerkLoginForm(props: { initialEmail?: string; onDone: (
 
   async function finishReset(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!isLoaded || busy) return
+    if (!isLoaded || !signIn || busy) return
     setError("")
 
     if (!isStrongPassword(newPassword)) return setError("Нууц үг бүх шаардлагыг хангах ёстой.")

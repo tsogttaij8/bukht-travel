@@ -4,7 +4,7 @@ import { sessionConfig } from "../../../../lib/server/session"
 export const dynamic = "force-dynamic"
 
 export async function POST(): Promise<NextResponse> {
-  const response = NextResponse.json({ ok: true }, { status: 200 })
+  const response = NextResponse.json({ ok: true })
 
   response.cookies.set(sessionConfig.name, "", {
     httpOnly: true,
@@ -13,12 +13,12 @@ export async function POST(): Promise<NextResponse> {
     path: "/",
     maxAge: 0,
   })
-  response.cookies.set(sessionConfig.logoutMarkerName, "1", {
+  response.cookies.set(sessionConfig.logoutMarkerName, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: sessionConfig.logoutMarkerMaxAge,
+    maxAge: 0,
   })
 
   return response

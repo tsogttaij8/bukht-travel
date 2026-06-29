@@ -1,4 +1,5 @@
-import { auth, clerkClient } from "@clerk/nextjs/server"
+import { verifyToken } from "@clerk/backend"
+import { clerkClient } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { createSessionToken, sessionConfig } from "../../../../lib/server/session"
 import { ensureUserProfile } from "../../../../lib/server/customer-store"
@@ -10,7 +11,19 @@ export async function POST(request: Request): Promise<NextResponse> {
   const token = readBearerToken(request.headers.get("authorization"))
   if (!token) return NextResponse.json({ code: "INVALID_SESSION" }, { status: 401 })
 
-  const { userId } = await auth({ acceptsToken: "session_token" })
+  let userId = ""
+
+  try {
+    const verified = await verifyToken(token, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+    })
+
+    userId = typeof verified.sub === "string" ? verified.sub : ""
+  } catch (error) {
+    console.error("[clerk-sync] token verify failed", error)
+    return NextResponse.json({ code: "INVALID_SESSION" }, { status: 401 })
+  }
+
   if (!userId) return NextResponse.json({ code: "INVALID_SESSION" }, { status: 401 })
 
   const client = await clerkClient()
