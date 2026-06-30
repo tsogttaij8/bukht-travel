@@ -34,10 +34,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       <Navbar />
       <main className="section">
         <div className="container">
-          <h1 className="section-title">Миний account</h1>
-          <p className="section-subtitle" style={{ marginBottom: 24 }}>
-            Имэйлээр бүртгүүлсэн account-аараа бараа авах, cargo, eSIM, аяллын хүсэлтээ нэг дор удирдана.
-          </p>
+          <h1 className="section-title">Хувийн мэдээлэл</h1>
+         
           <AccountDashboard initialServiceType={params.service} initialTitle={params.title} />
         </div>
       </main>

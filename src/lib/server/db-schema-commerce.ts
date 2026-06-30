@@ -23,6 +23,8 @@ export const commerceSchemaSql = `
   CREATE TABLE IF NOT EXISTS commerce_purchase_requests (
     id TEXT PRIMARY KEY,
     product_id TEXT NOT NULL REFERENCES commerce_products(id) ON DELETE CASCADE,
+    buyer_id TEXT NOT NULL DEFAULT '',
+    buyer_email TEXT NOT NULL DEFAULT '',
     buyer_name TEXT NOT NULL,
     buyer_contact TEXT NOT NULL,
     message TEXT NOT NULL DEFAULT '',
@@ -30,6 +32,10 @@ export const commerceSchemaSql = `
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+  ALTER TABLE commerce_purchase_requests ADD COLUMN IF NOT EXISTS buyer_id TEXT NOT NULL DEFAULT '';
+  ALTER TABLE commerce_purchase_requests ADD COLUMN IF NOT EXISTS buyer_email TEXT NOT NULL DEFAULT '';
   CREATE INDEX IF NOT EXISTS commerce_purchase_requests_product_id_idx ON commerce_purchase_requests (product_id);
+  CREATE INDEX IF NOT EXISTS commerce_purchase_requests_buyer_id_idx ON commerce_purchase_requests (buyer_id);
+  CREATE INDEX IF NOT EXISTS commerce_purchase_requests_buyer_email_idx ON commerce_purchase_requests (buyer_email);
   CREATE INDEX IF NOT EXISTS commerce_purchase_requests_status_idx ON commerce_purchase_requests (status);
 `

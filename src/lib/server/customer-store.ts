@@ -3,6 +3,7 @@ import { getDb } from "./db"
 import {
   mapServiceRequest,
   mapUserProfile,
+  legacyProfileSelect,
   profileSelect,
   requestSelect,
   type CustomerType,
@@ -25,6 +26,14 @@ export async function ensureUserProfile(user: StoredUser): Promise<StoredUserPro
       const supabase = getSupabaseAdmin()
       const { data, error } = await supabase.from("user_profiles").insert(toEmptyProfileRow(user, now)).select(profileSelect).single()
       if (!error && data) return mapUserProfile(data as UserProfileRow)
+      if (isMissingCityColumn(error)) {
+        const legacyInsert = await supabase.from("user_profiles").insert(toLegacyEmptyProfileRow(user, now)).select(legacyProfileSelect).single()
+        if (!legacyInsert.error && legacyInsert.data) return mapUserProfile(legacyInsert.data as UserProfileRow)
+        if (legacyInsert.error?.code !== "23505") throw legacyInsert.error
+        const existing = await findUserProfileByEmail(user.email)
+        if (existing) return existing
+        throw legacyInsert.error
+      }
       if (error?.code !== "23505") throw error
       const existing = await findUserProfileByEmail(user.email)
       if (existing) return existing
@@ -37,11 +46,11 @@ export async function ensureUserProfile(user: StoredUser): Promise<StoredUserPro
 
   const db = await getDb()
   const result = await db.query<UserProfileRow>(
-    `INSERT INTO user_profiles (user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    `INSERT INTO user_profiles (user_id, email, phone, city, company_name, telegram_handle, customer_types, notes, created_at, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      ON CONFLICT (user_id) DO UPDATE SET email = EXCLUDED.email
      RETURNING ${profileSelect}`,
-    [user.id, user.email, "", "", "", JSON.stringify([]), "", now, now]
+    [user.id, user.email, "", "", "", "", JSON.stringify([]), "", now, now]
   )
   return mapUserProfile(result.rows[0])
 }
@@ -51,6 +60,11 @@ export async function findUserProfileByEmail(email: string): Promise<StoredUserP
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase.from("user_profiles").select(profileSelect).eq("email", normalizedEmail).maybeSingle()
+    if (isMissingCityColumn(error)) {
+      const legacy = await supabase.from("user_profiles").select(legacyProfileSelect).eq("email", normalizedEmail).maybeSingle()
+      if (legacy.error) throw legacy.error
+      return legacy.data ? mapUserProfile(legacy.data as UserProfileRow) : null
+    }
     if (error) throw error
     return data ? mapUserProfile(data as UserProfileRow) : null
   }
@@ -62,6 +76,7 @@ export async function findUserProfileByEmail(email: string): Promise<StoredUserP
 export async function upsertUserProfileByEmail(input: {
   email: string
   phone?: string
+  city?: string
   companyName?: string
   telegramHandle?: string
   customerTypes?: CustomerType[]
@@ -70,19 +85,24 @@ export async function upsertUserProfileByEmail(input: {
   const user = await findUserByEmail(input.email)
   if (!user) throw new Error("Хэрэглэгч олдсонгүй")
   const existing = await ensureUserProfile(user)
-  const nextProfile = { ...existing, phone: input.phone?.trim() ?? existing.phone, companyName: input.companyName?.trim() ?? existing.companyName, telegramHandle: input.telegramHandle?.trim() ?? existing.telegramHandle, customerTypes: input.customerTypes ?? existing.customerTypes, notes: input.notes?.trim() ?? existing.notes, updatedAt: new Date().toISOString() }
+  const nextProfile = { ...existing, phone: input.phone?.trim() ?? existing.phone, city: input.city?.trim() ?? existing.city, companyName: input.companyName?.trim() ?? existing.companyName, telegramHandle: input.telegramHandle?.trim() ?? existing.telegramHandle, customerTypes: input.customerTypes ?? existing.customerTypes, notes: input.notes?.trim() ?? existing.notes, updatedAt: new Date().toISOString() }
 
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin()
     const { error } = await supabase.from("user_profiles").update(toProfileUpdate(nextProfile)).eq("email", user.email)
+    if (isMissingCityColumn(error)) {
+      const { error: legacyError } = await supabase.from("user_profiles").update(toLegacyProfileUpdate(nextProfile)).eq("email", user.email)
+      if (legacyError) throw legacyError
+      return nextProfile
+    }
     if (error) throw error
     return nextProfile
   }
 
   const db = await getDb()
   await db.query(
-    `UPDATE user_profiles SET phone = $1, company_name = $2, telegram_handle = $3, customer_types = $4, notes = $5, updated_at = $6 WHERE email = $7`,
-    [nextProfile.phone, nextProfile.companyName, nextProfile.telegramHandle, JSON.stringify(nextProfile.customerTypes), nextProfile.notes, nextProfile.updatedAt, user.email]
+    `UPDATE user_profiles SET phone = $1, city = $2, company_name = $3, telegram_handle = $4, customer_types = $5, notes = $6, updated_at = $7 WHERE email = $8`,
+    [nextProfile.phone, nextProfile.city, nextProfile.companyName, nextProfile.telegramHandle, JSON.stringify(nextProfile.customerTypes), nextProfile.notes, nextProfile.updatedAt, user.email]
   )
   return nextProfile
 }
@@ -127,11 +147,24 @@ export async function createServiceRequest(input: {
 }
 
 function toEmptyProfileRow(user: StoredUser, now: string) {
+  return { user_id: user.id, email: user.email, phone: "", city: "", company_name: "", telegram_handle: "", customer_types: [], notes: "", created_at: now, updated_at: now }
+}
+
+function toLegacyEmptyProfileRow(user: StoredUser, now: string) {
   return { user_id: user.id, email: user.email, phone: "", company_name: "", telegram_handle: "", customer_types: [], notes: "", created_at: now, updated_at: now }
 }
 
 function toProfileUpdate(profile: StoredUserProfile) {
+  return { phone: profile.phone, city: profile.city, company_name: profile.companyName, telegram_handle: profile.telegramHandle, customer_types: profile.customerTypes, notes: profile.notes, updated_at: profile.updatedAt }
+}
+
+function toLegacyProfileUpdate(profile: StoredUserProfile) {
   return { phone: profile.phone, company_name: profile.companyName, telegram_handle: profile.telegramHandle, customer_types: profile.customerTypes, notes: profile.notes, updated_at: profile.updatedAt }
+}
+
+function isMissingCityColumn(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false
+  return String((error as { message?: unknown }).message ?? "").toLowerCase().includes("city")
 }
 
 function buildServiceRequest(userId: string, input: Parameters<typeof createServiceRequest>[0]): StoredServiceRequest {
@@ -142,4 +175,3 @@ function buildServiceRequest(userId: string, input: Parameters<typeof createServ
 function toServiceRequestRow(request: StoredServiceRequest) {
   return { id: request.id, user_id: request.userId, service_type: request.serviceType, status: request.status, title: request.title, details: request.details, budget: request.budget, travel_date: request.travelDate, created_at: request.createdAt, updated_at: request.updatedAt }
 }
-

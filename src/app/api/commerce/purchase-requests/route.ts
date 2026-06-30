@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createCommercePurchaseRequest, getCommerceProduct, listCommercePurchaseRequests } from "../../../../lib/server/commerce-store"
+import { findUserByEmail } from "../../../../lib/server/user-store"
 import { readSessionFromCookieHeader, sessionHasAnyRole } from "../../../../lib/server/session"
 
 export const dynamic = "force-dynamic"
@@ -24,6 +25,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const session = readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
   const body = await request.json()
   const productId = stringField(body.productId)
   const buyerName = stringField(body.buyerName)
@@ -39,8 +41,11 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
+    const buyer = session ? await findUserByEmail(session.email) : null
     const purchaseRequest = await createCommercePurchaseRequest({
       productId,
+      buyerId: buyer?.id,
+      buyerEmail: session?.email,
       buyerName,
       buyerContact,
       message: stringField(body.message),

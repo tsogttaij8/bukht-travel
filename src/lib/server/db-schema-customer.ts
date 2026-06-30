@@ -3,6 +3,7 @@ export const customerSchemaSql = `
     user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     email TEXT NOT NULL UNIQUE,
     phone TEXT NOT NULL DEFAULT '',
+    city TEXT NOT NULL DEFAULT '',
     company_name TEXT NOT NULL DEFAULT '',
     telegram_handle TEXT NOT NULL DEFAULT '',
     customer_types TEXT NOT NULL DEFAULT '[]',
@@ -10,6 +11,7 @@ export const customerSchemaSql = `
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+  ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS city TEXT NOT NULL DEFAULT '';
   CREATE INDEX IF NOT EXISTS user_profiles_email_idx ON user_profiles (email);
   CREATE TABLE IF NOT EXISTS service_requests (
     id TEXT PRIMARY KEY,

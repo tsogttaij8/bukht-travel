@@ -17,6 +17,8 @@ export type CommerceProductInput = {
 
 export type CommercePurchaseRequestInput = {
   productId: string
+  buyerId?: string
+  buyerEmail?: string
   buyerName: string
   buyerContact: string
   message?: string

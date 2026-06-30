@@ -6,6 +6,7 @@ export type StoredUserProfile = {
   userId: string
   email: string
   phone: string
+  city: string
   companyName: string
   telegramHandle: string
   customerTypes: CustomerType[]
@@ -31,6 +32,7 @@ export type UserProfileRow = {
   user_id: string
   email: string
   phone: string
+  city?: string | null
   company_name: string
   telegram_handle: string
   customer_types: string | CustomerType[]
@@ -52,11 +54,12 @@ export type ServiceRequestRow = {
   updated_at: string
 }
 
-export const profileSelect = "user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at"
+export const profileSelect = "user_id, email, phone, city, company_name, telegram_handle, customer_types, notes, created_at, updated_at"
+export const legacyProfileSelect = "user_id, email, phone, company_name, telegram_handle, customer_types, notes, created_at, updated_at"
 export const requestSelect = "id, user_id, service_type, status, title, details, budget, travel_date, created_at, updated_at"
 
 export function mapUserProfile(row: UserProfileRow): StoredUserProfile {
-  return { userId: row.user_id, email: row.email, phone: row.phone, companyName: row.company_name, telegramHandle: row.telegram_handle, customerTypes: normalizeCustomerTypes(row.customer_types), notes: row.notes, createdAt: row.created_at, updatedAt: row.updated_at }
+  return { userId: row.user_id, email: row.email, phone: row.phone, city: row.city ?? "", companyName: row.company_name, telegramHandle: row.telegram_handle, customerTypes: normalizeCustomerTypes(row.customer_types), notes: row.notes, createdAt: row.created_at, updatedAt: row.updated_at }
 }
 
 export function mapServiceRequest(row: ServiceRequestRow): StoredServiceRequest {
@@ -73,4 +76,3 @@ export function normalizeCustomerTypes(input: unknown): CustomerType[] {
     return []
   }
 }
-

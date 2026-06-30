@@ -13,6 +13,7 @@ export type UserProfile = {
   userId: string
   email: string
   phone: string
+  city: string
   companyName: string
   telegramHandle: string
   customerTypes: string[]

@@ -102,6 +102,28 @@ export async function findUserByEmail(email: string): Promise<StoredUser | null>
   return mapUser(user, roles)
 }
 
+export async function updateUserNameByEmail(email: string, name: string): Promise<StoredUser | null> {
+  const normalizedEmail = email.trim().toLowerCase()
+  const nextName = name.trim()
+  if (!nextName) return findUserByEmail(normalizedEmail)
+
+  if (isSupabaseEnabled()) {
+    try {
+      const supabase = getSupabaseAdmin()
+      const { error } = await supabase.from("users").update({ name: nextName }).eq("email", normalizedEmail)
+      if (error) throw error
+      return findUserByEmail(normalizedEmail)
+    } catch (error) {
+      if (!shouldFallbackToLocalDb(error)) throw error
+      console.warn("Updating user name in local DB because Supabase is unreachable.", error)
+    }
+  }
+
+  const db = await getDb()
+  await db.query("UPDATE users SET name = $1 WHERE email = $2", [nextName, normalizedEmail])
+  return findUserByEmail(normalizedEmail)
+}
+
 export function isAdminEmail(email: string): boolean {
   const adminList = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "")
     .split(",")

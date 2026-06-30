@@ -168,6 +168,8 @@ create index if not exists commerce_products_updated_at_idx on public.commerce_p
 create table if not exists public.commerce_purchase_requests (
   id uuid primary key,
   product_id uuid not null references public.commerce_products(id) on delete cascade,
+  buyer_id text not null default '',
+  buyer_email text not null default '',
   buyer_name text not null,
   buyer_contact text not null,
   message text,
@@ -176,7 +178,11 @@ create table if not exists public.commerce_purchase_requests (
   updated_at timestamptz not null default now()
 );
 
+alter table public.commerce_purchase_requests add column if not exists buyer_id text not null default '';
+alter table public.commerce_purchase_requests add column if not exists buyer_email text not null default '';
 create index if not exists commerce_purchase_requests_product_id_idx on public.commerce_purchase_requests (product_id);
+create index if not exists commerce_purchase_requests_buyer_id_idx on public.commerce_purchase_requests (buyer_id);
+create index if not exists commerce_purchase_requests_buyer_email_idx on public.commerce_purchase_requests (buyer_email);
 create index if not exists commerce_purchase_requests_status_idx on public.commerce_purchase_requests (status);
 
 create table if not exists public.travel_packages (
@@ -243,6 +249,7 @@ create table if not exists public.user_profiles (
   user_id text primary key references public.users(id) on delete cascade,
   email text not null unique,
   phone text not null default '',
+  city text not null default '',
   company_name text not null default '',
   telegram_handle text not null default '',
   customer_types jsonb not null default '[]'::jsonb,
@@ -251,6 +258,7 @@ create table if not exists public.user_profiles (
   updated_at timestamptz not null default now()
 );
 
+alter table public.user_profiles add column if not exists city text not null default '';
 create index if not exists user_profiles_email_idx on public.user_profiles (email);
 
 create table if not exists public.service_requests (

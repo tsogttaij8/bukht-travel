@@ -26,6 +26,8 @@ export type CommerceProductRow = {
 export type CommercePurchaseRequestRow = {
   id: string
   product_id: string
+  buyer_id?: string | null
+  buyer_email?: string | null
   buyer_name: string
   buyer_contact: string
   message: string | null
@@ -56,6 +58,8 @@ export type StoredCommerceProduct = {
 export type StoredCommercePurchaseRequest = {
   id: string
   productId: string
+  buyerId: string
+  buyerEmail: string
   buyerName: string
   buyerContact: string
   message: string
@@ -97,6 +101,8 @@ export function mapCommercePurchaseRequest(row: CommercePurchaseRequestRow): Sto
   return {
     id: row.id,
     productId: row.product_id,
+    buyerId: row.buyer_id ?? "",
+    buyerEmail: row.buyer_email ?? "",
     buyerName: row.buyer_name,
     buyerContact: row.buyer_contact,
     message: row.message ?? "",

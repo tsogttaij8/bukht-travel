@@ -10,7 +10,8 @@ import { getSupabaseAdmin, isSupabaseEnabled } from "./supabase"
 export type { CommerceProductStatus, CommercePurchaseRequestStatus, StoredCommerceProduct, StoredCommercePurchaseRequest } from "./commerce-model"
 
 const productSelect = "id, owner_id, name, description, price, currency, category, condition, country, city, image_url, seller_name, seller_contact, status, created_at, updated_at"
-const requestSelect = "id, product_id, buyer_name, buyer_contact, message, status, created_at, updated_at"
+const requestSelect = "id, product_id, buyer_id, buyer_email, buyer_name, buyer_contact, message, status, created_at, updated_at"
+const legacyRequestSelect = "id, product_id, buyer_name, buyer_contact, message, status, created_at, updated_at"
 
 declare global {
   var __bukhtCommerceUseFallback: boolean | undefined
@@ -58,6 +59,11 @@ export async function listCommercePurchaseRequests(): Promise<StoredCommercePurc
     try {
       const supabase = getSupabaseAdmin()
       const { data, error } = await supabase.from("commerce_purchase_requests").select(requestSelect).order("created_at", { ascending: false })
+      if (isMissingBuyerColumn(error)) {
+        const legacy = await supabase.from("commerce_purchase_requests").select(legacyRequestSelect).order("created_at", { ascending: false })
+        if (legacy.error) throw legacy.error
+        return (legacy.data ?? []).map((row) => mapCommercePurchaseRequest(row as CommercePurchaseRequestRow))
+      }
       if (error) throw error
       return (data ?? []).map((row) => mapCommercePurchaseRequest(row as CommercePurchaseRequestRow))
     } catch (error) {
@@ -70,14 +76,24 @@ export async function listCommercePurchaseRequests(): Promise<StoredCommercePurc
   return result.rows.map(mapCommercePurchaseRequest)
 }
 
+export async function listCommercePurchaseRequestsByBuyer(input: { userId: string; email: string }): Promise<StoredCommercePurchaseRequest[]> {
+  const normalizedEmail = input.email.trim().toLowerCase()
+  const requests = await listCommercePurchaseRequests()
+  return requests.filter((request) => {
+    if (request.buyerId && request.buyerId === input.userId) return true
+    if (request.buyerEmail && request.buyerEmail.trim().toLowerCase() === normalizedEmail) return true
+    return request.buyerContact.trim().toLowerCase() === normalizedEmail
+  })
+}
+
 export async function createCommercePurchaseRequest(input: CommercePurchaseRequestInput): Promise<StoredCommercePurchaseRequest> {
   const request = buildCommercePurchaseRequest(input)
   if (await tryInsertSupabaseRequest(request)) return request
   const db = await getDb()
   const row = toRequestRow(request)
   await db.query(
-    `INSERT INTO commerce_purchase_requests (id, product_id, buyer_name, buyer_contact, message, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [row.id, row.product_id, row.buyer_name, row.buyer_contact, row.message, row.status, row.created_at, row.updated_at]
+    `INSERT INTO commerce_purchase_requests (id, product_id, buyer_id, buyer_email, buyer_name, buyer_contact, message, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    [row.id, row.product_id, row.buyer_id, row.buyer_email, row.buyer_name, row.buyer_contact, row.message, row.status, row.created_at, row.updated_at]
   )
   return request
 }
@@ -158,14 +174,45 @@ async function tryDeleteSupabaseProduct(id: string): Promise<boolean> {
 
 async function tryInsertSupabaseRequest(request: StoredCommercePurchaseRequest): Promise<boolean> {
   return runSupabaseFallback("Saving commerce request to local DB because Supabase is unreachable.", async () => {
-    const { error } = await getSupabaseAdmin().from("commerce_purchase_requests").insert(toRequestRow(request))
+    const supabase = getSupabaseAdmin()
+    const { error } = await supabase.from("commerce_purchase_requests").insert(toRequestRow(request))
+    if (isMissingBuyerColumn(error)) {
+      const row = toRequestRow(request)
+      const { error: legacyError } = await supabase.from("commerce_purchase_requests").insert({
+        id: row.id,
+        product_id: row.product_id,
+        buyer_name: row.buyer_name,
+        buyer_contact: row.buyer_contact,
+        message: row.message,
+        status: row.status,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      })
+      if (legacyError) throw legacyError
+      return
+    }
     if (error) throw error
   })
 }
 
 async function tryUpdateSupabaseRequest(request: StoredCommercePurchaseRequest): Promise<boolean> {
   return runSupabaseFallback("Updating commerce request in local DB because Supabase is unreachable.", async () => {
-    const { error } = await getSupabaseAdmin().from("commerce_purchase_requests").update(toRequestRow(request)).eq("id", request.id)
+    const supabase = getSupabaseAdmin()
+    const { error } = await supabase.from("commerce_purchase_requests").update(toRequestRow(request)).eq("id", request.id)
+    if (isMissingBuyerColumn(error)) {
+      const row = toRequestRow(request)
+      const { error: legacyError } = await supabase.from("commerce_purchase_requests").update({
+        product_id: row.product_id,
+        buyer_name: row.buyer_name,
+        buyer_contact: row.buyer_contact,
+        message: row.message,
+        status: row.status,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }).eq("id", request.id)
+      if (legacyError) throw legacyError
+      return
+    }
     if (error) throw error
   })
 }
@@ -188,4 +235,10 @@ const productAssignments = productColumns.split(", ").slice(1).map((column, inde
 
 function productValues(row: CommerceProductRow): unknown[] {
   return [row.id, row.owner_id, row.name, row.description, row.price, row.currency, row.category, row.condition, row.country, row.city, row.image_url, row.seller_name, row.seller_contact, row.status, row.created_at, row.updated_at]
+}
+
+function isMissingBuyerColumn(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false
+  const message = String((error as { message?: unknown }).message ?? "").toLowerCase()
+  return message.includes("buyer_id") || message.includes("buyer_email")
 }

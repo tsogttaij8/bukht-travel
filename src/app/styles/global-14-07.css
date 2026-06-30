@@ -4,6 +4,302 @@
   line-height: 1.8;
 }
 
+.account-profile-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.account-profile-hero,
+.account-profile-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.account-profile-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+}
+
+.account-profile-hero p,
+.account-section-heading p,
+.account-muted,
+.account-empty,
+.account-list-meta,
+.account-list-details {
+  margin: 0;
+  color: #64748b;
+}
+
+.account-profile-hero p {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.account-profile-hero h2 {
+  margin: 6px 0 4px;
+  color: #111827;
+  font-size: 1.6rem;
+}
+
+.account-profile-hero span {
+  color: #475569;
+  font-weight: 700;
+}
+
+.account-profile-counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(82px, 1fr));
+  gap: 10px;
+  min-width: 300px;
+}
+
+.account-profile-counts div {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.account-profile-counts strong {
+  display: block;
+  color: #0f172a;
+  font-size: 1.35rem;
+}
+
+.account-profile-counts span {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.account-profile-panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.account-profile-form-panel {
+  max-width: 860px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.account-section-heading h2 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: 1.25rem;
+}
+
+.account-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.account-profile-form-panel .account-form-grid {
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 18px 20px;
+}
+
+.account-profile-form-panel .account-field:last-child {
+  max-width: 420px;
+}
+
+.account-field {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.account-field input,
+.account-field textarea,
+.account-field.readonly strong {
+  min-height: 56px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px 16px;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 700;
+}
+
+.account-field textarea {
+  min-height: 94px;
+  resize: vertical;
+}
+
+.account-field.readonly {
+  background: transparent;
+}
+
+.account-field.readonly strong {
+  display: flex;
+  align-items: center;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.account-field.readonly span,
+.account-field span {
+  color: #64748b;
+}
+
+.account-field-wide {
+  width: 100%;
+}
+
+.account-option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-chip,
+.account-save-button {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.account-chip {
+  padding: 9px 12px;
+}
+
+.account-chip.active {
+  border-color: #1f2937;
+  background: #1f2937;
+  color: #ffffff;
+}
+
+.account-save-button {
+  width: fit-content;
+  min-width: 132px;
+  border-color: #0f172a;
+  background: #0f172a;
+  margin-top: 4px;
+  padding: 14px 28px;
+  color: #ffffff;
+}
+
+.account-save-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.account-list {
+  display: grid;
+  gap: 10px;
+}
+
+.account-list-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.account-list-item:not(:has(.account-list-image)) {
+  grid-template-columns: 1fr;
+}
+
+.account-list-image {
+  width: 86px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #e2e8f0 center / cover;
+}
+
+.account-list-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-list-title-row h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 1rem;
+}
+
+.account-list-title-row span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #eef2f7;
+  padding: 4px 9px;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.account-list-meta {
+  margin-top: 6px;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.account-list-details {
+  margin-top: 8px;
+  line-height: 1.55;
+}
+
+.account-error,
+.account-success {
+  margin: 0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-weight: 800;
+}
+
+.account-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.account-success {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+@media (max-width: 720px) {
+  .account-profile-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .account-profile-counts {
+    min-width: 0;
+  }
+
+  .account-list-title-row {
+    flex-direction: column;
+  }
+
+  .account-profile-form-panel .account-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-profile-form-panel .account-field:last-child {
+    max-width: none;
+  }
+}
+
 .travel-itinerary-list {
   display: grid;
   gap: 12px;

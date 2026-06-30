@@ -36,11 +36,12 @@ function initials(name: string): string {
 }
 
 function formatDate(value: string): string {
-  try {
-    return new Intl.DateTimeFormat("mn-MN", { month: "short", day: "numeric" }).format(new Date(value))
-  } catch {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
     return ""
   }
+
+  return `${date.getUTCMonth() + 1}-р сарын ${date.getUTCDate()}`
 }
 
 export default function ShopMarketplace({

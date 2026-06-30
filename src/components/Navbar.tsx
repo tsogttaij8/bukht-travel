@@ -67,7 +67,7 @@ export default function Navbar() {
     <header className={`sticky top-0 z-30 border-b border-[rgba(225,207,183,0.82)] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(250,246,240,0.74))] backdrop-blur-[16px] transition-transform duration-300 ${headerHidden && !menuOpen ? "-translate-y-full" : "translate-y-0"}`}>
       <nav className={`${shell} flex items-center justify-between gap-4 py-4 max-sm:flex-wrap max-sm:py-3`}>
         <Logo />
-        <button type="button" aria-expanded={menuOpen} aria-label="Цэс нээх" onClick={() => setMenuOpen((current) => !current)} className="hidden rounded-[10px] border border-[rgba(190,179,164,0.7)] bg-[rgba(255,251,245,0.72)] px-3 py-2 font-bold text-[#1d1d1d] max-sm:inline-flex max-sm:ml-auto">
+        <button type="button" aria-expanded={menuOpen} aria-label="Цэс нээх" onClick={() => setMenuOpen((current) => !current)} className="hidden rounded-[10px] border border-[rgba(190,179,164,0.7)] bg-[rgba(255,251,245,0.72)] px-3 py-2 font-bold text-[#1d1d1d] max-sm:ml-auto max-sm:inline-flex">
           {menuOpen ? "Хаах" : "Цэс"}
         </button>
         <div className={`flex items-center gap-[18px] text-[0.95rem] max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-3 ${menuOpen ? "max-sm:flex" : "max-sm:hidden"}`}>
@@ -108,9 +108,8 @@ function AccountMenu(props: { email: string; initial: string; imageUrl?: string;
       {props.open ? (
         <div className="absolute right-0 top-13 z-40 grid min-w-[220px] gap-1 rounded-[12px] border border-[#eadcca] bg-white p-2 text-sm font-bold shadow-[0_18px_40px_rgba(55,39,25,0.16)]">
           <span className="truncate px-3 py-2 text-xs text-[#7a6a5c]">{props.email}</span>
-          <Link href="/account?tab=orders" className="rounded-[8px] px-3 py-2 text-[#2f2a25] hover:bg-[#fff5e8]">Миний захиалга</Link>
-          <Link href="/account" className="rounded-[8px] px-3 py-2 text-[#2f2a25] hover:bg-[#fff5e8]">Миний булан</Link>
-          <Link href="/shop?cart=1" className="rounded-[8px] px-3 py-2 text-[#2f2a25] hover:bg-[#fff5e8]">Миний сагс</Link>
+          <Link href="/account" className="rounded-[8px] px-3 py-2 text-[#2f2a25] hover:bg-[#fff5e8]">Хувийн мэдээлэл</Link>
+          <Link href="/account/cart" className="rounded-[8px] px-3 py-2 text-[#2f2a25] hover:bg-[#fff5e8]">Миний сагс</Link>
           <button type="button" onClick={props.onLogout} className="rounded-[8px] px-3 py-2 text-left text-[#9a3412] hover:bg-[#fff0ed]">Гарах</button>
         </div>
       ) : null}

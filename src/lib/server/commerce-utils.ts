@@ -48,6 +48,8 @@ export function buildCommercePurchaseRequest(input: CommercePurchaseRequestInput
   return {
     id: randomUUID(),
     productId: input.productId,
+    buyerId: input.buyerId?.trim() ?? "",
+    buyerEmail: input.buyerEmail?.trim().toLowerCase() ?? "",
     buyerName: input.buyerName.trim(),
     buyerContact: input.buyerContact.trim(),
     message: input.message?.trim() ?? "",
@@ -82,6 +84,8 @@ export function toRequestRow(request: StoredCommercePurchaseRequest): CommercePu
   return {
     id: request.id,
     product_id: request.productId,
+    buyer_id: request.buyerId,
+    buyer_email: request.buyerEmail,
     buyer_name: request.buyerName,
     buyer_contact: request.buyerContact,
     message: request.message,
