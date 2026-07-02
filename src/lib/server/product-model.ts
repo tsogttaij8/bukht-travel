@@ -11,6 +11,7 @@ export type StoredProduct = {
   badge: string
   summary: string
   imageUrl: string
+  imageUrls: string[]
   sellerName: string
   sellerEmail: string
   createdAt: string
@@ -28,6 +29,7 @@ export type ProductRow = {
   badge: string
   summary: string
   image_url?: string | null
+  image_urls?: string[] | string | null
   seller_name?: string | null
   seller_email?: string | null
   created_at: string
@@ -46,10 +48,28 @@ export function mapProduct(row: ProductRow): StoredProduct {
     badge: row.badge,
     summary: row.summary,
     imageUrl: row.image_url ?? "",
+    imageUrls: normalizeImageUrls(row.image_urls, row.image_url ?? ""),
     sellerName: row.seller_name ?? "BUKHT",
     sellerEmail: row.seller_email ?? "",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  }
+}
+
+function normalizeImageUrls(value: ProductRow["image_urls"], fallback: string): string[] {
+  const parsed = Array.isArray(value) ? value : parseImageUrls(value)
+  const images = parsed.map((image) => image.trim()).filter(Boolean)
+  if (images.length > 0) return Array.from(new Set(images))
+  return fallback.trim() ? [fallback.trim()] : []
+}
+
+function parseImageUrls(value: string | null | undefined): string[] {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value) as unknown
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : []
+  } catch {
+    return []
   }
 }
 
@@ -63,6 +83,9 @@ export function mapProductStoreError(error: unknown): Error {
   }
   if (message.includes(`column products.image_url does not exist`) || message.includes(`Could not find the 'image_url' column of 'products'`)) {
     return new Error("Supabase deer `products.image_url`, `seller_name`, `seller_email` baganuud dutuu baina. `docs/supabase-schema.sql` schema shinechleh heregtei.")
+  }
+  if (message.includes(`column products.image_urls does not exist`) || message.includes(`Could not find the 'image_urls' column of 'products'`)) {
+    return new Error("Supabase deer `products.image_urls` bagana dutuu baina. `docs/supabase-schema.sql` schema shinechleh heregtei.")
   }
   return error instanceof Error ? error : new Error(message)
 }

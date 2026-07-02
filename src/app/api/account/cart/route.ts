@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { listCommerceProducts, listCommercePurchaseRequestsByBuyer } from "../../../../lib/server/commerce-store"
 import { listServiceRequestsByEmail } from "../../../../lib/server/customer-store"
 import { readSessionFromCookieHeader } from "../../../../lib/server/session"
 import { findUserByEmail } from "../../../../lib/server/user-store"
@@ -17,12 +16,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   const user = await findUserByEmail(session.email)
   if (!user) return NextResponse.json({ message: "User not found" }, { status: 404 })
 
-  const [serviceRequests, commerceRequests, products] = await Promise.all([
-    listServiceRequestsByEmail(user.email),
-    listCommercePurchaseRequestsByBuyer({ userId: user.id, email: user.email }),
-    listCommerceProducts(),
-  ])
-  const productById = new Map(products.map((product) => [product.id, product]))
+  const serviceRequests = await listServiceRequestsByEmail(user.email)
 
   const trips = serviceRequests
     .filter((item) => item.serviceType === "travel")
@@ -36,18 +30,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     }))
 
   const productsInCart = [
-    ...commerceRequests.map((item) => {
-      const product = productById.get(item.productId)
-      return {
-        title: product?.name ?? "Барааны хүсэлт",
-        details: item.message,
-        status: item.status,
-        price: product?.price ?? 0,
-        currency: product?.currency ?? "MNT",
-        imageUrl: product?.imageUrl ?? "",
-        createdAt: item.createdAt,
-      }
-    }),
     ...serviceRequests
       .filter((item) => item.serviceType === "product_sourcing")
       .map((item) => ({

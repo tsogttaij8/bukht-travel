@@ -85,6 +85,13 @@ type InfoPageProps = {
 
 export async function generateMetadata({ params }: InfoPageProps) {
   const { slug } = await params
+  if (slug === "setgegdluud") {
+    return {
+      title: "Сэтгэгдлүүд | BUKHT",
+      description: "Одоогоор сэтгэгдэл алга.",
+    }
+  }
+
   const page = infoPages[slug]
   return {
     title: page ? `${page.title} | BUKHT` : "BUKHT",
@@ -96,6 +103,9 @@ export default async function InfoPage({ params }: InfoPageProps) {
   const { slug } = await params
   const page = infoPages[slug]
   if (!page) notFound()
+  const displayPage = slug === "setgegdluud"
+    ? { title: "Сэтгэгдлүүд", description: "", points: ["Одоогоор сэтгэгдэл алга."] }
+    : page
 
   return (
     <>
@@ -103,11 +113,11 @@ export default async function InfoPage({ params }: InfoPageProps) {
       <main className={pageSection}>
         <section className={`${shell} grid gap-6`}>
           <div className="max-w-[780px]">
-            <h1 className={`${sectionTitle} m-0`}>{page.title}</h1>
-            <p className={`${sectionSubtitle} mt-5 mb-0`}>{page.description}</p>
+            <h1 className={`${sectionTitle} m-0`}>{displayPage.title}</h1>
+            {displayPage.description ? <p className={`${sectionSubtitle} mt-5 mb-0`}>{displayPage.description}</p> : null}
           </div>
           <div className="grid gap-3">
-            {page.points.map((point) => (
+            {displayPage.points.map((point) => (
               <article key={point} className="rounded-[8px] border border-[rgba(226,209,183,0.82)] bg-[rgba(255,251,246,0.9)] p-5">
                 <p className="m-0 text-[1rem] leading-7 text-[#4f473e]">{point}</p>
               </article>

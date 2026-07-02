@@ -8,5 +8,7 @@
 - Environments: .env.local
 
 ✓ Starting...
-  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
-[?25h
+✓ Ready in 5.1s
+○ Compiling / ...
+ GET / 200 in 11.8s (compile: 7.3s, proxy.ts: 845ms, render: 3.7s)
+ GET / 200 in 7.2s (compile: 10ms, proxy.ts: 172ms, render: 7.0s)

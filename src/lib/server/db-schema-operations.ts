@@ -33,12 +33,14 @@ export const operationsSchemaSql = `
     badge TEXT NOT NULL,
     summary TEXT NOT NULL,
     image_url TEXT NOT NULL DEFAULT '',
+    image_urls TEXT NOT NULL DEFAULT '[]',
     seller_name TEXT NOT NULL DEFAULT 'BUKHT',
     seller_email TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
   ALTER TABLE products ADD COLUMN IF NOT EXISTS image_url TEXT NOT NULL DEFAULT '';
+  ALTER TABLE products ADD COLUMN IF NOT EXISTS image_urls TEXT NOT NULL DEFAULT '[]';
   ALTER TABLE products ADD COLUMN IF NOT EXISTS seller_name TEXT NOT NULL DEFAULT 'BUKHT';
   ALTER TABLE products ADD COLUMN IF NOT EXISTS seller_email TEXT NOT NULL DEFAULT '';
   CREATE INDEX IF NOT EXISTS products_updated_at_idx ON products (updated_at);

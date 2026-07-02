@@ -5,12 +5,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { LogOut, MessageSquare, Package, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
+import { LogOut, MessageSquare, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
 import { logoutUser } from "@/src/lib/auth"
 
 const navItems = [
   { label: "Travel", href: "/owner/travel", icon: Plane },
-  { label: "Commerce", href: "/owner/commerce", icon: Package },
   { label: "Cargo", href: "/owner/cargo", icon: Truck },
   { label: "eSIM", href: "/owner/esim", icon: Smartphone },
   { label: "Users", href: "/owner/users", icon: Users },

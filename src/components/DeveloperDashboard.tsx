@@ -7,7 +7,6 @@ import type { StoredTravelPackage } from "../lib/server/travel-package-store"
 import type { StoredUser } from "../lib/server/user-store"
 import DashboardStats from "./dashboard/DashboardStats"
 import { EsimPackageCreatePanel, EsimPackageListPanel } from "./dashboard/EsimPackagesPanel"
-import { ProductListPanel } from "./dashboard/ProductsPanel"
 import { ShipmentCreatePanel, ShipmentListPanel } from "./dashboard/ShipmentsPanel"
 import StaffAccessPanel from "./dashboard/StaffAccessPanel"
 import { TravelPackageCreatePanel, TravelPackageListPanel } from "./dashboard/TravelPackagesPanel"
@@ -25,7 +24,7 @@ type DeveloperDashboardProps = {
   enabledTabs?: DashboardTab[]
 }
 
-type DashboardTab = "access" | "travel" | "commerce" | "esim" | "cargo"
+type DashboardTab = "access" | "travel" | "esim" | "cargo"
 
 export default function DeveloperDashboard({ currentRoles, currentUser, enabledTabs }: DeveloperDashboardProps) {
   const tabEnabled = (tab: DashboardTab) => !enabledTabs || enabledTabs.includes(tab)
@@ -33,17 +32,15 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
     if (currentRoles.includes("owner") && tabEnabled("access")) return "access"
     if (currentRoles.includes("travel_staff") && tabEnabled("travel")) return "travel"
-    if (currentRoles.includes("cargo_staff") && tabEnabled("commerce")) return "commerce"
     if (currentRoles.includes("esim_staff") && tabEnabled("esim")) return "esim"
     if (tabEnabled("travel")) return "travel"
-    if (tabEnabled("commerce")) return "commerce"
     if (tabEnabled("esim")) return "esim"
     if (tabEnabled("cargo")) return "cargo"
     return "cargo"
   })
   const isOwner = currentRoles.includes("owner")
   const canManageAccess = tabEnabled("access") && isOwner
-  const canManageProducts = tabEnabled("commerce") && (isOwner || currentRoles.includes("cargo_staff"))
+  const canManageProducts = false
   const canManageTravelPackages = tabEnabled("travel") && (isOwner || currentRoles.includes("travel_staff"))
   const canManageEsimPackages = tabEnabled("esim") && (isOwner || currentRoles.includes("esim_staff"))
   const canManageShipments = tabEnabled("cargo") && (isOwner || currentRoles.includes("cargo_staff") || currentRoles.includes("support_staff"))
@@ -64,7 +61,6 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
   const tabs: Array<{ value: DashboardTab; label: string; visible: boolean }> = [
     { value: "access", label: "Эрх", visible: canManageAccess },
     { value: "travel", label: "Аялал", visible: canManageTravelPackages },
-    { value: "commerce", label: "Худалдаа", visible: canManageProducts },
     { value: "esim", label: "eSIM", visible: canManageEsimPackages },
     { value: "cargo", label: "Карго", visible: canManageShipments },
   ]
@@ -101,9 +97,6 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
           <TravelPackageCreatePanel travelPackages={data.travelPackages} {...travelPackages} />
           <TravelPackageListPanel travelPackages={data.travelPackages} />
         </>
-      ) : null}
-      {activeTab === "commerce" && canManageProducts ? (
-        <ProductListPanel products={data.products} />
       ) : null}
       {activeTab === "esim" && canManageEsimPackages ? (
         <>

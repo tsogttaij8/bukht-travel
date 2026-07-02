@@ -42,12 +42,12 @@ export async function getPublishedTravelPackage(idOrSlug: string): Promise<Store
 }
 
 export async function listOwnerTravelPackages(ownerId: string): Promise<StoredTravelPackage[]> {
-  return (await listTravelPackages()).filter((item) => item.ownerId === ownerId)
+  return (await listTravelPackages()).filter((item) => canOwnerManageTravelPackage(ownerId, item))
 }
 
 export async function getOwnerTravelPackage(ownerId: string, idOrSlug: string): Promise<StoredTravelPackage | null> {
   const travelPackage = await getTravelPackage(idOrSlug)
-  return travelPackage?.ownerId === ownerId ? travelPackage : null
+  return travelPackage && canOwnerManageTravelPackage(ownerId, travelPackage) ? travelPackage : null
 }
 
 export async function createTravelPackage(input: TravelPackageInput): Promise<StoredTravelPackage> {
@@ -67,7 +67,7 @@ export async function updateTravelPackage(ownerId: string, id: string, input: Pa
   const existing = await getOwnerTravelPackage(ownerId, id)
   if (!existing) return null
   const next = applyTravelPackageUpdate(existing, ownerId, input)
-  await writeTravelPackage(next)
+  await writeTravelPackage(next, existing.ownerId)
   return next
 }
 
@@ -78,7 +78,7 @@ export async function deleteTravelPackage(ownerId: string, id: string): Promise<
   if (isSupabaseEnabled()) {
     try {
       const supabase = getSupabaseAdmin()
-      const { error } = await supabase.from("travel_packages").delete().eq("id", id).eq("owner_id", ownerId)
+      const { error } = await supabase.from("travel_packages").delete().eq("id", id).in("owner_id", ownerScope(ownerId))
       if (error) throw mapTravelPackageStoreError(error)
       return true
     } catch (error) {
@@ -89,7 +89,7 @@ export async function deleteTravelPackage(ownerId: string, id: string): Promise<
 
   try {
     const db = await getDb()
-    await db.query("DELETE FROM travel_packages WHERE id = $1 AND owner_id = $2", [id, ownerId])
+    await db.query("DELETE FROM travel_packages WHERE id = $1 AND owner_id = ANY($2)", [id, ownerScope(ownerId)])
   } catch {
     await deleteLocalTravelPackage(ownerId, id)
   }
@@ -110,21 +110,21 @@ async function tryInsertSupabaseTravelPackage(item: StoredTravelPackage): Promis
   }
 }
 
-async function writeTravelPackage(item: StoredTravelPackage): Promise<void> {
-  if (await tryUpdateSupabaseTravelPackage(item)) return
+async function writeTravelPackage(item: StoredTravelPackage, previousOwnerId: string): Promise<void> {
+  if (await tryUpdateSupabaseTravelPackage(item, previousOwnerId)) return
   try {
     const db = await getDb()
-    await updateLocalDbTravelPackage(db, item)
+    await updateLocalDbTravelPackage(db, item, previousOwnerId)
   } catch {
     await replaceLocalTravelPackage(item)
   }
 }
 
-async function tryUpdateSupabaseTravelPackage(item: StoredTravelPackage): Promise<boolean> {
+async function tryUpdateSupabaseTravelPackage(item: StoredTravelPackage, previousOwnerId: string): Promise<boolean> {
   if (!isSupabaseEnabled()) return false
   try {
     const supabase = getSupabaseAdmin()
-    const { error } = await supabase.from("travel_packages").update(toTravelPackageRow(item)).eq("id", item.id).eq("owner_id", item.ownerId)
+    const { error } = await supabase.from("travel_packages").update(toTravelPackageRow(item)).eq("id", item.id).in("owner_id", ownerScope(item.ownerId, previousOwnerId))
     if (error) throw mapTravelPackageStoreError(error)
     return true
   } catch (error) {
@@ -142,9 +142,9 @@ async function insertLocalDbTravelPackage(db: Awaited<ReturnType<typeof getDb>>,
   )
 }
 
-async function updateLocalDbTravelPackage(db: Awaited<ReturnType<typeof getDb>>, item: StoredTravelPackage): Promise<void> {
+async function updateLocalDbTravelPackage(db: Awaited<ReturnType<typeof getDb>>, item: StoredTravelPackage, previousOwnerId: string): Promise<void> {
   const row = toTravelPackageRow(item)
-  await db.query(`UPDATE travel_packages SET ${updateAssignments} WHERE id = $37 AND owner_id = $38`, updateValues(row))
+  await db.query(`UPDATE travel_packages SET ${updateAssignments} WHERE id = $37 AND owner_id = ANY($38)`, updateValues(row, previousOwnerId))
 }
 
 const insertColumns = "id, owner_id, status, title, slug, short_description, full_description, destination, start_location, end_location, map_coordinates, transportation_types, price, price_currency, max_participants, payment_settings, cancellation_policy, location, category, duration, group_size, transport, hotel, language, start_date, hero_image, gallery_images, summary, adult_price, child_price, infant_price, single_room_price, included, excluded, itinerary, warning, created_at, updated_at"
@@ -156,10 +156,18 @@ function insertValues(row: TravelPackageRow): unknown[] {
   return [row.id, ...travelPackageBodyValues(row), row.created_at, row.updated_at]
 }
 
-function updateValues(row: TravelPackageRow): unknown[] {
-  return [...travelPackageBodyValues(row), row.updated_at, row.id, row.owner_id]
+function updateValues(row: TravelPackageRow, previousOwnerId: string): unknown[] {
+  return [...travelPackageBodyValues(row), row.updated_at, row.id, ownerScope(row.owner_id ?? "", previousOwnerId)]
 }
 
 function travelPackageBodyValues(row: TravelPackageRow): unknown[] {
   return [row.owner_id, row.status, row.title, row.slug, row.short_description, row.full_description, row.destination, row.start_location, row.end_location, row.map_coordinates, row.transportation_types, row.price, row.price_currency, row.max_participants, row.payment_settings, row.cancellation_policy, row.location, row.category, row.duration, row.group_size, row.transport, row.hotel, row.language, row.start_date, row.hero_image, row.gallery_images, row.summary, row.adult_price, row.child_price, row.infant_price, row.single_room_price, row.included, row.excluded, row.itinerary, row.warning]
+}
+
+function canOwnerManageTravelPackage(ownerId: string, item: StoredTravelPackage): boolean {
+  return item.ownerId === ownerId || item.ownerId === ""
+}
+
+function ownerScope(ownerId: string, previousOwnerId = ""): string[] {
+  return Array.from(new Set([ownerId, previousOwnerId, ""].map((value) => value.trim())))
 }

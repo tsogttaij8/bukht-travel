@@ -1,10 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Package, Plane, Smartphone, Truck } from "lucide-react"
+import { Plane, Smartphone, Truck } from "lucide-react"
 import OwnerModuleCard from "./OwnerModuleCard"
 import type { StoredTravelPackage } from "@/src/lib/server/travel-package-store"
-import type { StoredCommerceProduct } from "@/src/lib/server/commerce-store"
 import type { StoredEsimPackage } from "@/src/lib/server/esim-package-store"
 import type { StoredShipment } from "@/src/lib/server/shipment-store"
 
@@ -16,7 +15,6 @@ type ModuleState = {
 
 type OwnerDashboardData = {
   travel: ModuleState
-  commerce: ModuleState
   cargo: ModuleState
   esim: ModuleState
 }
@@ -26,7 +24,6 @@ const disconnected: ModuleState = { total: "Not connected yet", active: "Not con
 export default function OwnerDashboard() {
   const [data, setData] = useState<OwnerDashboardData>({
     travel: disconnected,
-    commerce: disconnected,
     cargo: disconnected,
     esim: disconnected,
   })
@@ -40,9 +37,8 @@ export default function OwnerDashboard() {
       setLoading(true)
       setError("")
       try {
-        const [travel, commerce, cargo, esim] = await Promise.all([
+        const [travel, cargo, esim] = await Promise.all([
           fetchJson<{ tours?: StoredTravelPackage[] }>("/api/owner/tours"),
-          fetchJson<{ products?: StoredCommerceProduct[] }>("/api/commerce/products?scope=admin"),
           fetchJson<{ shipments?: StoredShipment[] }>("/api/admin/shipments"),
           fetchJson<{ esimPackages?: StoredEsimPackage[] }>("/api/admin/esim-packages"),
         ])
@@ -50,7 +46,6 @@ export default function OwnerDashboard() {
         if (!active) return
 
         const tours = travel.ok ? travel.body.tours ?? [] : null
-        const products = commerce.ok ? commerce.body.products ?? [] : null
         const shipments = cargo.ok ? cargo.body.shipments ?? [] : null
         const esimPackages = esim.ok ? esim.body.esimPackages ?? [] : null
 
@@ -58,11 +53,6 @@ export default function OwnerDashboard() {
           travel: tours ? {
             total: String(tours.length),
             active: String(tours.filter((tour) => tour.status === "published").length),
-            status: "Connected",
-          } : disconnected,
-          commerce: products ? {
-            total: String(products.length),
-            active: String(products.filter((product) => product.status === "available").length),
             status: "Connected",
           } : disconnected,
           cargo: shipments ? {
@@ -90,7 +80,7 @@ export default function OwnerDashboard() {
   }, [])
 
   const platformTotal = useMemo(() => {
-    return [data.travel.total, data.commerce.total, data.cargo.total, data.esim.total].reduce((sum, value) => sum + (Number(value) || 0), 0)
+    return [data.travel.total, data.cargo.total, data.esim.total].reduce((sum, value) => sum + (Number(value) || 0), 0)
   }, [data])
 
   if (loading) {
@@ -117,17 +107,6 @@ export default function OwnerDashboard() {
           activeValue={data.travel.active}
           status={data.travel.status}
           actions={[{ label: "New tour", href: "/owner/travel/tours/new" }, { label: "Tours", href: "/owner/travel/tours" }]}
-        />
-        <OwnerModuleCard
-          title="Commerce"
-          description="Reserved owner area for BUKHT product sourcing and shop operations."
-          href="/owner/commerce"
-          icon={Package}
-          totalLabel="Total items"
-          totalValue={data.commerce.total}
-          activeLabel="Active"
-          activeValue={data.commerce.active}
-          status={data.commerce.status}
         />
         <OwnerModuleCard
           title="Cargo"

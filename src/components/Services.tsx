@@ -5,9 +5,8 @@ import { glassCard, pageSection, sectionKicker, sectionSubtitle, sectionTitle, s
 
 const services = [
   ["01", "BUKHT Travel", "Худалдааны аялал, маршрут, орчуулагч, зохион байгуулалт.", "/travel"],
-  ["02", "BUKHT Commerce", "Хямд бөөний бараа, Ready бүтээгдэхүүн, захиалгын менежмент.", "/shop"],
-  ["03", "BUKHT eSIM", "Хятад аялалд зориулсан дата багц, QR-аар шууд идэвхжүүлэлт.", "/esim"],
-  ["04", "BUKHT Cargo", "Нэгтгэл, ачилт, хүргэлт, tracking, үнэ тооцоолол.", "/cargo"],
+  ["02", "BUKHT eSIM", "Хятад аялалд зориулсан дата багц, QR-аар шууд идэвхжүүлэлт.", "/esim"],
+  ["03", "BUKHT Cargo", "Нэгтгэл, ачилт, хүргэлт, tracking, үнэ тооцоолол.", "/cargo"],
 ] as const
 
 export default function Services() {
@@ -17,7 +16,7 @@ export default function Services() {
     <section className={pageSection}>
       <div className={shell}>
         <span className={sectionKicker}>Service ecosystem</span>
-        <h2 className={`${sectionTitle} mt-4`}>4 Үндсэн үйлчилгээ</h2>
+        <h2 className={`${sectionTitle} mt-4`}>3 Үндсэн үйлчилгээ</h2>
         <p className={`${sectionSubtitle} mt-4 max-w-[700px]`}>
           БУКНТ экосистем нь аялал, худалдаа, eSIM, карго гэсэн үндсэн урсгалуудыг нэг UX-д нэгтгэдэг.
         </p>

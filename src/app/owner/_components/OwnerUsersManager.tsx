@@ -7,13 +7,11 @@ import type { StoredUser, UserRole } from "@/src/lib/server/user-store"
 
 type RoleOption =
   | { key: "travel"; label: "Travel Owner"; role: UserRole; supported: true }
-  | { key: "commerce"; label: "Commerce Owner"; role: null; supported: false; reason: string }
   | { key: "cargo"; label: "Cargo Owner"; role: UserRole; supported: true }
   | { key: "esim"; label: "eSIM Owner"; role: UserRole; supported: true }
 
 const roleOptions: RoleOption[] = [
   { key: "travel", label: "Travel Owner", role: "travel_staff", supported: true },
-  { key: "commerce", label: "Commerce Owner", role: null, supported: false, reason: "Backend role missing" },
   { key: "cargo", label: "Cargo Owner", role: "cargo_staff", supported: true },
   { key: "esim", label: "eSIM Owner", role: "esim_staff", supported: true },
 ]
@@ -82,9 +80,6 @@ export default function OwnerUsersManager() {
   return (
     <div className="grid gap-4">
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">{error}</div> : null}
-      <div className="rounded-lg border border-[#e3d4bd] bg-[#fffdf8] p-4 text-sm font-semibold text-[#6e6154]">
-        Commerce Owner role is not connected yet.
-      </div>
       <OwnerDataTable
         rows={users}
         getRowKey={(user) => user.id}
@@ -118,15 +113,6 @@ function RoleToggle(props: {
   busy: boolean
   onToggle: (user: StoredUser, role: UserRole) => void
 }) {
-  if (!props.option.supported) {
-    return (
-      <label className="flex items-center justify-between gap-3 rounded-md border border-[#eadcca] bg-[#f8efe2] px-3 py-2 text-xs font-bold text-[#8a6d4d]">
-        <span>{props.option.label}</span>
-        <span>{props.option.reason}</span>
-      </label>
-    )
-  }
-
   const role = props.option.role
   const checked = props.user.roles.includes(role)
   return (

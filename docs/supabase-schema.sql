@@ -130,6 +130,7 @@ create table if not exists public.products (
   badge text not null default 'New',
   summary text not null,
   image_url text not null default '',
+  image_urls jsonb not null default '[]'::jsonb,
   seller_name text not null default 'BUKHT',
   seller_email text not null default '',
   created_at timestamptz not null default now(),
@@ -137,6 +138,7 @@ create table if not exists public.products (
 );
 
 alter table public.products add column if not exists image_url text not null default '';
+alter table public.products add column if not exists image_urls jsonb not null default '[]'::jsonb;
 alter table public.products add column if not exists seller_name text not null default 'BUKHT';
 alter table public.products add column if not exists seller_email text not null default '';
 
@@ -226,6 +228,9 @@ create table if not exists public.travel_packages (
   updated_at timestamptz not null default now()
 );
 
+-- Existing Supabase projects may already have travel_packages without the newer
+-- owner/editor fields. Re-run this migration block when the app reports a
+-- missing travel_packages.* column instead of working around it in code.
 alter table public.travel_packages add column if not exists owner_id text not null default '';
 alter table public.travel_packages add column if not exists status text not null default 'published' check (status in ('draft', 'published'));
 alter table public.travel_packages add column if not exists short_description text not null default '';
@@ -236,7 +241,8 @@ alter table public.travel_packages add column if not exists end_location text no
 alter table public.travel_packages add column if not exists map_coordinates text not null default '';
 alter table public.travel_packages add column if not exists transportation_types jsonb not null default '[]'::jsonb;
 alter table public.travel_packages add column if not exists price integer not null default 0;
-alter table public.travel_packages add column if not exists price_currency text not null default 'MNT';
+alter table public.travel_packages
+add column if not exists price_currency text not null default 'MNT';
 alter table public.travel_packages add column if not exists max_participants integer not null default 0;
 alter table public.travel_packages add column if not exists payment_settings text not null default '';
 alter table public.travel_packages add column if not exists cancellation_policy text not null default '';

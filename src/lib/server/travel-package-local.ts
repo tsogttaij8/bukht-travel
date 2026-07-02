@@ -26,7 +26,7 @@ export async function replaceLocalTravelPackage(item: StoredTravelPackage): Prom
 
 export async function deleteLocalTravelPackage(ownerId: string, id: string): Promise<void> {
   const current = await readLocalTravelPackages()
-  await writeTravelPackages(current.filter((item) => item.id !== id || item.ownerId !== ownerId))
+  await writeTravelPackages(current.filter((item) => item.id !== id || (item.ownerId !== ownerId && item.ownerId !== "")))
 }
 
 function writeTravelPackages(items: StoredTravelPackage[]): Promise<void> {

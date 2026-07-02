@@ -7,14 +7,10 @@ import { useEffect, useRef, useState } from "react"
 import { getCurrentUser, logoutUser, type SessionUser } from "../lib/auth"
 import { shell } from "./ui/tw"
 
-const navLinkClass =
-  "rounded-full px-2.5 py-2 font-semibold text-[#3f342b] transition-colors duration-200 ease-out hover:text-[#cdbda9]"
-
 export default function Navbar() {
   const { signOut } = useClerk()
   const { user: clerkUser } = useUser()
   const [user, setUser] = useState<SessionUser | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [headerHidden, setHeaderHidden] = useState(false)
   const lastScrollY = useRef(0)
@@ -50,7 +46,6 @@ export default function Navbar() {
   async function logout() {
     setUser(null)
     setAccountOpen(false)
-    setMenuOpen(false)
 
     try {
       await logoutUser()
@@ -64,20 +59,10 @@ export default function Navbar() {
   const initial = (email || "U").charAt(0).toUpperCase()
 
   return (
-    <header className={`sticky top-0 z-30 border-b border-[rgba(225,207,183,0.82)] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(250,246,240,0.74))] backdrop-blur-[16px] transition-transform duration-300 ${headerHidden && !menuOpen ? "-translate-y-full" : "translate-y-0"}`}>
-      <nav className={`${shell} flex items-center justify-between gap-4 py-4 max-sm:flex-wrap max-sm:py-3`}>
+    <header className={`sticky top-0 z-30 border-b border-[rgba(225,207,183,0.82)] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(250,246,240,0.74))] backdrop-blur-[16px] transition-transform duration-300 ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
+      <nav className={`${shell} flex items-center justify-between gap-4 py-4 max-sm:py-3`}>
         <Logo />
-        <button type="button" aria-expanded={menuOpen} aria-label="Цэс нээх" onClick={() => setMenuOpen((current) => !current)} className="hidden rounded-[10px] border border-[rgba(190,179,164,0.7)] bg-[rgba(255,251,245,0.72)] px-3 py-2 font-bold text-[#1d1d1d] max-sm:ml-auto max-sm:inline-flex">
-          {menuOpen ? "Хаах" : "Цэс"}
-        </button>
-        <div className={`flex items-center gap-[18px] text-[0.95rem] max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-3 ${menuOpen ? "max-sm:flex" : "max-sm:hidden"}`}>
-          <Link href="/travel" className={navLinkClass}>Аялал</Link>
-          <Link href="/shop" className={navLinkClass}>Худалдаа</Link>
-          <Link href="/commerce" className={navLinkClass}>Commerce</Link>
-          <Link href="/esim" className={navLinkClass}>eSIM</Link>
-          <Link href="/cargo" className={navLinkClass}>Карго</Link>
-          {user ? <AccountMenu email={email} initial={initial} imageUrl={clerkUser?.imageUrl} open={accountOpen} onToggle={() => setAccountOpen((current) => !current)} onLogout={logout} /> : null}
-        </div>
+        {user ? <AccountMenu email={email} initial={initial} imageUrl={clerkUser?.imageUrl} open={accountOpen} onToggle={() => setAccountOpen((current) => !current)} onLogout={logout} /> : null}
       </nav>
     </header>
   )
