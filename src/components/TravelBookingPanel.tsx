@@ -1,11 +1,13 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import type { StoredTravelPackage } from "../lib/server/travel-package-store"
 
 type CounterKey = "adult" | "child" | "infant" | "singleRoom"
 
-export default function TravelBookingPanel({ travelPackage }: { travelPackage: StoredTravelPackage }) {
+export default function TravelBookingPanel({ travelPackage, signedIn }: { travelPackage: StoredTravelPackage; signedIn: boolean }) {
+  const router = useRouter()
   const [counts, setCounts] = useState<Record<CounterKey, number>>({ adult: 0, child: 0, infant: 0, singleRoom: 0 })
   const total = useMemo(
     () =>
@@ -19,6 +21,12 @@ export default function TravelBookingPanel({ travelPackage }: { travelPackage: S
 
   function update(key: CounterKey, direction: 1 | -1) {
     setCounts((current) => ({ ...current, [key]: Math.max(0, current[key] + direction) }))
+  }
+
+  function startBooking() {
+    const returnTo = `${window.location.pathname}${window.location.search}`
+    const accountPath = `/account?service=travel&title=${encodeURIComponent(travelPackage.title)}&returnTo=${encodeURIComponent(returnTo)}`
+    router.push(signedIn ? accountPath : `/login?next=${encodeURIComponent(accountPath)}`)
   }
 
   return (
@@ -52,7 +60,7 @@ export default function TravelBookingPanel({ travelPackage }: { travelPackage: S
         <span>Нийт дүн</span>
         <strong className="text-lg font-black text-[#7c5637]">{formatPackageMoney(total)}</strong>
       </div>
-      <button type="button" className="mx-5 mb-5 w-[calc(100%-2.5rem)] rounded-full bg-[linear-gradient(135deg,#7d4d34,#b76845)] px-5 py-3 text-sm font-black text-white shadow-[0_14px_28px_rgba(125,77,52,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45" disabled={total <= 0}>Худалдан авах</button>
+      <button type="button" className="mx-5 mb-5 w-[calc(100%-2.5rem)] rounded-full bg-[linear-gradient(135deg,#7d4d34,#b76845)] px-5 py-3 text-sm font-black text-white shadow-[0_14px_28px_rgba(125,77,52,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45" disabled={total <= 0} onClick={startBooking}>Худалдан авах</button>
     </aside>
   )
 }

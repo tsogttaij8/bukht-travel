@@ -36,9 +36,10 @@ export default function ClerkAuthShell() {
           {mode === "login" ? (
             <ClerkLoginForm initialEmail={loginEmail} onDone={goLanding} />
           ) : (
-            <ClerkSignupForm onRegistered={(email) => {
+            <ClerkSignupForm onRegistered={(email, user) => {
               setLoginEmail(email)
-              setMode("login")
+              if (user) goLanding(user)
+              else setMode("login")
             }} />
           )}
         </section>

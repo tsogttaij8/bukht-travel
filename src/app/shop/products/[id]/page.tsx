@@ -1,9 +1,11 @@
+import { cookies } from "next/headers"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import Footer from "../../../../components/Footer"
 import Navbar from "../../../../components/Navbar"
 import { secondaryButton, shell } from "../../../../components/ui/tw"
 import { getProduct } from "../../../../lib/server/product-store"
+import { sessionConfig, verifySessionToken } from "../../../../lib/server/session"
 
 export const dynamic = "force-dynamic"
 
@@ -29,9 +31,13 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const { id } = await params
   const product = await getProduct(id)
   if (!product) notFound()
+  const cookieStore = await cookies()
+  const token = cookieStore.get(sessionConfig.name)?.value
+  const session = token ? verifySessionToken(token) : null
 
   const images = getImages(product)
-  const requestPath = `/account?service=product_sourcing&title=${encodeURIComponent(product.name)}`
+  const accountPath = `/account?service=product_sourcing&title=${encodeURIComponent(product.name)}&returnTo=${encodeURIComponent(`/shop/products/${product.id}`)}`
+  const requestPath = session ? accountPath : `/login?next=${encodeURIComponent(accountPath)}`
 
   return (
     <>

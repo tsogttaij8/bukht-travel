@@ -1,5 +1,4 @@
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 import Link from "next/link"
 import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Navbar from "../../components/Navbar"
@@ -32,11 +31,9 @@ export default async function CargoPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get(sessionConfig.name)?.value
   const session = token ? verifySessionToken(token) : null
-
-  if (!session) {
-    redirect(`/login?next=${encodeURIComponent("/cargo")}`)
-  }
-  const isOwner = session.roles.includes("owner")
+  const isOwner = session?.roles.includes("owner") ?? false
+  const accountPath = `/account?service=cargo&title=%D0%9A%D0%B0%D1%80%D0%B3%D0%BE%20%D1%85%D2%AF%D1%81%D1%8D%D0%BB%D1%82&returnTo=${encodeURIComponent("/cargo")}`
+  const requestPath = session ? accountPath : `/login?next=${encodeURIComponent(accountPath)}`
 
   return (
     <>
@@ -108,11 +105,11 @@ export default async function CargoPage() {
               Хэрэглэгч бүр өөрийн имэйлээр account үүсгээд cargo хүсэлт, shipment-тэй холбоотой follow-up, бараа, аяллын урсгалаа тусдаа хадгалж удирдана.
             </p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link href="/account?service=cargo&title=%D0%9A%D0%B0%D1%80%D0%B3%D0%BE%20%D1%85%D2%AF%D1%81%D1%8D%D0%BB%D1%82" className="btn btn-primary">Account-аараа cargo хүсэлт өгөх</Link>
+              <Link href={requestPath} className="btn btn-primary">Account-аараа cargo хүсэлт өгөх</Link>
               <Link href="/login" className="btn btn-secondary">Имэйлээр нэвтрэх</Link>
             </div>
           </section>
-          {isOwner ? (
+          {session && isOwner ? (
             <section style={{ marginTop: 28 }}>
               <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["cargo"]} />
             </section>

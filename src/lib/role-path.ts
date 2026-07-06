@@ -10,6 +10,5 @@ export function roleHomePath(roles: string[] | undefined): string {
   if (roleSet.has("finance_staff")) return "/staff/finance"
   if (roleSet.has("support_staff")) return "/staff/support"
 
-  return "/account"
+  return "/"
 }
-

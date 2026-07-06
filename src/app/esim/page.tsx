@@ -1,5 +1,4 @@
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
@@ -30,11 +29,9 @@ export default async function EsimPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get(sessionConfig.name)?.value
   const session = token ? verifySessionToken(token) : null
-
-  if (!session) {
-    redirect(`/login?next=${encodeURIComponent("/esim")}`)
-  }
-  const isOwner = session.roles.includes("owner")
+  const isOwner = session?.roles.includes("owner") ?? false
+  const accountPath = `/account?service=esim&title=eSIM%20%D0%B4%D0%B0%D1%82%D0%B0%20%D0%B1%D0%B0%D0%B3%D1%86&returnTo=${encodeURIComponent("/esim")}`
+  const requestPath = session ? accountPath : `/login?next=${encodeURIComponent(accountPath)}`
 
   return (
     <>
@@ -128,11 +125,11 @@ export default async function EsimPage() {
               Имэйлээр account үүсгээд өөрийн нэр дээр eSIM хүсэлт илгээвэл дараа нь аялал, карго, барааны хүсэлттэйгээ хамт тухайн хэрэглэгчийн account дээр нэг дор харагдана.
             </p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link href="/account?service=esim&title=eSIM%20%D0%B4%D0%B0%D1%82%D0%B0%20%D0%B1%D0%B0%D0%B3%D1%86" className="btn btn-primary">Account-аараа eSIM авах</Link>
+              <Link href={requestPath} className="btn btn-primary">Account-аараа eSIM авах</Link>
               <Link href="/login" className="btn btn-secondary">Имэйлээр бүртгүүлэх</Link>
             </div>
           </section>
-          {isOwner ? (
+          {session && isOwner ? (
             <section style={{ marginTop: 28 }}>
               <DeveloperDashboard currentRoles={["owner"]} currentUser={{ name: session.name, email: session.email }} enabledTabs={["esim"]} />
             </section>

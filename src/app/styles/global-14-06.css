@@ -46,7 +46,7 @@
 }
 
 .travel-detail-page {
-  background: #edf4fd;
+  background: #f8f2ea;
   padding: 70px 0;
 }
 
@@ -77,6 +77,63 @@
 
 .travel-gallery-image {
   min-height: 500px;
+}
+
+.travel-gallery-carousel {
+  position: relative;
+  min-height: 625px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 18px 42px rgba(44, 62, 80, 0.1);
+}
+
+.travel-gallery-carousel-empty {
+  background: #e2e8f0;
+}
+
+.travel-gallery-track {
+  display: flex;
+  height: 625px;
+  transition: transform 0.65s ease;
+  will-change: transform;
+}
+
+.travel-gallery-slide {
+  min-width: 100%;
+  height: 100%;
+  background-color: #e2e8f0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.travel-gallery-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+  pointer-events: none;
+}
+
+.travel-gallery-dots button {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: width 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+
+.travel-gallery-dots button.active {
+  width: 24px;
+  background: #7d4d34;
 }
 
 .travel-title-row {

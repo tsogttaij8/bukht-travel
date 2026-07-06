@@ -119,6 +119,7 @@ function initials(name: string): string {
 }
 
 function requestPath(name: string, signedIn: boolean): string {
-  const accountPath = `/account?service=product_sourcing&title=${encodeURIComponent(name)}`
+  const returnTo = typeof window === "undefined" ? "/shop" : `${window.location.pathname}${window.location.search}`
+  const accountPath = `/account?service=product_sourcing&title=${encodeURIComponent(name)}&returnTo=${encodeURIComponent(returnTo)}`
   return signedIn ? accountPath : `/login?next=${encodeURIComponent(accountPath)}`
 }

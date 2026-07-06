@@ -1,8 +1,10 @@
-import Link from "next/link"
+import { cookies } from "next/headers"
 import { notFound } from "next/navigation"
 import Footer from "../../../components/Footer"
 import Navbar from "../../../components/Navbar"
 import TravelBookingPanel from "../../../components/TravelBookingPanel"
+import TravelGalleryCarousel from "../../../components/TravelGalleryCarousel"
+import { sessionConfig, verifySessionToken } from "../../../lib/server/session"
 import { getPublishedTravelPackage } from "../../../lib/server/travel-package-store"
 
 type TravelDetailPageProps = {
@@ -13,8 +15,11 @@ export default async function TravelDetailPage({ params }: TravelDetailPageProps
   const { id } = await params
   const travelPackage = await getPublishedTravelPackage(id)
   if (!travelPackage) notFound()
+  const cookieStore = await cookies()
+  const token = cookieStore.get(sessionConfig.name)?.value
+  const session = token ? verifySessionToken(token) : null
 
-  const gallery = [travelPackage.heroImage, ...travelPackage.galleryImages].slice(0, 4)
+  const gallery = Array.from(new Set([travelPackage.heroImage, ...travelPackage.galleryImages].filter(Boolean)))
 
   return (
     <>
@@ -22,20 +27,12 @@ export default async function TravelDetailPage({ params }: TravelDetailPageProps
       <main className="travel-detail-page">
         <div className="travel-detail-shell">
           <div className="travel-detail-main">
-            <section className="travel-gallery-grid">
-              {gallery.map((image, index) => (
-                <div key={`${image}-${index}`} className="travel-gallery-image" style={{ backgroundImage: `url(${image})` }} />
-              ))}
-            </section>
+            <TravelGalleryCarousel images={gallery} />
 
             <div className="travel-title-row">
               <div>
                 <h1>{travelPackage.title}</h1>
                 <p>⌖ {travelPackage.location}</p>
-              </div>
-              <div className="travel-share-row">
-                <Link href="/" className="travel-small-button">Нүүр</Link>
-                <Link href="/travel" className="travel-small-button">Аялал</Link>
               </div>
             </div>
 
@@ -88,7 +85,7 @@ export default async function TravelDetailPage({ params }: TravelDetailPageProps
             ) : null}
           </div>
 
-          <TravelBookingPanel travelPackage={travelPackage} />
+          <TravelBookingPanel travelPackage={travelPackage} signedIn={Boolean(session)} />
         </div>
       </main>
       <Footer />

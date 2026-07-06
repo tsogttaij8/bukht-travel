@@ -88,7 +88,7 @@ export default async function OwnerTravelTourPreviewPage({ params }: PreviewPage
             </section>
           </div>
 
-          <TravelBookingPanel travelPackage={tour} />
+          <TravelBookingPanel travelPackage={tour} signedIn={true} />
         </div>
       </main>
       <Footer />

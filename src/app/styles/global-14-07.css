@@ -393,8 +393,13 @@
     min-height: 240px;
   }
 
-  .travel-gallery-grid {
+  .travel-gallery-grid,
+  .travel-gallery-carousel {
     min-height: auto;
+  }
+
+  .travel-gallery-track {
+    height: 320px;
   }
 
   .travel-itinerary-item {

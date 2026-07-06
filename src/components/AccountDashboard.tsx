@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 type AccountDashboardProps = {
   initialServiceType?: string
   initialTitle?: string
+  returnTo?: string
 }
 
 type ProfileFormState = {
@@ -15,7 +16,7 @@ type ProfileFormState = {
   companyName: string
 }
 
-export default function AccountDashboard({ initialServiceType, initialTitle }: AccountDashboardProps) {
+export default function AccountDashboard({ initialServiceType, initialTitle, returnTo }: AccountDashboardProps) {
   void initialServiceType
   void initialTitle
 
@@ -59,6 +60,12 @@ export default function AccountDashboard({ initialServiceType, initialTitle }: A
 
     setForm(createProfileState(body.profile))
     setMessage("Хувийн мэдээлэл хадгалагдлаа.")
+    const target = safeReturnTo(returnTo)
+    if (target) {
+      window.setTimeout(() => {
+        window.location.assign(target)
+      }, 900)
+    }
   }
 
   if (loading) {
@@ -94,6 +101,12 @@ function createProfileState(profile?: Partial<ProfileFormState> | null): Profile
     city: profile?.city ?? "",
     companyName: profile?.companyName ?? "",
   }
+}
+
+function safeReturnTo(value: string | undefined): string {
+  if (!value?.startsWith("/")) return ""
+  if (value.startsWith("//") || value.startsWith("/login") || value.startsWith("/account")) return ""
+  return value
 }
 
 async function readAccountApi<T>(url: string): Promise<T | null> {

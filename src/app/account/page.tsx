@@ -8,7 +8,7 @@ import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 export const dynamic = "force-dynamic"
 
 type AccountPageProps = {
-  searchParams?: Promise<{ service?: string; title?: string }>
+  searchParams?: Promise<{ service?: string; title?: string; returnTo?: string }>
 }
 
 export default async function AccountPage({ searchParams }: AccountPageProps) {
@@ -36,7 +36,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
         <div className="container">
           <h1 className="section-title">Хувийн мэдээлэл</h1>
          
-          <AccountDashboard initialServiceType={params.service} initialTitle={params.title} />
+          <AccountDashboard initialServiceType={params.service} initialTitle={params.title} returnTo={params.returnTo} />
         </div>
       </main>
       <Footer />

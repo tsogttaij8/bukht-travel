@@ -3,12 +3,12 @@
 import { useAuth } from "@clerk/nextjs"
 import { useSignUp } from "@clerk/nextjs/legacy"
 import { useState } from "react"
-import { syncClerkSession } from "../../lib/auth"
+import { syncClerkSession, type SessionUser } from "../../lib/auth"
 import FloatingField from "./FloatingField"
 import PasswordMeter from "./PasswordMeter"
 import { clerkMessage, isStrongPassword, normalizeEmail } from "./clerk-auth-utils"
 
-export default function ClerkSignupForm(props: { onRegistered: (email: string) => void }) {
+export default function ClerkSignupForm(props: { onRegistered: (email: string, user?: SessionUser) => void }) {
   const { getToken } = useAuth()
   const { isLoaded, signUp, setActive } = useSignUp()
   const [name, setName] = useState("")
@@ -75,6 +75,8 @@ export default function ClerkSignupForm(props: { onRegistered: (email: string) =
           await setActive({ session: result.createdSessionId })
           const synced = await syncClerkSession(await getToken({ skipCache: true }))
           if (!synced.ok) throw new Error(synced.message === "SESSION_NOT_READY" ? "SESSION_NOT_READY" : "SYNC_FAILED")
+          props.onRegistered(normalizeEmail(email), synced.user)
+          return
         }
         props.onRegistered(normalizeEmail(email))
         return
