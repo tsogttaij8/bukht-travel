@@ -147,6 +147,7 @@ export default function ShopMarketplace({
   const [imageBusy, setImageBusy] = useState(false)
   const [previewImage, setPreviewImage] = useState("")
   const [editingProductId, setEditingProductId] = useState("")
+  const [isComposerOpen, setIsComposerOpen] = useState(false)
   const [openMenuProductId, setOpenMenuProductId] = useState("")
   const [error, setError] = useState("")
 
@@ -223,6 +224,7 @@ export default function ShopMarketplace({
     setProducts((current) => editingProductId ? current.map((product) => product.id === body.product!.id ? body.product! : product) : [body.product!, ...current])
     setForm(emptyForm)
     setEditingProductId("")
+    setIsComposerOpen(false)
     setOpenMenuProductId("")
   }
 
@@ -238,6 +240,7 @@ export default function ShopMarketplace({
       imageUrls: getProductImages(product),
     })
     setEditingProductId(product.id)
+    setIsComposerOpen(true)
     setOpenMenuProductId("")
     setError("")
   }
@@ -245,6 +248,7 @@ export default function ShopMarketplace({
   function cancelEditing(): void {
     setForm(emptyForm)
     setEditingProductId("")
+    setIsComposerOpen(false)
     setOpenMenuProductId("")
     setError("")
   }
@@ -270,13 +274,30 @@ export default function ShopMarketplace({
 
   return (
     <div className={`${shell} py-10`}>
-      <section className="grid grid-cols-[360px_minmax(0,1fr)] gap-6 max-lg:grid-cols-1">
+      <div className="mb-5 flex justify-end">
+        <button
+          className={primaryButton}
+          type="button"
+          onClick={() => {
+            if (editingProductId) {
+              cancelEditing()
+              return
+            }
+            setIsComposerOpen((current) => !current)
+            setError("")
+          }}
+        >
+          {isComposerOpen ? "Хаах" : "Хэрэглэгч пост оруулах"}
+        </button>
+      </div>
+      <section className={`grid gap-6 ${isComposerOpen ? "grid-cols-[360px_minmax(0,1fr)] max-lg:grid-cols-1" : "grid-cols-1"}`}>
+        {isComposerOpen ? (
         <aside className="grid content-start gap-4 rounded-[24px] border border-[rgba(226,209,183,0.82)] bg-[rgba(255,253,249,0.94)] p-5 shadow-[0_18px_45px_rgba(120,88,58,0.1)]">
           <div className="flex items-center gap-3">
             <Avatar label={session ? initials(session.name) : "+"} />
             <div>
-              <h2 className="m-0 text-lg font-black text-[#241a12]">{editingProductId ? "Пост засах" : session ? "Бараа нийтлэх" : "Нэвтэрч пост хийнэ"}</h2>
-              <p className="m-0 mt-1 text-sm font-medium leading-6 text-[#7a6a5c]">{session ? session.email : "Хэрэглэгч бүр өөрийн нэрээр пост оруулна."}</p>
+              <h2 className="m-0 text-lg font-black text-[#241a12]">{editingProductId ? "Пост засах" : "Хэрэглэгч пост оруулах"}</h2>
+              <p className="m-0 mt-1 text-sm font-medium leading-6 text-[#7a6a5c]">{session ? session.email : "Пост нийтлэхийн тулд нэвтэрнэ үү."}</p>
             </div>
           </div>
 
@@ -340,6 +361,7 @@ export default function ShopMarketplace({
             </button>
           ) : null}
         </aside>
+        ) : null}
 
         {previewImage ? (
           <div
