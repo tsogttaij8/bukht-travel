@@ -3,8 +3,10 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
+import { useAppLoading } from "./ui/LoadingProvider"
 
 export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
+  const { runWithLoading } = useAppLoading()
   const [products, setProducts] = useState<StoredProduct[]>([])
   const [selectedCategory, setSelectedCategory] = useState("Бүгд")
   const [loading, setLoading] = useState(true)
@@ -17,7 +19,7 @@ export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
       setLoading(true)
       setError("")
       try {
-        const response = await fetch("/api/shop/products", { cache: "no-store" })
+        const response = await runWithLoading(() => fetch("/api/shop/products", { cache: "no-store" }))
         const body = await response.json() as { products?: StoredProduct[]; message?: string }
         if (!response.ok) throw new Error(body.message ?? "Бараа уншихад алдаа гарлаа.")
         if (active) setProducts(body.products ?? [])
@@ -32,7 +34,7 @@ export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
     return () => {
       active = false
     }
-  }, [])
+  }, [runWithLoading])
 
   const categories = useMemo(() => {
     const values = products.map((product) => product.category.trim()).filter(Boolean)

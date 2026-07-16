@@ -1,13 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import OwnerEmptyState from "../../_components/OwnerEmptyState"
 import OwnerStat from "../../_components/OwnerStat"
 import OwnerTourEditor, { formFromTour, type OwnerTourForm } from "./OwnerTourEditor"
 import { formToPayload } from "./OwnerTravelPayload"
 import OwnerTravelTable from "./OwnerTravelTable"
 import type { StoredTravelPackage, TravelPackageStatus } from "@/src/lib/server/travel-package-store"
+import { useAppLoading } from "@/src/components/ui/LoadingProvider"
 
 type Mode = "dashboard" | "tours" | "new" | "edit"
 
@@ -17,6 +18,7 @@ type OwnerTravelManagerProps = {
 }
 
 export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerProps) {
+  const { runWithLoading } = useAppLoading()
   const [tours, setTours] = useState<StoredTravelPackage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -28,15 +30,11 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     published: tours.filter((tour) => tour.status === "published").length,
   }), [tours])
 
-  useEffect(() => {
-    loadTours()
-  }, [])
-
-  async function loadTours(): Promise<void> {
+  const loadTours = useCallback(async (): Promise<void> => {
     setLoading(true)
     setError("")
     try {
-      const response = await fetch("/api/owner/tours", { cache: "no-store" })
+      const response = await runWithLoading(() => fetch("/api/owner/tours", { cache: "no-store" }))
       const body = (await response.json()) as { tours?: StoredTravelPackage[]; message?: string }
       if (!response.ok) throw new Error(body.message ?? "Аяллын жагсаалт ачаалахад алдаа гарлаа.")
       setTours(body.tours ?? [])
@@ -45,17 +43,21 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     } finally {
       setLoading(false)
     }
-  }
+  }, [runWithLoading])
+
+  useEffect(() => {
+    loadTours()
+  }, [loadTours])
 
   async function saveTour(form: OwnerTourForm, status: TravelPackageStatus): Promise<StoredTravelPackage | null> {
     setSaving(true)
     setError("")
     try {
-      const response = await fetch(form.id ? `/api/owner/tours/${encodeURIComponent(form.id)}` : "/api/owner/tours", {
+      const response = await runWithLoading(() => fetch(form.id ? `/api/owner/tours/${encodeURIComponent(form.id)}` : "/api/owner/tours", {
         method: form.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formToPayload(form), status }),
-      })
+      }))
       const body = (await response.json()) as { tour?: StoredTravelPackage; message?: string }
       if (!response.ok || !body.tour) throw new Error(body.message ?? "Аялал хадгалахад алдаа гарлаа.")
       setTours((current) => form.id ? current.map((tour) => tour.id === body.tour!.id ? body.tour! : tour) : [body.tour!, ...current])

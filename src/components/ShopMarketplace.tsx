@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
 import { inputClass, primaryButton, secondaryButton, shell } from "./ui/tw"
+import { useDismissibleLayer } from "./ui/useDismissibleLayer"
+import { useAppLoading } from "./ui/LoadingProvider"
 
 type ShopSession = {
   name: string
@@ -141,6 +143,7 @@ export default function ShopMarketplace({
   session: ShopSession
   loadError: string
 }) {
+  const { runWithLoading } = useAppLoading()
   const [products, setProducts] = useState(initialProducts)
   const [form, setForm] = useState<ProductForm>(emptyForm)
   const [busy, setBusy] = useState(false)
@@ -150,6 +153,10 @@ export default function ShopMarketplace({
   const [isComposerOpen, setIsComposerOpen] = useState(false)
   const [openMenuProductId, setOpenMenuProductId] = useState("")
   const [error, setError] = useState("")
+  const productMenuRef = useRef<HTMLDivElement>(null)
+  const closeProductMenu = useCallback(() => setOpenMenuProductId(""), [])
+
+  useDismissibleLayer(productMenuRef, Boolean(openMenuProductId), closeProductMenu)
 
   const loginPath = `/login?next=${encodeURIComponent("/shop")}`
   const sessionEmail = session?.email.toLowerCase() ?? ""
@@ -209,11 +216,11 @@ export default function ShopMarketplace({
 
     setBusy(true)
     setError("")
-    const response = await fetch(editingProductId ? `/api/products/${editingProductId}` : "/api/products", {
+    const response = await runWithLoading(() => fetch(editingProductId ? `/api/products/${editingProductId}` : "/api/products", {
       method: editingProductId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    })
+    }))
     const body = (await response.json()) as { product?: StoredProduct; message?: string }
     setBusy(false)
     if (!response.ok || !body.product) {
@@ -259,7 +266,7 @@ export default function ShopMarketplace({
 
     setBusy(true)
     setError("")
-    const response = await fetch(`/api/products/${product.id}`, { method: "DELETE" })
+    const response = await runWithLoading(() => fetch(`/api/products/${product.id}`, { method: "DELETE" }))
     const body = (await response.json()) as { message?: string }
     setBusy(false)
 
@@ -399,7 +406,7 @@ export default function ShopMarketplace({
             return (
               <article key={item.id} className="relative grid gap-4 rounded-[24px] border border-[rgba(226,209,183,0.82)] bg-[rgba(255,253,249,0.94)] p-5 shadow-[0_18px_45px_rgba(120,88,58,0.1)]">
                 {canManagePost ? (
-                  <div className="absolute right-4 top-4 z-10">
+                  <div ref={openMenuProductId === item.id ? productMenuRef : undefined} className="absolute right-4 top-4 z-10">
                     <button
                       type="button"
                       className="grid h-9 w-9 place-items-center rounded-full border border-[#eadcca] bg-white text-xl font-black leading-none text-[#7c5637] shadow-sm"

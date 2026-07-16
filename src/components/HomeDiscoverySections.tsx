@@ -6,7 +6,7 @@ import type { StoredProduct } from "../lib/server/product-store"
 import type { StoredTravelPackage } from "../lib/server/travel-package-store"
 import { primaryButton, secondaryButton, sectionKicker, sectionSubtitle, sectionTitle, shell } from "./ui/tw"
 
-const carouselMs = 4200
+const carouselMs = 6000
 
 export default function HomeDiscoverySections({
   travelPackages,

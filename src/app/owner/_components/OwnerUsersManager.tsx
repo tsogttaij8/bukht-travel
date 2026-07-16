@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import OwnerDataTable from "./OwnerDataTable"
 import OwnerEmptyState from "./OwnerEmptyState"
 import type { StoredUser, UserRole } from "@/src/lib/server/user-store"
+import { useAppLoading } from "@/src/components/ui/LoadingProvider"
 
 type RoleOption =
   | { key: "travel"; label: "Travel Owner"; role: UserRole; supported: true }
@@ -17,16 +18,17 @@ const roleOptions: RoleOption[] = [
 ]
 
 export default function OwnerUsersManager() {
+  const { runWithLoading } = useAppLoading()
   const [users, setUsers] = useState<StoredUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [busyUserId, setBusyUserId] = useState("")
 
-  async function loadUsers(): Promise<void> {
+  const loadUsers = useCallback(async (): Promise<void> => {
     setLoading(true)
     setError("")
     try {
-      const response = await fetch("/api/admin/users", { cache: "no-store" })
+      const response = await runWithLoading(() => fetch("/api/admin/users", { cache: "no-store" }))
       const body = (await response.json()) as { users?: StoredUser[]; message?: string }
       if (!response.ok) throw new Error(body.message ?? "Failed to load users.")
       setUsers(body.users ?? [])
@@ -35,11 +37,11 @@ export default function OwnerUsersManager() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [runWithLoading])
 
   useEffect(() => {
     loadUsers()
-  }, [])
+  }, [loadUsers])
 
   async function toggleRole(user: StoredUser, role: UserRole): Promise<void> {
     setBusyUserId(user.id)
@@ -49,7 +51,7 @@ export default function OwnerUsersManager() {
       : [...user.roles, role]
 
     try {
-      const response = await fetch("/api/admin/users", {
+      const response = await runWithLoading(() => fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -58,7 +60,7 @@ export default function OwnerUsersManager() {
           roles: nextRoles,
           status: user.status,
         }),
-      })
+      }))
       const body = (await response.json()) as { user?: StoredUser; message?: string }
       if (!response.ok || !body.user) throw new Error(body.message ?? "Failed to update user roles.")
       setUsers((current) => current.map((item) => item.id === body.user!.id ? body.user! : item))

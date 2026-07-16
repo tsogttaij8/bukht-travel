@@ -3,9 +3,10 @@
 import { useClerk, useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentUser, logoutUser, type SessionUser } from "../lib/auth"
 import { shell } from "./ui/tw"
+import { useDismissibleLayer } from "./ui/useDismissibleLayer"
 
 export default function Navbar() {
   const { signOut } = useClerk()
@@ -13,8 +14,12 @@ export default function Navbar() {
   const [user, setUser] = useState<SessionUser | null>(null)
   const [accountOpen, setAccountOpen] = useState(false)
   const [headerHidden, setHeaderHidden] = useState(false)
+  const accountMenuRef = useRef<HTMLDivElement>(null)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
+  const closeAccountMenu = useCallback(() => setAccountOpen(false), [])
+
+  useDismissibleLayer(accountMenuRef, accountOpen, closeAccountMenu)
 
   useEffect(() => {
     let active = true
@@ -62,7 +67,11 @@ export default function Navbar() {
     <header className={`sticky top-0 z-30 border-b border-[rgba(225,207,183,0.82)] bg-[linear-gradient(180deg,rgba(250,246,240,0.94),rgba(250,246,240,0.74))] backdrop-blur-[16px] transition-transform duration-300 ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
       <nav className={`${shell} flex items-center justify-between gap-4 py-4 max-sm:py-3`}>
         <Logo />
-        {user ? <AccountMenu email={email} initial={initial} imageUrl={clerkUser?.imageUrl} open={accountOpen} onToggle={() => setAccountOpen((current) => !current)} onLogout={logout} /> : null}
+        {user ? (
+          <div ref={accountMenuRef} className="relative">
+            <AccountMenu email={email} initial={initial} imageUrl={clerkUser?.imageUrl} open={accountOpen} onToggle={() => setAccountOpen((current) => !current)} onLogout={logout} />
+          </div>
+        ) : null}
       </nav>
     </header>
   )
@@ -86,7 +95,7 @@ function Logo() {
 
 function AccountMenu(props: { email: string; initial: string; imageUrl?: string; open: boolean; onToggle: () => void; onLogout: () => void }) {
   return (
-    <div className="relative">
+    <>
       <button type="button" onClick={props.onToggle} className="grid h-11 w-11 place-items-center overflow-hidden rounded-full border border-[#d8c5ad] bg-[#7d4d34] text-sm font-extrabold text-white shadow-sm" title={props.email}>
         {props.imageUrl ? <span aria-label="Account" className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${props.imageUrl})` }} /> : props.initial}
       </button>
@@ -98,6 +107,6 @@ function AccountMenu(props: { email: string; initial: string; imageUrl?: string;
           <button type="button" onClick={props.onLogout} className="rounded-[8px] px-3 py-2 text-left text-[#9a3412] hover:bg-[#fff0ed]">Гарах</button>
         </div>
       ) : null}
-    </div>
+    </>
   )
 }

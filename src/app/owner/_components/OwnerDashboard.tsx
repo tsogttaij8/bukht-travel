@@ -6,6 +6,7 @@ import OwnerModuleCard from "./OwnerModuleCard"
 import type { StoredTravelPackage } from "@/src/lib/server/travel-package-store"
 import type { StoredEsimPackage } from "@/src/lib/server/esim-package-store"
 import type { StoredShipment } from "@/src/lib/server/shipment-store"
+import { useAppLoading } from "@/src/components/ui/LoadingProvider"
 
 type ModuleState = {
   total: string
@@ -22,6 +23,7 @@ type OwnerDashboardData = {
 const disconnected: ModuleState = { total: "Not connected yet", active: "Not connected yet", status: "Unavailable" }
 
 export default function OwnerDashboard() {
+  const { runWithLoading } = useAppLoading()
   const [data, setData] = useState<OwnerDashboardData>({
     travel: disconnected,
     cargo: disconnected,
@@ -37,11 +39,11 @@ export default function OwnerDashboard() {
       setLoading(true)
       setError("")
       try {
-        const [travel, cargo, esim] = await Promise.all([
+        const [travel, cargo, esim] = await runWithLoading(() => Promise.all([
           fetchJson<{ tours?: StoredTravelPackage[] }>("/api/owner/tours"),
           fetchJson<{ shipments?: StoredShipment[] }>("/api/admin/shipments"),
           fetchJson<{ esimPackages?: StoredEsimPackage[] }>("/api/admin/esim-packages"),
-        ])
+        ]))
 
         if (!active) return
 
@@ -77,7 +79,7 @@ export default function OwnerDashboard() {
     return () => {
       active = false
     }
-  }, [])
+  }, [runWithLoading])
 
   const platformTotal = useMemo(() => {
     return [data.travel.total, data.cargo.total, data.esim.total].reduce((sum, value) => sum + (Number(value) || 0), 0)

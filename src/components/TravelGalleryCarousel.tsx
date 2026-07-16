@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-const slideMs = 5000
+const slideMs = 7000
 
 export default function TravelGalleryCarousel({ images }: { images: string[] }) {
   const gallery = useMemo(() => images.map((image) => image.trim()).filter(Boolean), [images])

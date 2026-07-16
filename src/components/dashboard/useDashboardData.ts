@@ -7,6 +7,7 @@ import type { StoredShipment } from "../../lib/server/shipment-store"
 import type { StoredTravelPackage } from "../../lib/server/travel-package-store"
 import type { StoredUser } from "../../lib/server/user-store"
 import type { DashboardData } from "./types"
+import { useAppLoading } from "../ui/LoadingProvider"
 
 async function readJson<T extends { message?: string }>(response: Response, fallbackMessage: string): Promise<T> {
   const text = await response.text()
@@ -26,6 +27,7 @@ export function useDashboardData(options: {
   canManageShipments: boolean
   canManageEsimPackages?: boolean
 }) {
+  const { startLoading, stopLoading } = useAppLoading()
   const [data, setData] = useState<DashboardData>({ users: [], products: [], esimPackages: [], travelPackages: [], shipments: [] })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
@@ -34,6 +36,7 @@ export function useDashboardData(options: {
     let active = true
 
     async function loadDashboard(): Promise<void> {
+      startLoading()
       setLoading(true)
       setLoadError("")
 
@@ -103,6 +106,7 @@ export function useDashboardData(options: {
         if (active) setLoadError(error instanceof Error ? error.message : "Failed to load dashboard.")
       } finally {
         if (active) setLoading(false)
+        stopLoading()
       }
     }
 
@@ -110,7 +114,7 @@ export function useDashboardData(options: {
     return () => {
       active = false
     }
-  }, [options.canManageEsimPackages, options.canManageProducts, options.canManageShipments, options.canManageTravelPackages, options.isOwner])
+  }, [options.canManageEsimPackages, options.canManageProducts, options.canManageShipments, options.canManageTravelPackages, options.isOwner, startLoading, stopLoading])
 
   return { data, setData, loading, loadError }
 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
+import { useDismissibleLayer } from "@/src/components/ui/useDismissibleLayer"
 
 type OwnerDateRangeFieldProps = {
   label: string
@@ -14,6 +15,9 @@ const weekDays = ["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"]
 export default function OwnerDateRangeField(props: OwnerDateRangeFieldProps) {
   const initialMonth = parseDate(props.startDate) ?? new Date()
   const [open, setOpen] = useState(false)
+  const fieldRef = useRef<HTMLDivElement>(null)
+  const closeCalendar = useCallback(() => setOpen(false), [])
+  useDismissibleLayer(fieldRef, open, closeCalendar)
   const [month, setMonth] = useState(() => new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1))
   const days = useMemo(() => buildMonthDays(month), [month])
   const title = new Intl.DateTimeFormat("mn-MN", { month: "long", year: "numeric" }).format(month)
@@ -33,7 +37,7 @@ export default function OwnerDateRangeField(props: OwnerDateRangeFieldProps) {
   }
 
   return (
-    <div className="relative grid gap-2 text-sm font-black text-slate-700">
+    <div ref={fieldRef} className="relative grid gap-2 text-sm font-black text-slate-700">
       {props.label}
       <button type="button" className="min-h-11 rounded-md border border-slate-200 bg-white px-3 text-left text-sm font-semibold text-slate-900 outline-none transition hover:bg-slate-50 focus:border-slate-500 focus:ring-2 focus:ring-slate-200" onClick={() => setOpen((current) => !current)}>
         {value}

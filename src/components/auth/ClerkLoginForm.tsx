@@ -8,6 +8,7 @@ import { clerkMessage, isAlreadySignedInError, isStrongPassword, normalizeEmail 
 import { loginErrorMessage, syncActiveClerkSession } from "./clerk-login-helpers"
 import { ResetEmailForm, ResetVerifyForm } from "./ClerkLoginResetForms"
 import FloatingField from "./FloatingField"
+import { useAppLoading } from "../ui/LoadingProvider"
 
 type LoginStep = "login" | "resetEmail" | "resetVerify"
 
@@ -22,6 +23,7 @@ export default function ClerkLoginForm(props: {
   const { signOut } = useClerk()
   const { getToken } = useAuth()
   const { isLoaded, signIn, setActive } = useSignIn()
+  const { startLoading, stopLoading } = useAppLoading()
   const [email, setEmail] = useState(props.initialEmail ?? "")
   const [password, setPassword] = useState("")
   const [step, setStep] = useState<LoginStep>("login")
@@ -47,6 +49,7 @@ export default function ClerkLoginForm(props: {
     setError("")
     setNotice("")
     setBusy(true)
+    startLoading()
 
     try {
       const activeSignIn = signIn
@@ -103,6 +106,7 @@ export default function ClerkLoginForm(props: {
       }
     } finally {
       setBusy(false)
+      stopLoading()
     }
   }
 

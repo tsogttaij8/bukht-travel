@@ -4,9 +4,10 @@ import { useClerk } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { LogOut, MessageSquare, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
 import { logoutUser } from "@/src/lib/auth"
+import { useDismissibleLayer } from "@/src/components/ui/useDismissibleLayer"
 
 const navItems = [
   { label: "Travel", href: "/owner/travel", icon: Plane },
@@ -23,7 +24,14 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
   const [accountHovered, setAccountHovered] = useState(false)
   const [accountPinned, setAccountPinned] = useState(false)
   const [logoutBusy, setLogoutBusy] = useState(false)
+  const accountRef = useRef<HTMLDivElement>(null)
   const accountOpen = accountHovered || accountPinned
+  const closeAccount = useCallback(() => {
+    setAccountHovered(false)
+    setAccountPinned(false)
+  }, [])
+
+  useDismissibleLayer(accountRef, accountOpen, closeAccount)
 
   async function logout(): Promise<void> {
     setLogoutBusy(true)
@@ -54,6 +62,7 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
               key={item.href}
               href={item.href}
               className={`flex min-h-10 items-center gap-3 rounded-md px-3 text-sm font-bold transition ${active ? "bg-[#7d4d34] text-white shadow-sm" : "text-[#5f4b3d] hover:bg-[#fff0dd] hover:text-[#7d4d34]"}`}
+              onClick={closeAccount}
             >
               <Icon size={17} />
               <span>{item.label}</span>
@@ -64,6 +73,7 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
 
       {user ? (
         <div
+          ref={accountRef}
           className="relative mt-auto pt-4 max-lg:mt-4"
           onMouseEnter={() => setAccountHovered(true)}
           onMouseLeave={() => setAccountHovered(false)}

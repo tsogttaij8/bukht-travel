@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useAppLoading } from "./ui/LoadingProvider"
 
 type AccountDashboardProps = {
   initialServiceType?: string
@@ -19,6 +20,7 @@ type ProfileFormState = {
 export default function AccountDashboard({ initialServiceType, initialTitle, returnTo }: AccountDashboardProps) {
   void initialServiceType
   void initialTitle
+  const { runWithLoading } = useAppLoading()
 
   const [form, setForm] = useState<ProfileFormState>(createProfileState())
   const [loading, setLoading] = useState(true)
@@ -28,7 +30,7 @@ export default function AccountDashboard({ initialServiceType, initialTitle, ret
   useEffect(() => {
     let active = true
     async function load(): Promise<void> {
-      const body = await readAccountApi<{ profile?: ProfileFormState }>("/api/account/profile")
+      const body = await runWithLoading(() => readAccountApi<{ profile?: ProfileFormState }>("/api/account/profile"))
       if (!active) return
 
       if (!body?.profile) {
@@ -45,13 +47,17 @@ export default function AccountDashboard({ initialServiceType, initialTitle, ret
     return () => {
       active = false
     }
-  }, [])
+  }, [runWithLoading])
 
   async function saveProfile(): Promise<void> {
     setSaving(true)
     setMessage("")
-    const body = await writeAccountApi<{ profile?: ProfileFormState }>("/api/account/profile", form)
-    setSaving(false)
+    let body: { profile?: ProfileFormState } = {}
+    try {
+      body = await runWithLoading(() => writeAccountApi<{ profile?: ProfileFormState }>("/api/account/profile", form))
+    } finally {
+      setSaving(false)
+    }
 
     if (!body.profile) {
       setMessage("Профайл хадгалахад алдаа гарлаа.")
