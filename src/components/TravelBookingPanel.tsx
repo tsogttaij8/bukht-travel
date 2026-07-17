@@ -1,13 +1,13 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useTrackedRouter } from "./ui/useTrackedRouter"
 import { useMemo, useState } from "react"
 import type { StoredTravelPackage } from "../lib/server/travel-package-store"
 
 type CounterKey = "adult" | "child" | "infant" | "singleRoom"
 
 export default function TravelBookingPanel({ travelPackage, signedIn }: { travelPackage: StoredTravelPackage; signedIn: boolean }) {
-  const router = useRouter()
+  const router = useTrackedRouter()
   const [counts, setCounts] = useState<Record<CounterKey, number>>({ adult: 0, child: 0, infant: 0, singleRoom: 0 })
   const total = useMemo(
     () =>

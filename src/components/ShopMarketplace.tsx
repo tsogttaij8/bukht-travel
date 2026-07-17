@@ -1,11 +1,10 @@
 "use client"
 
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { useCallback, useRef, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
 import { inputClass, primaryButton, secondaryButton, shell } from "./ui/tw"
 import { useDismissibleLayer } from "./ui/useDismissibleLayer"
-import { useAppLoading } from "./ui/LoadingProvider"
 
 type ShopSession = {
   name: string
@@ -143,7 +142,6 @@ export default function ShopMarketplace({
   session: ShopSession
   loadError: string
 }) {
-  const { runWithLoading } = useAppLoading()
   const [products, setProducts] = useState(initialProducts)
   const [form, setForm] = useState<ProductForm>(emptyForm)
   const [busy, setBusy] = useState(false)
@@ -216,11 +214,11 @@ export default function ShopMarketplace({
 
     setBusy(true)
     setError("")
-    const response = await runWithLoading(() => fetch(editingProductId ? `/api/products/${editingProductId}` : "/api/products", {
+    const response = await fetch(editingProductId ? `/api/products/${editingProductId}` : "/api/products", {
       method: editingProductId ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    }))
+    })
     const body = (await response.json()) as { product?: StoredProduct; message?: string }
     setBusy(false)
     if (!response.ok || !body.product) {
@@ -266,7 +264,7 @@ export default function ShopMarketplace({
 
     setBusy(true)
     setError("")
-    const response = await runWithLoading(() => fetch(`/api/products/${product.id}`, { method: "DELETE" }))
+    const response = await fetch(`/api/products/${product.id}`, { method: "DELETE" })
     const body = (await response.json()) as { message?: string }
     setBusy(false)
 

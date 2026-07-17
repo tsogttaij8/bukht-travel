@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import type { ReactNode } from "react"
-import { useAppLoading } from "./ui/LoadingProvider"
+import { useDelayedPending } from "./ui/useDelayedPending"
 
 type CartSummary = {
   trips: Array<{
@@ -37,15 +37,15 @@ const statusLabels: Record<string, string> = {
 }
 
 export default function AccountCart() {
-  const { runWithLoading } = useAppLoading()
   const [cart, setCart] = useState<CartSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const showLoading = useDelayedPending(loading)
 
   useEffect(() => {
     let active = true
     async function load(): Promise<void> {
-      const response = await runWithLoading(() => fetch("/api/account/cart", { cache: "no-store" }))
+      const response = await fetch("/api/account/cart", { cache: "no-store" })
       if (!active) return
 
       if (!response.ok) {
@@ -62,9 +62,9 @@ export default function AccountCart() {
     return () => {
       active = false
     }
-  }, [runWithLoading])
+  }, [])
 
-  if (loading) return <section className="account-profile-panel"><p className="account-muted">Миний сагс ачаалж байна...</p></section>
+  if (loading) return showLoading ? <section className="account-profile-panel"><p className="account-muted">Миний сагс ачаалж байна...</p></section> : null
   if (error) return <section className="account-profile-panel"><p className="account-error">{error}</p></section>
 
   return (

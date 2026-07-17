@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import type { ReactNode } from "react"
 import { shell } from "./ui/tw"
 

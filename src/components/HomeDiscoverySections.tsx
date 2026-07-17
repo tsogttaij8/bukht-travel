@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { useEffect, useMemo, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
 import type { StoredTravelPackage } from "../lib/server/travel-package-store"

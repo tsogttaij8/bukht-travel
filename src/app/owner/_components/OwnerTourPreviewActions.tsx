@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import type { TravelPackageStatus } from "@/src/lib/server/travel-package-store"

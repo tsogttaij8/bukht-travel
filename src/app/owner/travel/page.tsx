@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import OwnerTravelManager from "@/src/app/owner/travel/_components/OwnerTravelManager"
 import OwnerWorkspaceShell from "@/src/app/owner/_components/OwnerWorkspaceShell"
 import { requireRole } from "../../../lib/server/role-guard"

@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import Link from "@/src/components/ui/TrackedLink"
+import { useTrackedRouter } from "@/src/components/ui/useTrackedRouter"
 import { useState } from "react"
 import { ArrowDown, ArrowUp, ImagePlus, Loader2, X } from "lucide-react"
 import type { StoredTravelPackage, TravelPackageStatus } from "@/src/lib/server/travel-package-store"
@@ -26,7 +26,7 @@ const startingImageQuality = 0.8
 const minimumImageQuality = 0.55
 
 export default function OwnerTourEditor({ initialForm = emptyOwnerTourForm, saving, error, onSave }: OwnerTourEditorProps) {
-  const router = useRouter()
+  const router = useTrackedRouter()
   const [form, setForm] = useState<OwnerTourForm>(() => withItineraryTemplate(initialForm))
   const [imageBusy, setImageBusy] = useState(false)
   const [imageError, setImageError] = useState("")

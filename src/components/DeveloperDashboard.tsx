@@ -12,6 +12,7 @@ import StaffAccessPanel from "./dashboard/StaffAccessPanel"
 import { TravelPackageCreatePanel, TravelPackageListPanel } from "./dashboard/TravelPackagesPanel"
 import UsersPanel from "./dashboard/UsersPanel"
 import { useDashboardData } from "./dashboard/useDashboardData"
+import { useDelayedPending } from "./ui/useDelayedPending"
 import { useEsimPackages } from "./dashboard/useEsimPackages"
 import { useShipments } from "./dashboard/useShipments"
 import { useStaffAccess } from "./dashboard/useStaffAccess"
@@ -45,6 +46,7 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
   const canManageEsimPackages = tabEnabled("esim") && (isOwner || currentRoles.includes("esim_staff"))
   const canManageShipments = tabEnabled("cargo") && (isOwner || currentRoles.includes("cargo_staff") || currentRoles.includes("support_staff"))
   const { data, setData, loading, loadError } = useDashboardData({ isOwner: canManageAccess, canManageProducts, canManageEsimPackages, canManageTravelPackages: canManageTravelPackages && !travelOnlyScope, canManageShipments })
+  const showLoading = useDelayedPending(loading)
   const setUsers = (updater: (users: StoredUser[]) => StoredUser[]) => setData((state) => ({ ...state, users: updater(state.users) }))
   const setEsimPackages = (updater: (packages: StoredEsimPackage[]) => StoredEsimPackage[]) => setData((state) => ({ ...state, esimPackages: updater(state.esimPackages) }))
   const setTravelPackages = (updater: (packages: StoredTravelPackage[]) => StoredTravelPackage[]) => setData((state) => ({ ...state, travelPackages: updater(state.travelPackages) }))
@@ -55,7 +57,7 @@ export default function DeveloperDashboard({ currentRoles, currentUser, enabledT
   const shipments = useShipments(setShipments)
 
   if (loading) {
-    return <section className="office-panel"><p style={{ margin: 0 }}>Dashboard ачаалж байна...</p></section>
+    return showLoading ? <section className="office-panel"><p style={{ margin: 0 }}>Dashboard ачаалж байна...</p></section> : null
   }
 
   const tabs: Array<{ value: DashboardTab; label: string; visible: boolean }> = [

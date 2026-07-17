@@ -1,0 +1,1 @@
+export const LOADING_REVEAL_DELAY_MS = 300

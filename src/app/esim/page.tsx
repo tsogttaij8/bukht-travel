@@ -3,7 +3,7 @@ import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
 import Image from "next/image"
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { sessionConfig, verifySessionToken } from "../../lib/server/session"
 
 const plans = [

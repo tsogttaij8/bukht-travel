@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { redirect } from "next/navigation"
 import Footer from "../../components/Footer"
 import Navbar from "../../components/Navbar"

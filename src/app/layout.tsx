@@ -1,6 +1,6 @@
 import "./globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
-import { LoadingProvider } from "../components/ui/LoadingProvider"
+import { NavigationLoadingProvider } from "../components/ui/NavigationLoadingProvider"
 
 export const metadata = {
   title: "BUKHT",
@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="mn">
       <body>
         <ClerkProvider>
-          <LoadingProvider>{children}</LoadingProvider>
+          <NavigationLoadingProvider>{children}</NavigationLoadingProvider>
         </ClerkProvider>
       </body>
     </html>

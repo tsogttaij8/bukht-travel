@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { shell } from "./ui/tw"
 
 export default function Hero({ isLoggedIn = false }: { isLoggedIn?: boolean }){

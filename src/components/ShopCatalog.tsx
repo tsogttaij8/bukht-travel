@@ -1,16 +1,16 @@
 "use client"
 
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { useEffect, useMemo, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
-import { useAppLoading } from "./ui/LoadingProvider"
+import { useDelayedPending } from "./ui/useDelayedPending"
 
 export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
-  const { runWithLoading } = useAppLoading()
   const [products, setProducts] = useState<StoredProduct[]>([])
   const [selectedCategory, setSelectedCategory] = useState("Бүгд")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const showLoading = useDelayedPending(loading)
 
   useEffect(() => {
     let active = true
@@ -19,7 +19,7 @@ export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
       setLoading(true)
       setError("")
       try {
-        const response = await runWithLoading(() => fetch("/api/shop/products", { cache: "no-store" }))
+        const response = await fetch("/api/shop/products", { cache: "no-store" })
         const body = await response.json() as { products?: StoredProduct[]; message?: string }
         if (!response.ok) throw new Error(body.message ?? "Бараа уншихад алдаа гарлаа.")
         if (active) setProducts(body.products ?? [])
@@ -34,7 +34,7 @@ export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
     return () => {
       active = false
     }
-  }, [runWithLoading])
+  }, [])
 
   const categories = useMemo(() => {
     const values = products.map((product) => product.category.trim()).filter(Boolean)
@@ -46,7 +46,7 @@ export default function ShopCatalog({ signedIn }: { signedIn: boolean }) {
     : products.filter((product) => product.category === selectedCategory)
 
   if (loading) {
-    return <div className="shop-empty-result">Уншиж байна...</div>
+    return showLoading ? <div className="shop-empty-result">Уншиж байна...</div> : null
   }
 
   if (error) {

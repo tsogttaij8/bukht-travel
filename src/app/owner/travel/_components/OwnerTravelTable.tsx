@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { Edit, Eye, Plus, Trash2 } from "lucide-react"
 import OwnerDataTable from "../../_components/OwnerDataTable"
 import OwnerEmptyState from "../../_components/OwnerEmptyState"

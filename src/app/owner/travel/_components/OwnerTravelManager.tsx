@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import OwnerEmptyState from "../../_components/OwnerEmptyState"
 import OwnerStat from "../../_components/OwnerStat"
@@ -8,7 +8,7 @@ import OwnerTourEditor, { formFromTour, type OwnerTourForm } from "./OwnerTourEd
 import { formToPayload } from "./OwnerTravelPayload"
 import OwnerTravelTable from "./OwnerTravelTable"
 import type { StoredTravelPackage, TravelPackageStatus } from "@/src/lib/server/travel-package-store"
-import { useAppLoading } from "@/src/components/ui/LoadingProvider"
+import { useDelayedPending } from "@/src/components/ui/useDelayedPending"
 
 type Mode = "dashboard" | "tours" | "new" | "edit"
 
@@ -18,11 +18,11 @@ type OwnerTravelManagerProps = {
 }
 
 export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerProps) {
-  const { runWithLoading } = useAppLoading()
   const [tours, setTours] = useState<StoredTravelPackage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [saving, setSaving] = useState(false)
+  const showLoading = useDelayedPending(loading)
   const selectedTour = tourId ? tours.find((tour) => tour.id === tourId || tour.slug === tourId) : undefined
   const stats = useMemo(() => ({
     total: tours.length,
@@ -34,7 +34,7 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     setLoading(true)
     setError("")
     try {
-      const response = await runWithLoading(() => fetch("/api/owner/tours", { cache: "no-store" }))
+      const response = await fetch("/api/owner/tours", { cache: "no-store" })
       const body = (await response.json()) as { tours?: StoredTravelPackage[]; message?: string }
       if (!response.ok) throw new Error(body.message ?? "Аяллын жагсаалт ачаалахад алдаа гарлаа.")
       setTours(body.tours ?? [])
@@ -43,7 +43,7 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     } finally {
       setLoading(false)
     }
-  }, [runWithLoading])
+  }, [])
 
   useEffect(() => {
     loadTours()
@@ -53,11 +53,11 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     setSaving(true)
     setError("")
     try {
-      const response = await runWithLoading(() => fetch(form.id ? `/api/owner/tours/${encodeURIComponent(form.id)}` : "/api/owner/tours", {
+      const response = await fetch(form.id ? `/api/owner/tours/${encodeURIComponent(form.id)}` : "/api/owner/tours", {
         method: form.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formToPayload(form), status }),
-      }))
+      })
       const body = (await response.json()) as { tour?: StoredTravelPackage; message?: string }
       if (!response.ok || !body.tour) throw new Error(body.message ?? "Аялал хадгалахад алдаа гарлаа.")
       setTours((current) => form.id ? current.map((tour) => tour.id === body.tour!.id ? body.tour! : tour) : [body.tour!, ...current])
@@ -97,7 +97,7 @@ export default function OwnerTravelManager({ mode, tourId }: OwnerTravelManagerP
     setTours((current) => current.filter((item) => item.id !== tour.id))
   }
 
-  if (loading) return <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600 shadow-sm">Аяллын мэдээлэл ачаалж байна...</div>
+  if (loading) return showLoading ? <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm font-bold text-slate-600 shadow-sm">Аяллын мэдээлэл ачаалж байна...</div> : null
   if (mode === "new") return <OwnerTourEditor saving={saving} error={error} onSave={saveTour} />
   if (mode === "edit") return selectedTour ? <OwnerTourEditor initialForm={formFromTour(selectedTour)} saving={saving} error={error} onSave={saveTour} /> : <MissingTourState />
 

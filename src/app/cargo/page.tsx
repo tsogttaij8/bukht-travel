@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import DeveloperDashboard from "../../components/DeveloperDashboard"
 import Navbar from "../../components/Navbar"
 import CargoTracker from "../../components/CargoTrecker"

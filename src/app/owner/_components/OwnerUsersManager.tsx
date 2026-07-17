@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import OwnerDataTable from "./OwnerDataTable"
 import OwnerEmptyState from "./OwnerEmptyState"
 import type { StoredUser, UserRole } from "@/src/lib/server/user-store"
-import { useAppLoading } from "@/src/components/ui/LoadingProvider"
+import { useDelayedPending } from "@/src/components/ui/useDelayedPending"
 
 type RoleOption =
   | { key: "travel"; label: "Travel Owner"; role: UserRole; supported: true }
@@ -18,17 +18,17 @@ const roleOptions: RoleOption[] = [
 ]
 
 export default function OwnerUsersManager() {
-  const { runWithLoading } = useAppLoading()
   const [users, setUsers] = useState<StoredUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [busyUserId, setBusyUserId] = useState("")
+  const showLoading = useDelayedPending(loading)
 
   const loadUsers = useCallback(async (): Promise<void> => {
     setLoading(true)
     setError("")
     try {
-      const response = await runWithLoading(() => fetch("/api/admin/users", { cache: "no-store" }))
+      const response = await fetch("/api/admin/users", { cache: "no-store" })
       const body = (await response.json()) as { users?: StoredUser[]; message?: string }
       if (!response.ok) throw new Error(body.message ?? "Failed to load users.")
       setUsers(body.users ?? [])
@@ -37,7 +37,7 @@ export default function OwnerUsersManager() {
     } finally {
       setLoading(false)
     }
-  }, [runWithLoading])
+  }, [])
 
   useEffect(() => {
     loadUsers()
@@ -51,7 +51,7 @@ export default function OwnerUsersManager() {
       : [...user.roles, role]
 
     try {
-      const response = await runWithLoading(() => fetch("/api/admin/users", {
+      const response = await fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -60,7 +60,7 @@ export default function OwnerUsersManager() {
           roles: nextRoles,
           status: user.status,
         }),
-      }))
+      })
       const body = (await response.json()) as { user?: StoredUser; message?: string }
       if (!response.ok || !body.user) throw new Error(body.message ?? "Failed to update user roles.")
       setUsers((current) => current.map((item) => item.id === body.user!.id ? body.user! : item))
@@ -72,7 +72,7 @@ export default function OwnerUsersManager() {
   }
 
   if (loading) {
-    return <div className="rounded-lg border border-[#e3d4bd] bg-[#fffdf8] p-6 text-sm font-bold text-[#6e6154] shadow-sm">Loading real users from /api/admin/users...</div>
+    return showLoading ? <div className="rounded-lg border border-[#e3d4bd] bg-[#fffdf8] p-6 text-sm font-bold text-[#6e6154] shadow-sm">Loading real users from /api/admin/users...</div> : null
   }
 
   if (users.length === 0) {

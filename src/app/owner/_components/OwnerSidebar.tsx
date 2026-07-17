@@ -2,7 +2,7 @@
 
 import { useClerk } from "@clerk/nextjs"
 import Image from "next/image"
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { usePathname } from "next/navigation"
 import { useCallback, useRef, useState } from "react"
 import { LogOut, MessageSquare, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"

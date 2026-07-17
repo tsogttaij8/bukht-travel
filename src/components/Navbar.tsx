@@ -2,7 +2,7 @@
 
 import { useClerk, useUser } from "@clerk/nextjs"
 import Image from "next/image"
-import Link from "next/link"
+import Link from "@/src/components/ui/TrackedLink"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentUser, logoutUser, type SessionUser } from "../lib/auth"
 import { shell } from "./ui/tw"

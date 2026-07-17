@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useTrackedRouter } from "./ui/useTrackedRouter"
 import { glassCard, pageSection, sectionKicker, sectionSubtitle, sectionTitle, shell } from "./ui/tw"
 
 const services = [
@@ -10,7 +10,7 @@ const services = [
 ] as const
 
 export default function Services() {
-  const router = useRouter()
+  const router = useTrackedRouter()
 
   return (
     <section className={pageSection}>
