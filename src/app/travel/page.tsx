@@ -55,7 +55,7 @@ export default async function TravelPage() {
 function TravelListCard({ item }: { item: StoredTravelPackage }) {
   const image = item.heroImage || item.galleryImages[0] || "/travel-guangzhou-city-highlights.jpeg"
   return (
-    <Link href={`/travel/${item.id}`} className="grid overflow-hidden rounded-[18px] border border-[rgba(226,209,183,0.82)] bg-white text-left shadow-[0_18px_42px_rgba(120,88,58,0.1)] transition hover:-translate-y-0.5">
+    <Link href={`/travel/${encodeURIComponent(item.id)}`} className="grid overflow-hidden rounded-[18px] border border-[rgba(226,209,183,0.82)] bg-white text-left shadow-[0_18px_42px_rgba(120,88,58,0.1)] transition hover:-translate-y-0.5">
       <span className="min-h-52 bg-[#eadcca] bg-cover bg-center" style={{ backgroundImage: cssImage(image) }} />
       <span className="grid gap-3 p-5">
         <span className="text-xs font-black uppercase text-[#7c5637]">{item.location || item.destination}</span>

@@ -8,59 +8,7 @@ export type { StoredProduct } from "./product-model"
 
 const productSelect = "id, name, category, price, moq, origin, lead_time, badge, summary, image_url, image_urls, seller_name, seller_email, created_at, updated_at"
 const legacyProductSelect = "id, name, category, price, moq, origin, lead_time, badge, summary, image_url, seller_name, seller_email, created_at, updated_at"
-const fallbackProducts: StoredProduct[] = [
-  {
-    id: "fallback-kitchen-storage-set",
-    name: "Kitchen Storage Set",
-    category: "Ger ahui",
-    price: "29,900 - 69,900 MNT",
-    moq: "MOQ 12",
-    origin: "Guangzhou",
-    leadTime: "7-10 honog",
-    badge: "Hot deal",
-    summary: "Home goods and reseller-friendly storage bundle.",
-    imageUrl: "",
-    imageUrls: [],
-    sellerName: "BUKHT",
-    sellerEmail: "",
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "fallback-mini-beauty-device",
-    name: "Mini Beauty Device",
-    category: "Goo saihan",
-    price: "48,000 - 118,000 MNT",
-    moq: "MOQ 6",
-    origin: "Shenzhen",
-    leadTime: "5-8 honog",
-    badge: "Trending",
-    summary: "Compact beauty gadget suited for online sales.",
-    imageUrl: "",
-    imageUrls: [],
-    sellerName: "BUKHT",
-    sellerEmail: "",
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-  },
-  {
-    id: "fallback-streetwear-capsule",
-    name: "Streetwear Capsule",
-    category: "Huvtsas",
-    price: "39,000 - 92,000 MNT",
-    moq: "MOQ 20",
-    origin: "Hangzhou",
-    leadTime: "8-12 honog",
-    badge: "New arrival",
-    summary: "Youth-focused capsule collection for small batches.",
-    imageUrl: "",
-    imageUrls: [],
-    sellerName: "BUKHT",
-    sellerEmail: "",
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-  },
-]
+const fallbackProducts: StoredProduct[] = []
 
 declare global {
   var __buhktProductsUseFallback: boolean | undefined

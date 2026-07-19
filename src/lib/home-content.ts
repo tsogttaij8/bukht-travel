@@ -1,3 +1,8 @@
+export const heroContent = {
+  image: "/home-hero-shanghai.png",
+  imageAlt: "Шанхайн хотын дүр зураг болон Хятадын уламжлалт асар",
+} as const
+
 export const serviceContent = {
   esim: { title: "eSIM үйлчилгээ", description: "Хятад болон гадаад интернэтэд алдаагүй холбогдоорой.", cta: "eSIM авах", href: "/esim", image: "/home-esim-service.png", imageAlt: "eSIM үйлчилгээний ухаалаг утас" },
   cargo: { title: "Карго тээвэр", description: "Хятадаас Монгол руу аюулгүй, найдвартай карго тээвэрлэнэ.", cta: "Карго үйлчилгээ", href: "/cargo", image: "/home-cargo-service.png", imageAlt: "Карго тээврийн ачааны машин" },

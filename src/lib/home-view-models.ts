@@ -15,7 +15,7 @@ export function toTravelCard(item: StoredTravelPackage): TravelCardViewModel {
   const amount = item.price || item.adultPrice
   return {
     id: item.id,
-    href: `/travel/${item.slug || item.id}`,
+    href: `/travel/${encodeURIComponent(item.id)}`,
     title: item.title,
     imageUrl: item.heroImage || item.galleryImages[0] || undefined,
     badge: item.category || undefined,

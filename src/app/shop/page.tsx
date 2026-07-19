@@ -25,7 +25,7 @@ export default async function ShopPage() {
   return (
     <>
       <Navbar />
-      <main className="section">
+      <main className="marketplace-main">
         <ShopMarketplace
           initialProducts={products}
           loadError={loadError}

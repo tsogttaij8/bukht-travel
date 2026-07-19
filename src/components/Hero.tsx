@@ -1,5 +1,6 @@
 import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
+import { heroContent } from "../lib/home-content"
 
 export default function Hero() {
   return (
@@ -15,7 +16,7 @@ export default function Hero() {
           <Link href="/travel" className="home-button home-button--accent">Аялал эхлэх <span aria-hidden="true">→</span></Link>
         </div>
         <div className="home-hero__visual">
-          <Image src="/home-hero-camel.jfif" alt="Хятад дахь аялал, худалдааны орчин" fill priority sizes="(max-width: 800px) 100vw, 60vw" />
+          <Image src={heroContent.image} alt={heroContent.imageAlt} fill priority sizes="(max-width: 800px) 100vw, 60vw" />
         </div>
       </div>
     </section>

@@ -2,12 +2,12 @@
 
 import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Search, Sun } from "lucide-react"
 import { useState } from "react"
 
 type Theme = "light" | "dark"
 
-export default function Navbar() {
+export default function Navbar({ showSearch = false }: { showSearch?: boolean }) {
   const [theme, setTheme] = useState<Theme | null>(null)
 
   function toggleTheme() {
@@ -29,6 +29,13 @@ export default function Navbar() {
             <small>Trade, travel, cargo</small>
           </span>
         </Link>
+        {showSearch ? (
+          <form className="detail-header-search" action="/shop" role="search">
+            <label className="sr-only" htmlFor="detail-product-search">Бараа хайх</label>
+            <input id="detail-product-search" name="search" placeholder="Бараа хайх..." />
+            <button type="submit" aria-label="Хайх"><Search aria-hidden="true" /></button>
+          </form>
+        ) : null}
         <div className="home-header__actions">
           <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Цайвар горимд шилжих" : "Бараан горимд шилжих"}>
             <Moon aria-hidden="true" /><Sun aria-hidden="true" />
