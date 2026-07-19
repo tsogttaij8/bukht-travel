@@ -17,17 +17,21 @@ const token = cookieStore.get(sessionConfig.name)?.value
 const session = token ? verifySessionToken(token) : null
 let travelPackages: StoredTravelPackage[] = []
 let products: StoredProduct[] = []
+let travelError = false
+let productError = false
 
 try {
 travelPackages = (await listTravelPackages()).filter((item) => item.status === "published")
 } catch {
 travelPackages = []
+travelError = true
 }
 
 try {
 products = await listProducts()
 } catch {
 products = []
+productError = true
 }
 
 if (session && sessionCanAccessAdmin(session)) {
@@ -40,9 +44,9 @@ return(
 
 <Navbar/>
 
-<Hero isLoggedIn={Boolean(session)}/>
+<Hero/>
 
-<HomeDiscoverySections travelPackages={travelPackages} products={products}/>
+<HomeDiscoverySections travelPackages={travelPackages} products={products} travelError={travelError} productError={productError}/>
 
 <Footer/>
 
