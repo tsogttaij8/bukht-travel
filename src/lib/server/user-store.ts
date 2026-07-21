@@ -137,7 +137,7 @@ export function roleFromEmail(email: string): LegacyUserRole {
   return isAdminEmail(email) ? "developer" : "user"
 }
 
-export async function upsertUserByEmail(input: { email: string; name?: string }): Promise<StoredUser> {
+export async function upsertUserByEmail(input: { email: string; name?: string; clerkUserId?: string }): Promise<StoredUser> {
   const email = input.email.trim().toLowerCase()
   const defaultRoles: UserRole[] = isAdminEmail(email) ? ["owner"] : ["customer"]
   const role = legacyRoleFromRoles(defaultRoles)
@@ -146,7 +146,7 @@ export async function upsertUserByEmail(input: { email: string; name?: string })
 
   if (isSupabaseEnabled()) {
     try {
-      return await upsertSupabaseUser({ email, name, role, defaultRoles, createdAt })
+      return await upsertSupabaseUser({ email, name, role, defaultRoles, createdAt, clerkUserId: input.clerkUserId })
     } catch (error) {
       if (!shouldFallbackToLocalDb(error)) throw error
       console.warn("Saving user to local DB because Supabase is unreachable.", error)
@@ -155,12 +155,12 @@ export async function upsertUserByEmail(input: { email: string; name?: string })
 
   const db = await getDb()
   const result = await db.query<UserRow>(
-    `INSERT INTO users (id, name, email, role, status, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO users (id, clerk_user_id, name, email, role, status, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (email)
-     DO UPDATE SET name = EXCLUDED.name
+     DO UPDATE SET name = EXCLUDED.name, clerk_user_id = COALESCE(EXCLUDED.clerk_user_id, users.clerk_user_id)
      RETURNING ${userSelect}`,
-    [randomUUID(), name, email, role, "active", createdAt]
+    [randomUUID(), input.clerkUserId ?? null, name, email, role, "active", createdAt]
   )
   const user = result.rows[0]
   const roles = (await readRolesByUserIds([user.id], true)).get(user.id) ?? defaultRoles
@@ -178,10 +178,12 @@ async function upsertSupabaseUser(input: {
   role: LegacyUserRole
   defaultRoles: UserRole[]
   createdAt: string
+  clerkUserId?: string
 }): Promise<StoredUser> {
   const supabase = getSupabaseAdmin()
   const { data: inserted, error: insertError } = await supabase.from("users").insert({
     id: randomUUID(),
+    clerk_user_id: input.clerkUserId ?? null,
     name: input.name,
     email: input.email,
     role: input.role,
@@ -193,7 +195,7 @@ async function upsertSupabaseUser(input: {
     return mapUser(inserted, input.defaultRoles)
   }
   if (insertError?.code !== "23505") throw insertError
-  const { error: updateError } = await supabase.from("users").update({ name: input.name }).eq("email", input.email)
+  const { error: updateError } = await supabase.from("users").update({ name: input.name, ...(input.clerkUserId ? { clerk_user_id: input.clerkUserId } : {}) }).eq("email", input.email)
   if (updateError) throw updateError
   const { data, error } = await supabase.from("users").select(userSelect).eq("email", input.email).single()
   if (error) throw error

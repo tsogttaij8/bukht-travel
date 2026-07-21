@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ChevronDown, ChevronLeft, ChevronRight, Grid2X2, ImagePlus, List, MapPin, PackageOpen, Pencil, Plus, Search, Trash2, X } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
+import { AddToCartButton } from "./commerce/CartProvider"
 
 type ShopSession = { name: string; email: string } | null
 type ViewMode = "grid" | "list"
@@ -175,7 +176,7 @@ function MarketplaceCard({ product, canEdit, onEdit, onDeleted }: { product: Sto
   return <article className="marketplace-card">
     <header className="marketplace-card__seller"><span className="marketplace-avatar" style={{ "--avatar-hue": avatarHue(product.sellerName) } as React.CSSProperties}>{initials(product.sellerName)}</span><div><strong>{product.sellerName}</strong><time dateTime={product.createdAt}>{formatDate(product.createdAt)}</time></div>{canEdit ? <div className="marketplace-card__owner"><button onClick={onEdit} aria-label="Пост засах"><Pencil /></button><button onClick={() => void remove()} aria-label="Пост устгах"><Trash2 /></button></div> : null}</header>
     <Link className="marketplace-card__image" href={`/shop/products/${product.id}`} aria-label={`${product.name} дэлгэрэнгүй`}>{image ? <Image src={image} alt={product.name} width={600} height={440} unoptimized /> : <span><PackageOpen />{initials(product.name)}</span>}</Link>
-    <div className="marketplace-card__body"><div className="marketplace-card__category">{product.category}</div><h2>{product.name}</h2><strong className="marketplace-card__price">{product.price}</strong>{product.origin ? <p className="marketplace-card__location"><MapPin />{product.origin}</p> : null}<div className="marketplace-card__bottom">{product.moq ? <span>{product.moq}</span> : <span /> }<Link href={`/shop/products/${product.id}`}>Дэлгэрэнгүй</Link></div></div>
+    <div className="marketplace-card__body"><div className="marketplace-card__category">{product.category}</div><h2>{product.name}</h2><strong className="marketplace-card__price">{product.price}</strong>{product.origin ? <p className="marketplace-card__location"><MapPin />{product.origin}</p> : null}<div className="marketplace-card__bottom">{product.moq ? <span>{product.moq}</span> : <span /> }<div><Link href={`/shop/products/${product.id}`}>Дэлгэрэнгүй</Link><AddToCartButton productId={product.id} compact className="marketplace-card__cart" /></div></div></div>
   </article>
 }
 

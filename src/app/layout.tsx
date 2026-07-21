@@ -1,6 +1,7 @@
 import "./globals.css"
 import { ClerkProvider } from "@clerk/nextjs"
 import { NavigationLoadingProvider } from "../components/ui/NavigationLoadingProvider"
+import { CartProvider } from "../components/commerce/CartProvider"
 
 const themeScript = `(function(){try{var t=localStorage.getItem('bukht-theme');if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})()`
 
@@ -24,7 +25,7 @@ export default function RootLayout({
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body>
         <ClerkProvider>
-          <NavigationLoadingProvider>{children}</NavigationLoadingProvider>
+          <NavigationLoadingProvider><CartProvider>{children}</CartProvider></NavigationLoadingProvider>
         </ClerkProvider>
       </body>
     </html>

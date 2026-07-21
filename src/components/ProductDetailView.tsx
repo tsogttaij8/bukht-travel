@@ -2,10 +2,12 @@
 
 import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
-import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, MapPin, MessageCircle, PackageOpen } from "lucide-react"
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, MapPin, PackageOpen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
+import { AddToCartButton } from "./commerce/CartProvider"
+import { ChatButton } from "./commerce/ChatButton"
 
 function imagesOf(product: StoredProduct) {
   return product.imageUrls.length ? product.imageUrls : product.imageUrl ? [product.imageUrl] : []
@@ -20,7 +22,7 @@ function formatDate(value: string) {
   return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("mn-MN", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date)
 }
 
-export default function ProductDetailView({ product, relatedProducts, contactPath }: { product: StoredProduct; relatedProducts: StoredProduct[]; contactPath: string }) {
+export default function ProductDetailView({ product, relatedProducts }: { product: StoredProduct; relatedProducts: StoredProduct[] }) {
   const router = useRouter()
   const images = useMemo(() => imagesOf(product), [product])
   const [activeImage, setActiveImage] = useState(0)
@@ -63,7 +65,7 @@ export default function ProductDetailView({ product, relatedProducts, contactPat
         <h1>{product.name}</h1>
         {product.origin ? <p className="product-summary__location"><MapPin />{product.origin}</p> : null}
         <strong className="product-summary__price">{product.price}</strong>
-        <Link className="product-summary__contact" href={contactPath}><MessageCircle />Чатлах</Link>
+        <div className="product-summary__actions"><AddToCartButton productId={product.id} className="product-summary__contact"/><ChatButton productId={product.id}/></div>
         <dl className="product-summary__stats">
           <div><CalendarDays /><dt>Нийтэлсэн</dt><dd>{formatDate(product.createdAt)}</dd></div>
         </dl>

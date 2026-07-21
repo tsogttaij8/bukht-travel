@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!email) return NextResponse.json({ message: "Email hayag oldsonggui" }, { status: 400 })
 
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || email.split("@")[0]
-  const user = await syncUser(email, name).catch((error) => {
+  const user = await syncUser(email, name, userId).catch((error) => {
     console.error("[clerk-sync] syncUser failed", error)
     return null
   })
@@ -71,14 +71,16 @@ function readBearerToken(header: string | null): string {
   return scheme?.toLowerCase() === "bearer" && token ? token : ""
 }
 
-async function syncUser(email: string, name: string): Promise<StoredUser> {
+async function syncUser(email: string, name: string, clerkUserId: string): Promise<StoredUser> {
   console.error("[clerk-sync] findUserByEmail start", { email })
   let user = await findUserByEmail(email)
   console.error("[clerk-sync] findUserByEmail ok", { email, found: Boolean(user), status: user?.status, roles: user?.roles })
   if (!user) {
     console.error("[clerk-sync] upsertUserByEmail start", { email, name })
-    user = await upsertUserByEmail({ email, name })
+    user = await upsertUserByEmail({ email, name, clerkUserId })
     console.error("[clerk-sync] upsertUserByEmail ok", { email: user.email, id: user.id, status: user.status, roles: user.roles })
+  } else if (user.clerkUserId !== clerkUserId) {
+    user = await upsertUserByEmail({ email, name, clerkUserId })
   }
   console.error("[clerk-sync] ensureUserProfile start", { email: user.email, id: user.id })
   await ensureUserProfile(user)

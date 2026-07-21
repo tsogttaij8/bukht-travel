@@ -3,9 +3,10 @@ import { authSchemaSql } from "./db-schema-auth"
 import { customerSchemaSql } from "./db-schema-customer"
 import { operationsSchemaSql } from "./db-schema-operations"
 import { travelSchemaSql } from "./db-schema-travel"
+import { commerceSchemaSql } from "./db-schema-commerce"
 
 export async function initSchema(db: PGlite): Promise<void> {
-  for (const sql of [authSchemaSql(Date.now()), operationsSchemaSql, travelSchemaSql, customerSchemaSql]) {
+  for (const sql of [authSchemaSql(Date.now()), operationsSchemaSql, travelSchemaSql, customerSchemaSql, commerceSchemaSql]) {
     await db.exec(sql)
   }
 }

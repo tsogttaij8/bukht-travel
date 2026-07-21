@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
-import { Clock3, MapPin, ShoppingCart } from "lucide-react"
+import { Clock3, MapPin } from "lucide-react"
+import { AddToCartButton } from "./commerce/CartProvider"
 import type { StoredProduct } from "../lib/server/product-store"
 import type { StoredTravelPackage } from "../lib/server/travel-package-store"
 import { toProductCard, toTravelCard, type ProductCardViewModel, type TravelCardViewModel } from "../lib/home-view-models"
@@ -26,7 +27,7 @@ function TravelCard({ item }: { item: TravelCardViewModel }) {
 }
 
 function ProductCard({ item }: { item: ProductCardViewModel }) {
-  return <article className="product-card"><Link href={item.href} className="product-card__image">{item.imageUrl ? <Image unoptimized src={item.imageUrl} alt={item.name} fill sizes="220px" /> : <ImageFallback label={item.name} />}</Link><div className="product-card__body"><h3><Link href={item.href}>{item.name}</Link></h3>{item.brand ? <p>{item.brand}</p> : null}{item.moq ? <p>{item.moq}</p> : null}{item.origin ? <p className="product-origin"><MapPin />{item.origin}</p> : null}<div className="product-card__footer"><strong>{item.formattedPrice}</strong><Link href={item.href} className="icon-button" aria-label={`${item.name} дэлгэрэнгүй`}><ShoppingCart /></Link></div></div></article>
+  return <article className="product-card"><Link href={item.href} className="product-card__image">{item.imageUrl ? <Image unoptimized src={item.imageUrl} alt={item.name} fill sizes="220px" /> : <ImageFallback label={item.name} />}</Link><div className="product-card__body"><h3><Link href={item.href}>{item.name}</Link></h3>{item.brand ? <p>{item.brand}</p> : null}{item.moq ? <p>{item.moq}</p> : null}{item.origin ? <p className="product-origin"><MapPin />{item.origin}</p> : null}<div className="product-card__footer"><strong>{item.formattedPrice}</strong><AddToCartButton productId={item.id} compact className="icon-button" /></div></div></article>
 }
 
 function ServiceBanner({ kind }: { kind: keyof typeof serviceContent }) {

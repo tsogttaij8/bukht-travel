@@ -187,6 +187,52 @@ create index if not exists commerce_purchase_requests_buyer_id_idx on public.com
 create index if not exists commerce_purchase_requests_buyer_email_idx on public.commerce_purchase_requests (buyer_email);
 create index if not exists commerce_purchase_requests_status_idx on public.commerce_purchase_requests (status);
 
+-- Marketplace cart, checkout draft and product-scoped chat (backward-compatible).
+create table if not exists public.carts (
+  id text primary key, user_email text not null references public.users(email) on delete cascade,
+  status text not null default 'active' check (status in ('active','converted','abandoned')),
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create unique index if not exists carts_one_active_per_user_idx on public.carts(user_email) where status='active';
+create table if not exists public.cart_items (
+  id text primary key, cart_id text not null references public.carts(id) on delete cascade,
+  product_id text not null references public.products(id) on delete cascade,
+  quantity integer not null check(quantity >= 1), created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
+  unique(cart_id, product_id)
+);
+create index if not exists cart_items_cart_id_idx on public.cart_items(cart_id);
+create table if not exists public.commerce_orders (
+  id text primary key, user_email text not null references public.users(email) on delete restrict,
+  status text not null default 'pending_payment' check(status in ('pending_payment','paid','cancelled')),
+  total numeric not null check(total >= 0), currency text not null, created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create table if not exists public.commerce_order_items (
+  id text primary key, order_id text not null references public.commerce_orders(id) on delete cascade,
+  product_id text references public.products(id) on delete set null, product_name text not null,
+  unit_price numeric not null check(unit_price >= 0), currency text not null, quantity integer not null check(quantity >= 1)
+);
+create table if not exists public.conversations (
+  id text primary key, product_id text not null references public.products(id) on delete cascade,
+  buyer_email text not null references public.users(email) on delete cascade,
+  seller_email text not null references public.users(email) on delete cascade,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now(), last_message_at timestamptz,
+  unique(product_id,buyer_email,seller_email)
+);
+create table if not exists public.messages (
+  id text primary key, conversation_id text not null references public.conversations(id) on delete cascade,
+  sender_email text not null references public.users(email) on delete cascade,
+  body text not null check(char_length(body) between 1 and 2000), read_at timestamptz, created_at timestamptz not null default now()
+);
+create index if not exists messages_conversation_created_idx on public.messages(conversation_id,created_at);
+alter table public.carts enable row level security;
+alter table public.cart_items enable row level security;
+alter table public.commerce_orders enable row level security;
+alter table public.commerce_order_items enable row level security;
+alter table public.conversations enable row level security;
+alter table public.messages enable row level security;
+-- Clerk identities are authorized by the server API. No anon/authenticated
+-- policies are granted; the server-only service role performs validated writes.
+
 create table if not exists public.travel_packages (
   id text primary key,
   owner_id text not null default '',
