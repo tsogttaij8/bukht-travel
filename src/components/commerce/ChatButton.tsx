@@ -7,12 +7,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ApiResult, Conversation, ConversationMessage } from "../../lib/commerce-types"
 import { CHAT_EVENT, conversationTopic } from "../../lib/chat-realtime"
 import { createBrowserSupabase } from "../../lib/supabase-browser"
+import { CHAT_ATTACHMENT_ACCEPT, CHAT_VIDEO_MAX_DURATION_SECONDS, attachmentKind, attachmentMaxBytes, isAllowedAttachment } from "../../lib/chat-attachments"
 
 type ConnectionState = "connecting" | "connected" | "disconnected"
-type PendingImage = { file: File; previewUrl: string }
-type FailedSend = { body: string; image: File | null; nonce: string }
+type AttachmentFile = File & { mediaWidth?: number; mediaHeight?: number; durationSeconds?: number }
+type PendingImage = { file: AttachmentFile; previewUrl: string }
+type FailedSend = { body: string; image: AttachmentFile | null; nonce: string }
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"])
 const maxBytes = 10 * 1024 * 1024
+
+function readVideoMetadata(url: string): Promise<{ width: number; height: number; durationSeconds: number }> { return new Promise((resolve, reject) => { const video = document.createElement("video"); video.preload = "metadata"; video.onloadedmetadata = () => resolve({ width: video.videoWidth, height: video.videoHeight, durationSeconds: video.duration }); video.onerror = () => reject(new Error("Видео файлыг уншиж чадсангүй.")); video.src = url }) }
 
 async function api<T>(response: Response): Promise<ApiResult<T>> { return response.json() as Promise<ApiResult<T>> }
 function mergeMessages(current: ConversationMessage[], incoming: ConversationMessage[]) {
@@ -42,6 +46,7 @@ function ChatPanel({ initial, close }: { initial: Conversation; close: () => voi
   const [conversation, setConversation] = useState(initial), [text, setText] = useState(""), [sending, setSending] = useState(false), [error, setError] = useState("")
   const [connection, setConnection] = useState<ConnectionState>("connecting"), [image, setImage] = useState<PendingImage | null>(null), [failed, setFailed] = useState<FailedSend | null>(null)
   const end = useRef<HTMLDivElement>(null), fileInput = useRef<HTMLInputElement>(null), composing = useRef(false), cursor = useRef(initial.messages.at(-1)?.createdAt ?? "")
+  useEffect(() => { fileInput.current?.setAttribute("accept", CHAT_ATTACHMENT_ACCEPT) }, [])
   const merge = useCallback((incoming: ConversationMessage[]) => setConversation((current) => ({ ...current, messages: mergeMessages(current.messages, incoming) })), [])
   const reconcile = useCallback(async () => {
     const query = cursor.current ? `?after=${encodeURIComponent(cursor.current)}` : ""
@@ -74,9 +79,15 @@ function ChatPanel({ initial, close }: { initial: Conversation; close: () => voi
     return () => { active = false; void supabase.removeChannel(channel) }
   }, [getToken, initial.id, isSignedIn, reconcile, supabase])
 
-  function chooseFile(file: File | undefined) {
+  async function chooseFile(file: AttachmentFile | undefined) {
     setError("")
     if (!file) return
+    if (attachmentKind(file.type) === "video") {
+      if (!isAllowedAttachment(file.type) || file.size > attachmentMaxBytes(file.type)) { setError("Видео 50 MB-аас бага байна."); return }
+      const previewUrl = URL.createObjectURL(file)
+      try { const metadata = await readVideoMetadata(previewUrl); if (metadata.durationSeconds > CHAT_VIDEO_MAX_DURATION_SECONDS) throw new Error("Видео 60 секундээс урт байж болохгүй."); file.mediaWidth = metadata.width; file.mediaHeight = metadata.height; file.durationSeconds = metadata.durationSeconds; setImage((current) => { if (current) URL.revokeObjectURL(current.previewUrl); return { file, previewUrl } }) } catch (cause) { URL.revokeObjectURL(previewUrl); setError(cause instanceof Error ? cause.message : "Видео буруу байна.") }
+      return
+    }
     if (!allowedTypes.has(file.type) || file.size > maxBytes) { setError("JPEG, PNG, WebP эсвэл GIF зураг 10 MB-аас бага байна."); return }
     setImage((current) => { if (current) URL.revokeObjectURL(current.previewUrl); return { file, previewUrl: URL.createObjectURL(file) } })
   }
@@ -97,7 +108,7 @@ function ChatPanel({ initial, close }: { initial: Conversation; close: () => voi
     setSending(true); setError(""); let attachmentPath = ""
     try {
       if (attachmentFile) attachmentPath = await uploadAttachment(attachmentFile)
-      const response = await fetch(`/api/conversations/${conversation.id}/messages`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: bodyText || undefined, attachmentPath: attachmentPath || undefined, originalFilename: attachmentFile?.name, mimeType: attachmentFile?.type, size: attachmentFile?.size, clientNonce: nonce }) })
+      const response = await fetch(`/api/conversations/${conversation.id}/messages`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: bodyText || undefined, attachmentPath: attachmentPath || undefined, originalFilename: attachmentFile?.name, mimeType: attachmentFile?.type, size: attachmentFile?.size, width: attachmentFile?.mediaWidth, height: attachmentFile?.mediaHeight, durationSeconds: attachmentFile?.durationSeconds, clientNonce: nonce }) })
       const result = await api<ConversationMessage>(response); if (!result.success) throw new Error(result.error.message)
       merge([result.data]); cursor.current = result.data.createdAt > cursor.current ? result.data.createdAt : cursor.current; setText(""); clearImage(); setFailed(null)
     } catch (cause) { if (attachmentPath) await cleanup(attachmentPath); setError(cause instanceof Error ? cause.message : "Зурвас илгээсэнгүй."); setFailed({ body: bodyText, image: attachmentFile, nonce }) } finally { setSending(false) }
@@ -113,7 +124,17 @@ function ChatPanel({ initial, close }: { initial: Conversation; close: () => voi
 }
 
 function MessageBubble({ conversationId, message, mine }: { conversationId: string; message: ConversationMessage; mine: boolean }) {
-  return <div className={mine ? "is-mine" : ""}>{message.attachment ? <AttachmentImage conversationId={conversationId} path={message.attachment.path} alt={message.attachment.originalFilename} /> : null}{message.body ? <p>{message.body}</p> : null}<time>{new Intl.DateTimeFormat("mn-MN", { hour: "2-digit", minute: "2-digit" }).format(new Date(message.createdAt))}</time></div>
+  return <div className={mine ? "is-mine" : ""}>{message.attachment ? message.attachment.kind === "video" ? <AttachmentVideo conversationId={conversationId} path={message.attachment.path} /> : <AttachmentImage conversationId={conversationId} path={message.attachment.path} alt={message.attachment.originalFilename} /> : null}{message.body ? <p>{message.body}</p> : null}<time>{new Intl.DateTimeFormat("mn-MN", { hour: "2-digit", minute: "2-digit" }).format(new Date(message.createdAt))}</time></div>
+}
+function AttachmentVideo({ conversationId, path }: { conversationId: string; path: string }) {
+  const [url, setUrl] = useState(""), [failed, setFailed] = useState(false)
+  const load = useCallback(async () => { const response = await fetch(`/api/conversations/${conversationId}/attachments?path=${encodeURIComponent(path)}`, { cache: "no-store" }); const body = await api<{ signedUrl: string }>(response); if (body.success) { setUrl(body.data.signedUrl); setFailed(false) } else setFailed(true) }, [conversationId, path])
+  // The async callback updates state only after the signed-read response resolves.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { void load() }, [load])
+  if (failed) return <button className="commerce-image-retry" onClick={() => void load()}><RefreshCw />Видео дахин ачаалах</button>
+  if (!url) return <span className="commerce-image-loading"><LoaderCircle className="is-spinning" /></span>
+  return <video className="commerce-message-video" style={{ display: "block", width: "min(260px, 70vw)", maxHeight: 300, borderRadius: 12, background: "#111" }} src={url} controls playsInline preload="metadata" onError={() => void load()} />
 }
 function AttachmentImage({ conversationId, path, alt }: { conversationId: string; path: string; alt: string }) {
   const [url, setUrl] = useState(""), [open, setOpen] = useState(false), [failed, setFailed] = useState(false)

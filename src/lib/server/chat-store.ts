@@ -4,17 +4,18 @@ import { getDb } from "./db"
 import { getProduct } from "./product-store"
 import { getSupabaseAdmin, isSupabaseEnabled } from "./supabase"
 import { findUserByEmail } from "./user-store"
+import { CHAT_VIDEO_MAX_DURATION_SECONDS, attachmentKind, attachmentMaxBytes, isAllowedAttachment, isAllowedFilename } from "../chat-attachments"
 
 type ConversationRow = { id: string; product_id: string; buyer_email: string; seller_email: string }
 type MessageRow = {
   id: string; sender_email: string; body: string | null; read_at: string | null; created_at: string; client_nonce: string | null
-  attachment_path: string | null; original_filename: string | null; mime_type: string | null; attachment_size: number | null; width: number | null; height: number | null
+  attachment_path: string | null; original_filename: string | null; mime_type: string | null; attachment_size: number | null; width: number | null; height: number | null; duration_seconds: number | null; attachment_kind: "image" | "video" | null
 }
-export type MessageInput = { body?: string; attachmentPath?: string; originalFilename?: string; mimeType?: string; size?: number; width?: number; height?: number; clientNonce: string }
-const messageSelect = "id,sender_email,body,read_at,created_at,client_nonce,attachment_path,original_filename,mime_type,attachment_size,width,height"
+export type MessageInput = { body?: string; attachmentPath?: string; originalFilename?: string; mimeType?: string; size?: number; width?: number; height?: number; durationSeconds?: number; clientNonce: string }
+const messageSelect = "id,sender_email,body,read_at,created_at,client_nonce,attachment_path,original_filename,mime_type,attachment_size,width,height,duration_seconds,attachment_kind"
 
 function mapMessage(row: MessageRow): ConversationMessage {
-  const attachment: MessageAttachment | null = row.attachment_path ? { path: row.attachment_path, originalFilename: row.original_filename ?? "image", mimeType: row.mime_type ?? "application/octet-stream", size: row.attachment_size ?? 0, width: row.width, height: row.height } : null
+  const attachment: MessageAttachment | null = row.attachment_path ? { path: row.attachment_path, originalFilename: row.original_filename ?? "attachment", mimeType: row.mime_type ?? "application/octet-stream", kind: row.attachment_kind ?? attachmentKind(row.mime_type ?? "") ?? "image", size: row.attachment_size ?? 0, width: row.width, height: row.height, durationSeconds: row.duration_seconds } : null
   return { id: row.id, senderEmail: row.sender_email, body: row.body ?? "", readAt: row.read_at, createdAt: row.created_at, clientNonce: row.client_nonce, attachment }
 }
 
@@ -80,25 +81,25 @@ export async function sendMessage(email: string, id: string, input: MessageInput
   if ((!body && !input.attachmentPath) || body.length > 2000) throw new Error("INVALID_MESSAGE")
   await assertConversationMember(email, id)
   if (input.attachmentPath) { const user = await findUserByEmail(email); if (!user) throw new Error("NOT_FOUND"); validateAttachmentInput(id, user.clerkUserId || user.id, input) }
-  const now = new Date().toISOString(); const row = { id: randomUUID(), conversation_id: id, sender_email: email, body: body || null, attachment_path: input.attachmentPath ?? null, original_filename: input.originalFilename?.slice(0, 255) ?? null, mime_type: input.mimeType ?? null, attachment_size: input.size ?? null, width: input.width ?? null, height: input.height ?? null, client_nonce: nonce, read_at: null, created_at: now }
+  const now = new Date().toISOString(); const row = { id: randomUUID(), conversation_id: id, sender_email: email, body: body || null, attachment_path: input.attachmentPath ?? null, original_filename: input.originalFilename?.slice(0, 255) ?? null, mime_type: input.mimeType ?? null, attachment_size: input.size ?? null, width: input.width ?? null, height: input.height ?? null, duration_seconds: input.durationSeconds ?? null, attachment_kind: input.mimeType ? attachmentKind(input.mimeType) : null, client_nonce: nonce, read_at: null, created_at: now }
   if (isSupabaseEnabled()) {
     const supabase = getSupabaseAdmin(); const existing = await supabase.from("messages").select(messageSelect).eq("sender_email", email).eq("client_nonce", nonce).maybeSingle()
     if (existing.error) throw existing.error
     if (existing.data) return mapMessage(existing.data as MessageRow)
-    if (input.attachmentPath) await assertStorageObject(input.attachmentPath)
+    if (input.attachmentPath) await assertStorageObject(input.attachmentPath, input)
     const result = await supabase.from("messages").insert(row).select(messageSelect).single()
     if (result.error) { if (result.error.code === "23505") return findByNonce(email, nonce); throw result.error }
     await supabase.from("conversations").update({ updated_at: now, last_message_at: now }).eq("id", id)
     return mapMessage(result.data as MessageRow)
   }
   const db = await getDb(); const existing = await db.query<MessageRow>(`SELECT ${messageSelect} FROM messages WHERE sender_email=$1 AND client_nonce=$2`, [email, nonce]); if (existing.rows[0]) return mapMessage(existing.rows[0])
-  await db.query(`INSERT INTO messages(id,conversation_id,sender_email,body,attachment_path,original_filename,mime_type,attachment_size,width,height,client_nonce,read_at,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NULL,$12)`, [row.id, id, email, row.body, row.attachment_path, row.original_filename, row.mime_type, row.attachment_size, row.width, row.height, nonce, now])
+  await db.query(`INSERT INTO messages(id,conversation_id,sender_email,body,attachment_path,original_filename,mime_type,attachment_size,width,height,duration_seconds,attachment_kind,client_nonce,read_at,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NULL,$14)`, [row.id, id, email, row.body, row.attachment_path, row.original_filename, row.mime_type, row.attachment_size, row.width, row.height, row.duration_seconds, row.attachment_kind, nonce, now])
   await db.query("UPDATE conversations SET updated_at=$1,last_message_at=$1 WHERE id=$2", [now, id])
   return mapMessage(row as MessageRow)
 }
 
 async function findByNonce(email: string, nonce: string) { const result = await getSupabaseAdmin().from("messages").select(messageSelect).eq("sender_email", email).eq("client_nonce", nonce).single(); if (result.error) throw result.error; return mapMessage(result.data as MessageRow) }
-function validateAttachmentInput(id: string, owner: string, input: MessageInput) { const safeOwner = owner.replace(/[^a-zA-Z0-9_-]/g, ""); if (!input.attachmentPath?.startsWith(`conversations/${id}/${safeOwner}/`) || !input.originalFilename?.trim() || !input.mimeType || !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(input.mimeType) || !Number.isInteger(input.size) || (input.size ?? 0) < 1 || (input.size ?? 0) > 10 * 1024 * 1024) throw new Error("INVALID_ATTACHMENT") }
+function validateAttachmentInput(id: string, owner: string, input: MessageInput) { const safeOwner = owner.replace(/[^a-zA-Z0-9_-]/g, ""), mime = input.mimeType ?? "", name = input.originalFilename?.trim() ?? ""; if (!input.attachmentPath?.startsWith(`conversations/${id}/${safeOwner}/`) || !name || !isAllowedAttachment(mime) || !isAllowedFilename(name, mime) || !Number.isInteger(input.size) || (input.size ?? 0) < 1 || (input.size ?? 0) > attachmentMaxBytes(mime) || (attachmentKind(mime) === "video" && (!Number.isFinite(input.durationSeconds) || (input.durationSeconds ?? 0) <= 0 || (input.durationSeconds ?? 0) > CHAT_VIDEO_MAX_DURATION_SECONDS))) throw new Error("INVALID_ATTACHMENT") }
 function chatBucket() { const bucket = process.env.SUPABASE_CHAT_BUCKET; if (!bucket) throw new Error("CHAT_STORAGE_NOT_CONFIGURED"); return bucket }
-async function assertStorageObject(path: string) { const parts = path.split("/"); const name = parts.pop()!; const folder = parts.join("/"); const { data, error } = await getSupabaseAdmin().storage.from(chatBucket()).list(folder, { search: name, limit: 2 }); if (error || !data?.some((item) => item.name === name)) throw new Error("ATTACHMENT_NOT_UPLOADED") }
+async function assertStorageObject(path: string, input: MessageInput) { const parts = path.split("/"); const name = parts.pop()!; const folder = parts.join("/"); const { data, error } = await getSupabaseAdmin().storage.from(chatBucket()).list(folder, { search: name, limit: 2 }); const object = data?.find((item) => item.name === name); if (error || !object) throw new Error("ATTACHMENT_NOT_UPLOADED"); const metadata = object.metadata as { size?: number; mimetype?: string } | null; if (metadata?.size !== input.size || (metadata?.mimetype && metadata.mimetype !== input.mimeType)) throw new Error("INVALID_ATTACHMENT") }
 export async function createAttachmentReadUrl(email: string, id: string, path: string) { await assertConversationMember(email, id); if (!path.startsWith(`conversations/${id}/`)) throw new Error("INVALID_ATTACHMENT"); const { data, error } = await getSupabaseAdmin().storage.from(chatBucket()).createSignedUrl(path, 300); if (error) throw error; return { signedUrl: data.signedUrl, expiresIn: 300 } }

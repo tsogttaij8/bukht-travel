@@ -61,6 +61,8 @@ export const commerceSchemaSql = `
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS attachment_size INTEGER;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS width INTEGER;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS height INTEGER;
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS duration_seconds REAL;
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS attachment_kind TEXT;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS client_nonce TEXT;
   CREATE UNIQUE INDEX IF NOT EXISTS messages_sender_nonce_idx ON messages(sender_email, client_nonce) WHERE client_nonce IS NOT NULL;
 `
