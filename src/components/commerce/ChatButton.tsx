@@ -37,10 +37,10 @@ export function ChatButton({ productId }: { productId: string }) {
     } catch { setError("Чат нээхэд алдаа гарлаа.") } finally { opening.current = false; setLoading(false) }
   }, [productId])
   useEffect(() => { if (new URLSearchParams(window.location.search).get("chatProduct") === productId) void open() }, [productId, open])
-  return <><button className="product-summary__chat" type="button" onClick={() => void open()} disabled={loading}>{loading ? <LoaderCircle className="is-spinning" /> : <MessageCircle />}Чатлах</button>{error ? <span className="commerce-inline-error">{error}</span> : null}{conversation ? <ChatPanel initial={conversation} close={() => setConversation(null)} /> : null}</>
+  return <><button className="product-summary__chat" type="button" onClick={() => void open()} disabled={loading}>{loading ? <LoaderCircle className="is-spinning" /> : <MessageCircle />}Чатлах</button>{error ? <span className="commerce-inline-error">{error}</span> : null}{conversation ? <CommerceChatPanel initial={conversation} close={() => setConversation(null)} /> : null}</>
 }
 
-function ChatPanel({ initial, close }: { initial: Conversation; close: () => void }) {
+export function CommerceChatPanel({ initial, close }: { initial: Conversation; close: () => void }) {
   const { getToken, isSignedIn } = useAuth()
   const supabase = useMemo(() => createBrowserSupabase(() => getToken()), [getToken])
   const [conversation, setConversation] = useState(initial), [text, setText] = useState(""), [sending, setSending] = useState(false), [error, setError] = useState("")

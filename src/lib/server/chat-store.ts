@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import type { Conversation, ConversationMessage, MessageAttachment } from "../commerce-types"
+import type { Conversation, ConversationInbox, ConversationMessage, ConversationSummary, MessageAttachment } from "../commerce-types"
 import { getDb } from "./db"
 import { getProduct } from "./product-store"
 import { getSupabaseAdmin, isSupabaseEnabled } from "./supabase"
@@ -7,6 +7,7 @@ import { findUserByEmail } from "./user-store"
 import { CHAT_VIDEO_MAX_DURATION_SECONDS, attachmentKind, attachmentMaxBytes, isAllowedAttachment, isAllowedFilename } from "../chat-attachments"
 
 type ConversationRow = { id: string; product_id: string; buyer_email: string; seller_email: string }
+type ConversationListRow = ConversationRow & { updated_at: string; last_message_at: string | null }
 type MessageRow = {
   id: string; sender_email: string; body: string | null; read_at: string | null; created_at: string; client_nonce: string | null
   attachment_path: string | null; original_filename: string | null; mime_type: string | null; attachment_size: number | null; width: number | null; height: number | null; duration_seconds: number | null; attachment_kind: "image" | "video" | null
@@ -57,6 +58,36 @@ export async function openConversation(email: string, productId: string): Promis
   return readConversation(email, row.id)
 }
 
+export async function listConversations(email: string): Promise<ConversationInbox> {
+  email = email.toLowerCase()
+  let rows: ConversationListRow[] = []
+  let messages: Array<MessageRow & { conversation_id: string }> = []
+  if (isSupabaseEnabled()) {
+    const supabase = getSupabaseAdmin()
+    const conversations = await supabase.from("conversations").select("id,product_id,buyer_email,seller_email,updated_at,last_message_at").or(`buyer_email.eq.${email},seller_email.eq.${email}`).order("last_message_at", { ascending: false, nullsFirst: false }).order("updated_at", { ascending: false })
+    if (conversations.error) throw conversations.error
+    rows = (conversations.data ?? []) as ConversationListRow[]
+    if (rows.length) {
+      const result = await supabase.from("messages").select(`conversation_id,${messageSelect}`).in("conversation_id", rows.map((row) => row.id)).order("created_at", { ascending: false }).order("id", { ascending: false })
+      if (result.error) throw result.error
+      messages = (result.data ?? []) as Array<MessageRow & { conversation_id: string }>
+    }
+  } else {
+    const db = await getDb()
+    rows = (await db.query<ConversationListRow>("SELECT id,product_id,buyer_email,seller_email,updated_at,last_message_at FROM conversations WHERE buyer_email=$1 OR seller_email=$1 ORDER BY COALESCE(last_message_at,updated_at) DESC", [email])).rows
+    if (rows.length) messages = (await db.query<MessageRow & { conversation_id: string }>(`SELECT conversation_id,${messageSelect} FROM messages WHERE conversation_id = ANY($1) ORDER BY created_at DESC,id DESC`, [rows.map((row) => row.id)])).rows
+  }
+  const grouped = new Map<string, Array<MessageRow & { conversation_id: string }>>()
+  for (const message of messages) grouped.set(message.conversation_id, [...(grouped.get(message.conversation_id) ?? []), message])
+  const summaries = await Promise.all(rows.map(async (row): Promise<ConversationSummary> => {
+    const items = grouped.get(row.id) ?? []
+    const otherEmail = row.seller_email === email ? row.buyer_email : row.seller_email
+    const [product, otherUser] = await Promise.all([getProduct(row.product_id), findUserByEmail(otherEmail)])
+    return { id: row.id, productId: row.product_id, productName: product?.name ?? "Устсан бараа", productImageUrl: product?.imageUrl ?? "", productPrice: product?.price ?? "", direction: row.seller_email === email ? "selling" : "buying", otherParticipantName: otherUser?.name ?? otherEmail.split("@")[0], otherParticipantEmail: otherEmail, latestMessage: items[0] ? mapMessage(items[0]) : null, unreadCount: items.filter((message) => message.sender_email !== email && !message.read_at).length, updatedAt: row.last_message_at ?? row.updated_at }
+  }))
+  return { conversations: summaries, unreadConversationCount: summaries.filter((item) => item.unreadCount > 0).length, currentUserEmail: email }
+}
+
 export async function readConversation(email: string, id: string, after?: string): Promise<Conversation> {
   const row = await assertConversationMember(email, id); let messages: MessageRow[] = []
   if (isSupabaseEnabled()) {
@@ -96,6 +127,20 @@ export async function sendMessage(email: string, id: string, input: MessageInput
   await db.query(`INSERT INTO messages(id,conversation_id,sender_email,body,attachment_path,original_filename,mime_type,attachment_size,width,height,duration_seconds,attachment_kind,client_nonce,read_at,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NULL,$14)`, [row.id, id, email, row.body, row.attachment_path, row.original_filename, row.mime_type, row.attachment_size, row.width, row.height, row.duration_seconds, row.attachment_kind, nonce, now])
   await db.query("UPDATE conversations SET updated_at=$1,last_message_at=$1 WHERE id=$2", [now, id])
   return mapMessage(row as MessageRow)
+}
+
+export async function markConversationRead(email: string, id: string): Promise<Conversation> {
+  email = email.toLowerCase()
+  await assertConversationMember(email, id)
+  const readAt = new Date().toISOString()
+  if (isSupabaseEnabled()) {
+    const result = await getSupabaseAdmin().from("messages").update({ read_at: readAt }).eq("conversation_id", id).neq("sender_email", email).is("read_at", null)
+    if (result.error) throw result.error
+  } else {
+    const db = await getDb()
+    await db.query("UPDATE messages SET read_at=$1 WHERE conversation_id=$2 AND sender_email<>$3 AND read_at IS NULL", [readAt, id, email])
+  }
+  return readConversation(email, id)
 }
 
 async function findByNonce(email: string, nonce: string) { const result = await getSupabaseAdmin().from("messages").select(messageSelect).eq("sender_email", email).eq("client_nonce", nonce).single(); if (result.error) throw result.error; return mapMessage(result.data as MessageRow) }

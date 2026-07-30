@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { listProducts } from "../../../../lib/server/product-store"
+import { readSessionFromCookieHeader } from "../../../../lib/server/session"
 
 export const dynamic = "force-dynamic"
 
@@ -11,11 +12,24 @@ function numericPrice(value: string): number {
   return match ? Number(match[0]) : Number.POSITIVE_INFINITY
 }
 
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase()
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const params = request.nextUrl.searchParams
     const search = (params.get("search") ?? "").trim().toLocaleLowerCase("mn")
     const category = (params.get("category") ?? "").trim()
+    const seller = normalizeEmail(params.get("seller") ?? "")
+    const scope = params.get("scope") === "mine" ? "mine" : "all"
+    const session = scope === "mine"
+      ? readSessionFromCookieHeader(request.headers.get("cookie") ?? "")
+      : null
+    if (scope === "mine" && !session) {
+      return NextResponse.json({ message: "Нэвтэрсний дараа өөрийн барааг харна уу." }, { status: 401 })
+    }
+    const scopedSeller = scope === "mine" ? normalizeEmail(session!.email) : seller
     const sort = params.get("sort") ?? "newest"
     const requestedPage = Math.max(1, Number.parseInt(params.get("page") ?? "1", 10) || 1)
     const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, Number.parseInt(params.get("pageSize") ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE))
@@ -24,8 +38,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const filtered = allProducts.filter((product) => {
       const matchesCategory = !category || product.category === category
+      const matchesSeller = !scopedSeller || normalizeEmail(product.sellerEmail) === scopedSeller
       const haystack = `${product.name} ${product.summary} ${product.origin} ${product.sellerName}`.toLocaleLowerCase("mn")
-      return matchesCategory && (!search || haystack.includes(search))
+      return matchesSeller && matchesCategory && (!search || haystack.includes(search))
     })
 
     filtered.sort((a, b) => {

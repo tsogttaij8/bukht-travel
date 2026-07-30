@@ -17,9 +17,16 @@ function initials(value: string) {
   return value.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "B"
 }
 
-function formatDate(value: string) {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("mn-MN", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date)
+function formatDate(value: string | Date | null | undefined): string {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return "—"
+
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0")
+  const day = String(date.getUTCDate()).padStart(2, "0")
+  return `${year}.${month}.${day}`
 }
 
 export default function ProductDetailView({ product, relatedProducts }: { product: StoredProduct; relatedProducts: StoredProduct[] }) {

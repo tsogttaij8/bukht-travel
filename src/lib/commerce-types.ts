@@ -9,3 +9,9 @@ export type Cart = { id: string | null; items: CartItem[]; totalQuantity: number
 export type MessageAttachment = { path: string; originalFilename: string; mimeType: string; kind: "image" | "video"; size: number; width: number | null; height: number | null; durationSeconds: number | null; signedUrl?: string }
 export type ConversationMessage = { id: string; senderEmail: string; body: string; readAt: string | null; createdAt: string; clientNonce: string | null; attachment: MessageAttachment | null }
 export type Conversation = { id: string; productId: string; productName: string; productImageUrl: string; productPrice: string; sellerName: string; currentUserEmail: string; messages: ConversationMessage[] }
+export type ConversationSummary = {
+  id: string; productId: string; productName: string; productImageUrl: string; productPrice: string
+  direction: "selling" | "buying"; otherParticipantName: string; otherParticipantEmail: string
+  latestMessage: ConversationMessage | null; unreadCount: number; updatedAt: string
+}
+export type ConversationInbox = { conversations: ConversationSummary[]; unreadConversationCount: number; currentUserEmail: string }

@@ -36,10 +36,11 @@ export async function PATCH(request: Request, context: ProductRouteContext): Pro
   const category = body.category?.trim() ?? ""
   const price = body.price?.trim() ?? ""
   const moq = body.moq?.trim() ?? ""
-  const origin = body.origin?.trim() ?? ""
-  const leadTime = body.leadTime?.trim() ?? ""
+  const origin = body.origin === undefined ? product.origin : body.origin.trim()
+  const leadTime = body.leadTime === undefined ? product.leadTime : body.leadTime.trim()
   const summary = body.summary?.trim() ?? ""
-  const imageUrls = Array.from(new Set((body.imageUrls ?? [body.imageUrl ?? ""]).map((image) => image.trim()).filter(Boolean))).slice(0, maxImages)
+  const submittedImages = body.imageUrls ?? (body.imageUrl === undefined ? product.imageUrls : [body.imageUrl])
+  const imageUrls = Array.from(new Set(submittedImages.map((image) => image.trim()).filter(Boolean))).slice(0, maxImages)
 
   if (!name || !category || !price || !moq || !summary) {
     return NextResponse.json({ message: "Барааны нэр, ангилал, 1 ширхэг үнэ, олноор авах нөхцөл, тайлбар шаардлагатай." }, { status: 400 })

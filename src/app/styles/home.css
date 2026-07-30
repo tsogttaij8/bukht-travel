@@ -23,6 +23,18 @@ html:has(.home-main),body:has(.home-main){overflow-x:clip}
 .home-brand__copy small { color:var(--home-muted); font-size:.8rem; white-space:nowrap; }
 html[data-theme="dark"] .home-brand img { mix-blend-mode:normal; border-radius:50%; }
 .home-header__actions { display:flex; align-items:center; gap:14px; }
+.home-account{position:relative}
+.home-account__trigger{display:grid;width:46px;height:46px;place-items:center;overflow:hidden;border:1px solid var(--home-border);border-radius:50%;background:var(--home-accent);color:#fff;font:800 .9rem/1 var(--font-body);cursor:pointer;box-shadow:0 4px 14px rgba(66,42,27,.12)}
+.home-account__skeleton{display:block;width:46px;height:46px;flex:0 0 46px;border:1px solid var(--home-border);border-radius:50%;background:linear-gradient(100deg,var(--home-soft) 20%,var(--home-surface) 40%,var(--home-soft) 60%);background-size:200% 100%;animation:home-account-shimmer 1.4s infinite}
+.home-account__image{width:100%;height:100%;background-position:center;background-size:cover}
+.home-account__menu{position:absolute;z-index:50;top:calc(100% + 10px);right:0;display:grid;min-width:220px;padding:8px;border:1px solid var(--home-border);border-radius:12px;background:var(--home-surface);box-shadow:0 18px 40px rgba(55,39,25,.16);font-size:.875rem;font-weight:700}
+.home-account__menu a,.home-account__menu button{padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--home-text);font:inherit;text-align:left;text-decoration:none;cursor:pointer}
+.home-account__menu .home-account__chat{width:100%;min-height:auto;display:flex;justify-content:flex-start;box-shadow:none}
+.home-account__menu a:hover,.home-account__menu button:hover{background:var(--home-soft)}
+.home-account__menu button{color:#9a3412}
+.home-account__email{max-width:240px;padding:8px 12px;overflow:hidden;color:var(--home-muted);font-size:.75rem;text-overflow:ellipsis;white-space:nowrap}
+@keyframes home-account-shimmer{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.home-account__skeleton{animation:none}}
 .home-button { min-height:44px; display:inline-flex; align-items:center; justify-content:center; gap:10px; border:1px solid var(--home-border); border-radius:10px; padding:0 22px; font-size:.9rem; font-weight:750; transition:transform .2s,background .2s,border-color .2s; }
 .home-button:hover { transform:translateY(-1px); }
 .home-button--accent { color:#fff; background:var(--home-accent); border-color:var(--home-accent); box-shadow:0 8px 20px rgba(233,85,12,.16); }

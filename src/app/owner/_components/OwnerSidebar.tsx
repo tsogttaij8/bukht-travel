@@ -5,12 +5,13 @@ import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
 import { usePathname } from "next/navigation"
 import { useCallback, useRef, useState } from "react"
-import { LogOut, MessageSquare, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
+import { LogOut, MessageSquare, Package, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
 import { logoutUser } from "@/src/lib/auth"
 import { useDismissibleLayer } from "@/src/components/ui/useDismissibleLayer"
 
 const navItems = [
   { label: "Travel", href: "/owner/travel", icon: Plane },
+  { label: "Худалдаа", href: "/owner/commerce", icon: Package },
   { label: "Cargo", href: "/owner/cargo", icon: Truck },
   { label: "eSIM", href: "/owner/esim", icon: Smartphone },
   { label: "Users", href: "/owner/users", icon: Users },

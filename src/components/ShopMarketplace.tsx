@@ -6,9 +6,11 @@ import { ChevronDown, ChevronLeft, ChevronRight, Grid2X2, ImagePlus, List, MapPi
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { StoredProduct } from "../lib/server/product-store"
 import { AddToCartButton } from "./commerce/CartProvider"
+import { CommerceInboxButton } from "./commerce/CommerceInboxProvider"
 
 type ShopSession = { name: string; email: string } | null
 type ViewMode = "grid" | "list"
+type ProductScope = "all" | "mine"
 type Pagination = { page: number; pageSize: number; totalItems: number; totalPages: number }
 type ApiResponse = { products: StoredProduct[]; categories: string[]; pagination: Pagination; message?: string }
 type ProductForm = { name: string; category: string; price: string; moq: string; origin: string; leadTime: string; summary: string; imageUrls: string[] }
@@ -26,7 +28,15 @@ function avatarHue(name: string) {
 
 function formatDate(value: string) {
   const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? "" : new Intl.DateTimeFormat("mn-MN", { day: "numeric", month: "short", year: "numeric" }).format(date)
+  if (Number.isNaN(date.getTime())) return ""
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0")
+  const day = String(date.getUTCDate()).padStart(2, "0")
+  return `${year}.${month}.${day}`
+}
+
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase()
 }
 
 function getImages(product: StoredProduct) {
@@ -56,7 +66,21 @@ async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Зураг боловсруулах боломжгүй байна.")), "image/webp", .78))
 }
 
-export default function ShopMarketplace({ initialProducts, session, loadError }: { initialProducts: StoredProduct[]; session: ShopSession; loadError: string }) {
+export default function ShopMarketplace({
+  initialProducts,
+  session,
+  loadError,
+  basePath = "/shop",
+  initialScope = "all",
+  showScopeControl = false,
+}: {
+  initialProducts: StoredProduct[]
+  session: ShopSession
+  loadError: string
+  basePath?: string
+  initialScope?: ProductScope
+  showScopeControl?: boolean
+}) {
   const initialParams = useMemo(() => typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search), [])
   const [products, setProducts] = useState(initialProducts)
   const [categories, setCategories] = useState<string[]>([])
@@ -66,6 +90,7 @@ export default function ShopMarketplace({ initialProducts, session, loadError }:
   const [category, setCategory] = useState(initialParams.get("category") ?? "")
   const [sort, setSort] = useState(initialParams.get("sort") ?? "newest")
   const [page, setPage] = useState(Math.max(1, Number(initialParams.get("page")) || 1))
+  const [scope, setScope] = useState<ProductScope>(initialScope)
   const [view, setView] = useState<ViewMode>(() => typeof window !== "undefined" && localStorage.getItem("bukht-marketplace-view") === "list" ? "list" : "grid")
   const [loading, setLoading] = useState(!initialProducts.length)
   const [error, setError] = useState(loadError)
@@ -73,6 +98,7 @@ export default function ShopMarketplace({ initialProducts, session, loadError }:
   const [composerOpen, setComposerOpen] = useState(false)
   const [editing, setEditing] = useState<StoredProduct | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const requestIdRef = useRef(0)
 
   useEffect(() => {
     const timer = window.setTimeout(() => { setLoading(true); setDebouncedSearch(search); setPage(1) }, 350)
@@ -81,31 +107,55 @@ export default function ShopMarketplace({ initialProducts, session, loadError }:
 
   useEffect(() => {
     const controller = new AbortController()
+    const requestId = ++requestIdRef.current
     const params = new URLSearchParams({ page: String(page), pageSize: "12", sort })
     if (debouncedSearch) params.set("search", debouncedSearch)
     if (category) params.set("category", category)
-    window.history.replaceState(null, "", `/shop?${params.toString()}`)
+    if (showScopeControl) params.set("scope", scope)
+    window.history.replaceState(null, "", `${basePath}?${params.toString()}`)
     fetch(`/api/shop/products?${params.toString()}`, { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
         const body = await response.json() as ApiResponse
         if (!response.ok) throw new Error(body.message)
+        if (requestId !== requestIdRef.current) return
         setProducts(body.products)
         setCategories(body.categories)
         setPagination(body.pagination)
+        setError("")
       })
       .catch((cause: unknown) => {
         if (cause instanceof DOMException && cause.name === "AbortError") return
+        if (requestId !== requestIdRef.current) return
         setError("Marketplace мэдээллийг ачаалж чадсангүй. Дахин оролдоно уу.")
       })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+      .finally(() => {
+        if (!controller.signal.aborted && requestId === requestIdRef.current) setLoading(false)
+      })
     return () => controller.abort()
-  }, [debouncedSearch, category, sort, page, retryKey])
+  }, [basePath, debouncedSearch, category, sort, page, retryKey, scope, showScopeControl])
+
+  useEffect(() => {
+    if (!showScopeControl) return
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search)
+      setScope(params.get("scope") === "mine" ? "mine" : "all")
+      setSearch(params.get("search") ?? "")
+      setDebouncedSearch(params.get("search") ?? "")
+      setCategory(params.get("category") ?? "")
+      setSort(params.get("sort") ?? "newest")
+      setPage(Math.max(1, Number(params.get("page")) || 1))
+      setProducts([])
+      setLoading(true)
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [showScopeControl])
 
   const openComposer = useCallback((product?: StoredProduct) => {
-    if (!session) { window.location.href = `/login?next=${encodeURIComponent("/shop")}`; return }
+    if (!session) { window.location.href = `/login?next=${encodeURIComponent(basePath)}`; return }
     setEditing(product ?? null)
     setComposerOpen(true)
-  }, [session])
+  }, [basePath, session])
 
   function changePage(nextPage: number) {
     setLoading(true)
@@ -115,6 +165,26 @@ export default function ShopMarketplace({ initialProducts, session, loadError }:
 
   function clearFilters() { setSearch(""); setCategory(""); setSort("newest"); setPage(1) }
 
+  function changeScope(nextScope: ProductScope) {
+    if (nextScope === scope) return
+    const params = new URLSearchParams(window.location.search)
+    params.set("scope", nextScope)
+    params.set("page", "1")
+    window.history.pushState(null, "", `${basePath}?${params.toString()}`)
+    setProducts([])
+    setError("")
+    setLoading(true)
+    setPage(1)
+    setScope(nextScope)
+  }
+
+  const hasActiveFilters = Boolean(debouncedSearch || category)
+  const emptyState = hasActiveFilters
+    ? { title: "Илэрц олдсонгүй", text: "Таны хайлт, шүүлтүүрт тохирох бараа олдсонгүй." }
+    : scope === "mine"
+      ? { title: "Миний бараа хоосон байна", text: "Та одоогоор бараа нийтлээгүй байна." }
+      : { title: "Бараа алга байна", text: "Одоогоор нийтлэгдсэн бараа алга." }
+
   return (
     <div className="marketplace-page">
       <div className="marketplace-shell">
@@ -122,9 +192,17 @@ export default function ShopMarketplace({ initialProducts, session, loadError }:
           <Image className="marketplace-hero__image" src="/marketplace-hero-commerce.png" alt="" fill priority sizes="(max-width: 860px) 100vw, 1440px" />
           <div className="marketplace-hero__controls">
             <SearchField value={search} onChange={setSearch} onClear={() => setSearch("")} label="Бараа хайх" />
+            {session ? <CommerceInboxButton filter={showScopeControl ? "selling" : "all"} /> : null}
             <button className="marketplace-primary" type="button" onClick={() => openComposer()}><Plus /> Пост оруулах</button>
           </div>
         </section>
+
+        {showScopeControl ? (
+          <div className="marketplace-scopes" role="tablist" aria-label="Барааны харагдац">
+            <button type="button" role="tab" aria-selected={scope === "all"} className={scope === "all" ? "is-active" : ""} onClick={() => changeScope("all")}>Бүх бараа</button>
+            <button type="button" role="tab" aria-selected={scope === "mine"} className={scope === "mine" ? "is-active" : ""} onClick={() => changeScope("mine")}>Миний бараа</button>
+          </div>
+        ) : null}
 
         <div className="marketplace-toolbar" ref={contentRef}>
           <div className="marketplace-toolbar__search"><SearchField value={search} onChange={setSearch} onClear={() => setSearch("")} label="Бараа хайх" /></div>
@@ -143,9 +221,12 @@ export default function ShopMarketplace({ initialProducts, session, loadError }:
           </div>
         </div>
 
-        {loading ? <MarketplaceSkeleton view={view} /> : error ? <StatePanel icon={<PackageOpen />} title="Мэдээлэл ачаалсангүй" text={error}><button onClick={() => { setLoading(true); setRetryKey((key) => key + 1) }}>Дахин оролдох</button></StatePanel> : products.length === 0 ? <StatePanel icon={<Search />} title="Илэрц олдсонгүй" text="Таны хайлт, шүүлтүүрт тохирох бараа одоогоор алга."><button onClick={clearFilters}>Шүүлтүүр цэвэрлэх</button><button className="is-accent" onClick={() => openComposer()}>Пост оруулах</button></StatePanel> : (
-          <div className={`marketplace-grid marketplace-grid--${view}`}>
-            {products.map((product) => <MarketplaceCard key={product.id} product={product} canEdit={session?.email.toLowerCase() === product.sellerEmail.toLowerCase()} onEdit={() => openComposer(product)} onDeleted={() => setRetryKey((key) => key + 1)} />)}
+        {loading && products.length === 0 ? <MarketplaceSkeleton view={view} /> : error ? <StatePanel icon={<PackageOpen />} title="Мэдээлэл ачаалсангүй" text={error}><button onClick={() => { setLoading(true); setRetryKey((key) => key + 1) }}>Дахин оролдох</button></StatePanel> : products.length === 0 ? <StatePanel icon={<Search />} title={emptyState.title} text={emptyState.text}>{hasActiveFilters ? <button onClick={clearFilters}>Шүүлтүүр цэвэрлэх</button> : null}{scope === "mine" ? <button className="is-accent" onClick={() => openComposer()}>Пост оруулах</button> : null}</StatePanel> : (
+          <div className={`marketplace-grid marketplace-grid--${view}`} aria-busy={loading}>
+            {products.map((product) => {
+              const canEdit = Boolean(session && normalizeEmail(session.email) === normalizeEmail(product.sellerEmail))
+              return <MarketplaceCard key={product.id} product={product} canEdit={canEdit} onEdit={() => openComposer(product)} onDeleted={() => setRetryKey((key) => key + 1)} />
+            })}
           </div>
         )}
 
@@ -174,9 +255,9 @@ function MarketplaceCard({ product, canEdit, onEdit, onDeleted }: { product: Sto
     if (response.ok) onDeleted()
   }
   return <article className="marketplace-card">
-    <header className="marketplace-card__seller"><span className="marketplace-avatar" style={{ "--avatar-hue": avatarHue(product.sellerName) } as React.CSSProperties}>{initials(product.sellerName)}</span><div><strong>{product.sellerName}</strong><time dateTime={product.createdAt}>{formatDate(product.createdAt)}</time></div>{canEdit ? <div className="marketplace-card__owner"><button onClick={onEdit} aria-label="Пост засах"><Pencil /></button><button onClick={() => void remove()} aria-label="Пост устгах"><Trash2 /></button></div> : null}</header>
+    <header className="marketplace-card__seller"><span className="marketplace-avatar" style={{ "--avatar-hue": avatarHue(product.sellerName) } as React.CSSProperties}>{initials(product.sellerName)}</span><div><strong>{product.sellerName}</strong><time dateTime={product.createdAt}>{formatDate(product.createdAt)}</time></div>{canEdit ? <><span className="marketplace-card__mine">Таны зар</span><div className="marketplace-card__owner"><button onClick={onEdit} aria-label="Пост засах"><Pencil /></button><button onClick={() => void remove()} aria-label="Пост устгах"><Trash2 /></button></div></> : null}</header>
     <Link className="marketplace-card__image" href={`/shop/products/${product.id}`} aria-label={`${product.name} дэлгэрэнгүй`}>{image ? <Image src={image} alt={product.name} width={600} height={440} unoptimized /> : <span><PackageOpen />{initials(product.name)}</span>}</Link>
-    <div className="marketplace-card__body"><div className="marketplace-card__category">{product.category}</div><h2>{product.name}</h2><strong className="marketplace-card__price">{product.price}</strong>{product.origin ? <p className="marketplace-card__location"><MapPin />{product.origin}</p> : null}<div className="marketplace-card__bottom">{product.moq ? <span>{product.moq}</span> : <span /> }<div><Link href={`/shop/products/${product.id}`}>Дэлгэрэнгүй</Link><AddToCartButton productId={product.id} compact className="marketplace-card__cart" /></div></div></div>
+    <div className="marketplace-card__body"><div className="marketplace-card__category">{product.category}</div><h2>{product.name}</h2><strong className="marketplace-card__price">{product.price}</strong>{product.origin ? <p className="marketplace-card__location"><MapPin />{product.origin}</p> : null}<div className="marketplace-card__bottom">{product.moq ? <span>{product.moq}</span> : <span /> }<div><Link href={`/shop/products/${product.id}`}>Дэлгэрэнгүй</Link>{canEdit ? null : <AddToCartButton productId={product.id} compact className="marketplace-card__cart" />}</div></div></div>
   </article>
 }
 

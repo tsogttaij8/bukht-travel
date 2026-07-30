@@ -29,7 +29,8 @@ export async function listProducts(): Promise<StoredProduct[]> {
   }
 
   if (globalThis.__buhktProductsUseFallback) {
-    return fallbackProducts
+    if (fallbackProducts.length) return fallbackProducts
+    throw new Error("Product data source is unavailable.")
   }
 
   try {
@@ -43,7 +44,8 @@ export async function listProducts(): Promise<StoredProduct[]> {
   } catch (error) {
     globalThis.__buhktProductsUseFallback = true
     console.warn("Falling back to bundled shop products because the local product DB is unavailable.", error)
-    return fallbackProducts
+    if (fallbackProducts.length) return fallbackProducts
+    throw new Error("Product data source is unavailable.", { cause: error })
   }
 }
 
@@ -103,13 +105,14 @@ export async function createProduct(input: {
       const supabase = getSupabaseAdmin()
       const { error } = await supabase.from("products").insert(toProductRow(product))
       if (error) throw mapProductStoreError(error)
-      return product
+      return (await getProduct(product.id)) ?? product
     } catch (error) {
       if (isMissingImageUrlsColumn(error)) {
+        assertLegacyImagesCompatible(product)
         const supabase = getSupabaseAdmin()
         const { error: legacyError } = await supabase.from("products").insert(toLegacyProductRow(product))
         if (legacyError) throw mapProductStoreError(legacyError)
-        return product
+        return (await getProduct(product.id)) ?? product
       }
       if (!shouldFallbackToLocalDb(error)) throw mapProductStoreError(error)
       console.warn("Saving product to local DB because Supabase is unreachable.", error)
@@ -140,7 +143,7 @@ export async function createProduct(input: {
     ]
   )
 
-  return product
+  return (await getProduct(product.id)) ?? product
 }
 
 export async function updateProduct(id: string, input: {
@@ -177,13 +180,14 @@ export async function updateProduct(id: string, input: {
       const supabase = getSupabaseAdmin()
       const { error } = await supabase.from("products").update(toProductRow(product)).eq("id", id)
       if (error) throw mapProductStoreError(error)
-      return product
+      return (await getProduct(product.id)) ?? product
     } catch (error) {
       if (isMissingImageUrlsColumn(error)) {
+        assertLegacyImagesCompatible(product)
         const supabase = getSupabaseAdmin()
         const { error: legacyError } = await supabase.from("products").update(toLegacyProductRow(product)).eq("id", id)
         if (legacyError) throw mapProductStoreError(legacyError)
-        return product
+        return (await getProduct(product.id)) ?? product
       }
       if (!shouldFallbackToLocalDb(error)) throw mapProductStoreError(error)
       console.warn("Updating product in local DB because Supabase is unreachable.", error)
@@ -198,7 +202,7 @@ export async function updateProduct(id: string, input: {
     [product.id, product.name, product.category, product.price, product.moq, product.origin, product.leadTime, product.summary, product.imageUrl, JSON.stringify(product.imageUrls), product.updatedAt]
   )
 
-  return product
+  return (await getProduct(product.id)) ?? product
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
@@ -280,7 +284,7 @@ function toLegacyProductRow(product: StoredProduct): Omit<ProductRow, "image_url
     id: product.id,
     name: product.name,
     category: product.category,
-    price: product.price,
+    price: legacyNumericPrice(product.price),
     moq: product.moq,
     origin: product.origin,
     lead_time: product.leadTime,
@@ -292,6 +296,25 @@ function toLegacyProductRow(product: StoredProduct): Omit<ProductRow, "image_url
     created_at: product.createdAt,
     updated_at: product.updatedAt,
   }
+}
+
+function assertLegacyImagesCompatible(product: StoredProduct): void {
+  if (product.imageUrls.length > 1) {
+    throw new Error("Product image storage is not ready for multiple images.")
+  }
+}
+
+function legacyNumericPrice(value: string): number {
+  const normalized = value.replace(/,/g, "").trim()
+  const match = normalized.match(/^\s*(\d+(?:\.\d+)?)\s*(?:MNT|₮)?\s*$/i)
+  if (!match) {
+    throw new Error("Product price must be a single numeric MNT value until the product schema is updated.")
+  }
+  const price = Number(match[1])
+  if (!Number.isSafeInteger(price) || price < 0) {
+    throw new Error("Product price is outside the supported range.")
+  }
+  return price
 }
 
 function isMissingImageUrlsColumn(error: unknown): boolean {

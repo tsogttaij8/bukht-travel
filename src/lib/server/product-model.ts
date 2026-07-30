@@ -22,7 +22,7 @@ export type ProductRow = {
   id: string
   name: string
   category: string
-  price: string
+  price: string | number
   moq: string
   origin: string
   lead_time: string
@@ -41,7 +41,7 @@ export function mapProduct(row: ProductRow): StoredProduct {
     id: row.id,
     name: row.name,
     category: row.category,
-    price: row.price,
+    price: String(row.price),
     moq: row.moq,
     origin: row.origin,
     leadTime: row.lead_time,

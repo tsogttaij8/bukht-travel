@@ -2,7 +2,7 @@
 
 import { useAuth, useClerk } from "@clerk/nextjs"
 import { useSignIn } from "@clerk/nextjs/legacy"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { logoutUser, type SessionUser } from "../../lib/auth"
 import { clerkMessage, isAlreadySignedInError, isStrongPassword, normalizeEmail } from "./clerk-auth-utils"
 import { loginErrorMessage, syncActiveClerkSession } from "./clerk-login-helpers"
@@ -32,6 +32,7 @@ export default function ClerkLoginForm(props: {
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
+  const submitInFlight = useRef(false)
 
   useEffect(() => {
     if (props.initialEmail) {
@@ -42,11 +43,13 @@ export default function ClerkLoginForm(props: {
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!isLoaded || !signIn || busy) return
+    if (!isLoaded || !signIn || busy || submitInFlight.current) return
 
+    submitInFlight.current = true
     setError("")
     setNotice("")
     setBusy(true)
+    let navigationStarted = false
 
     try {
       const activeSignIn = signIn
@@ -95,6 +98,7 @@ export default function ClerkLoginForm(props: {
       }
 
       props.onDone(synced.user)
+      navigationStarted = true
     } catch (caught) {
       if (caught instanceof Error && caught.message === "LOGIN_NOT_COMPLETE") {
         setError("Нэвтрэлт дууссангүй. Нууц үг болон мэйлээ шалгана уу.")
@@ -102,7 +106,10 @@ export default function ClerkLoginForm(props: {
         setError(loginErrorMessage(caught))
       }
     } finally {
-      setBusy(false)
+      if (!navigationStarted) {
+        submitInFlight.current = false
+        setBusy(false)
+      }
     }
   }
 

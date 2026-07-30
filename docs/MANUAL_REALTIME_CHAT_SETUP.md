@@ -40,6 +40,7 @@ SUPABASE_CHAT_BUCKET=chat-attachments
 
 1. Supabase Dashboard → **SQL Editor → New query**.
 2. Run `docs/migrations/20260721_commerce_realtime_image_chat.sql`, then `docs/migrations/20260722_commerce_chat_video.sql` against the intended project.
+
 3. Database → **Tables → messages**: confirm attachment columns and `client_nonce`.
 4. Database → **Triggers**: confirm `messages_realtime_broadcast`.
 5. Realtime → **Settings**: disable **Allow public access** so private-channel authorization is enforced.
