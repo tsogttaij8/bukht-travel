@@ -65,4 +65,11 @@ export const commerceSchemaSql = `
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS attachment_kind TEXT;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS client_nonce TEXT;
   CREATE UNIQUE INDEX IF NOT EXISTS messages_sender_nonce_idx ON messages(sender_email, client_nonce) WHERE client_nonce IS NOT NULL;
+  CREATE TABLE IF NOT EXISTS message_translations (
+    message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    target_language TEXT NOT NULL CHECK (target_language IN ('mn', 'zh-CN')),
+    translated_text TEXT NOT NULL CHECK (char_length(btrim(translated_text)) > 0),
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (message_id, target_language)
+  );
 `

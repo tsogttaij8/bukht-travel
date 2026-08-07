@@ -233,6 +233,24 @@ alter table public.messages enable row level security;
 -- Clerk identities are authorized by the server API. No anon/authenticated
 -- policies are granted; the server-only service role performs validated writes.
 
+create table if not exists public.message_translations (
+  message_id text not null references public.messages(id) on delete cascade,
+  target_language text not null check (target_language in ('mn', 'zh-CN')),
+  translated_text text not null check (char_length(btrim(translated_text)) > 0),
+  created_at timestamptz not null default now(),
+  primary key (message_id, target_language)
+);
+
+alter table public.message_translations enable row level security;
+
+-- Translation cache access is server-only. No browser RLS policies are granted.
+revoke all on table public.message_translations from anon;
+revoke all on table public.message_translations from authenticated;
+
+grant select, insert, update, delete
+  on table public.message_translations
+  to service_role;
+
 create table if not exists public.travel_packages (
   id text primary key,
   owner_id text not null default '',
