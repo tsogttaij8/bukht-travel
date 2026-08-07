@@ -70,7 +70,7 @@ async function sendMailPayload(payload: { from: string; to: string; subject: str
   }
 
   if (hasPartialSmtpConfig) {
-    console.warn("SMTP config is incomplete. Falling back to another mail provider or dev mode.")
+    console.warn("SMTP configuration is incomplete. Checking other configured mail providers.")
   }
 
   if (resendApiKey) {
@@ -124,6 +124,10 @@ async function sendMailPayload(payload: { from: string; to: string; subject: str
     return { mode: "email", provider: "mailrun" }
   }
 
-  console.log(`[MAIL DEV] ${payload.subject} for ${payload.to}: ${payload.text}`)
-  return { mode: "dev", provider: "console" }
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[MAIL DEV] ${payload.subject} for ${payload.to}: ${payload.text}`)
+    return { mode: "dev", provider: "console" }
+  }
+
+  throw new Error("MAIL_DELIVERY_NOT_CONFIGURED")
 }

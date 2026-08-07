@@ -1,251 +1,240 @@
 "use client"
 
-import { useAuth, useClerk } from "@clerk/nextjs"
-import { useSignIn } from "@clerk/nextjs/legacy"
+import { useAuth, useClerk, useSignIn } from "@clerk/nextjs"
 import { useEffect, useRef, useState } from "react"
-import { logoutUser, type SessionUser } from "../../lib/auth"
-import { clerkMessage, isAlreadySignedInError, isStrongPassword, normalizeEmail } from "./clerk-auth-utils"
-import { loginErrorMessage, syncActiveClerkSession } from "./clerk-login-helpers"
-import { ResetEmailForm, ResetVerifyForm } from "./ClerkLoginResetForms"
+import { logoutUser, syncClerkSession, type SessionUser } from "../../lib/auth"
+import { normalizeEmail } from "./clerk-auth-utils"
 import FloatingField from "./FloatingField"
 
-type LoginStep = "login" | "resetEmail" | "resetVerify"
+type LoginStep = "email" | "verify"
 
-async function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+const RESEND_COOLDOWN_SECONDS = 30
 
 export default function ClerkLoginForm(props: {
   initialEmail?: string
   onDone: (user?: SessionUser) => void
 }) {
+  const { getToken, isSignedIn } = useAuth()
   const { signOut } = useClerk()
-  const { getToken } = useAuth()
-  const { isLoaded, signIn, setActive } = useSignIn()
+  const { signIn, fetchStatus } = useSignIn()
   const [email, setEmail] = useState(props.initialEmail ?? "")
-  const [password, setPassword] = useState("")
-  const [step, setStep] = useState<LoginStep>("login")
-  const [resetEmail, setResetEmail] = useState(props.initialEmail ?? "")
-  const [resetCode, setResetCode] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [code, setCode] = useState("")
+  const [step, setStep] = useState<LoginStep>("email")
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
-  const submitInFlight = useRef(false)
+  const [cooldown, setCooldown] = useState(0)
+  const requestInFlight = useRef(false)
 
   useEffect(() => {
-    if (props.initialEmail) {
-      setEmail(props.initialEmail)
-      setResetEmail(props.initialEmail)
-    }
+    if (props.initialEmail) setEmail(props.initialEmail)
   }, [props.initialEmail])
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!isLoaded || !signIn || busy || submitInFlight.current) return
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = window.setInterval(() => {
+      setCooldown((current) => Math.max(0, current - 1))
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [cooldown])
 
-    submitInFlight.current = true
+  async function requestCode(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (busy || requestInFlight.current || fetchStatus === "fetching") return
+
+    const targetEmail = normalizeEmail(email)
+    if (!isValidEmail(targetEmail)) {
+      setError("Зөв имэйл хаяг оруулна уу.")
+      return
+    }
+
+    requestInFlight.current = true
+    setBusy(true)
     setError("")
     setNotice("")
-    setBusy(true)
-    let navigationStarted = false
 
     try {
-      const activeSignIn = signIn
-
       await logoutUser()
+      if (isSignedIn) await signOut()
+      await signIn.reset()
 
-      async function createClerkSession(): Promise<string> {
-        const result = await activeSignIn.create({
-          identifier: normalizeEmail(email),
-          password,
-        })
-
-        if (result.status !== "complete" || !result.createdSessionId) {
-          throw new Error("LOGIN_NOT_COMPLETE")
-        }
-
-        return result.createdSessionId
-      }
-
-      let sessionId: string
-
-      try {
-        sessionId = await createClerkSession()
-      } catch (caught) {
-        if (!isAlreadySignedInError(caught)) throw caught
-
-        await signOut()
-        await wait(500)
-        await logoutUser()
-
-        sessionId = await createClerkSession()
-      }
-
-      await setActive({ session: sessionId })
-
-      const synced = await syncActiveClerkSession(() =>
-        getToken({ skipCache: true })
-      )
-
-      if (!synced.ok) {
-        throw new Error(
-          synced.message === "SESSION_NOT_READY"
-            ? "SESSION_NOT_READY"
-            : "SYNC_FAILED"
-        )
-      }
-
-      props.onDone(synced.user)
-      navigationStarted = true
-    } catch (caught) {
-      if (caught instanceof Error && caught.message === "LOGIN_NOT_COMPLETE") {
-        setError("Нэвтрэлт дууссангүй. Нууц үг болон мэйлээ шалгана уу.")
-      } else {
-        setError(loginErrorMessage(caught))
-      }
-    } finally {
-      if (!navigationStarted) {
-        submitInFlight.current = false
-        setBusy(false)
-      }
-    }
-  }
-
-  async function startReset(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!isLoaded || !signIn || busy) return
-    setError("")
-    setNotice("")
-
-    const targetEmail = normalizeEmail(resetEmail)
-    if (!targetEmail.includes("@")) return setError("Зөв мэйл хаяг оруулна уу.")
-
-    setBusy(true)
-
-    try {
-      await signIn.create({ strategy: "reset_password_email_code", identifier: targetEmail })
-      setNotice("Нууц үг сэргээх код мэйл рүү илгээгдлээ.")
-      setStep("resetVerify")
-    } catch (caught) {
-      setError(clerkMessage(caught))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function resendResetCode() {
-    if (!isLoaded || !signIn || busy) return
-    setError("")
-    setNotice("")
-    setBusy(true)
-
-    try {
-      await signIn.create({ strategy: "reset_password_email_code", identifier: normalizeEmail(resetEmail) })
-      setNotice("Код дахин илгээгдлээ.")
-    } catch (caught) {
-      setError(clerkMessage(caught))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function finishReset(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!isLoaded || !signIn || busy) return
-    setError("")
-
-    if (!isStrongPassword(newPassword)) return setError("Нууц үг бүх шаардлагыг хангах ёстой.")
-    if (newPassword !== confirmPassword) return setError("Давтан оруулсан нууц үг таарахгүй байна.")
-
-    setBusy(true)
-
-    try {
-      const result = await signIn.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code: resetCode.trim(),
-        password: newPassword,
-      })
-
-      if (result.status !== "complete") {
-        setError("Нууц үг шинэчлэлт дуусаагүй байна. Кодоо шалгаад дахин оролдоно уу.")
+      const { error: sendError } = await signIn.emailCode.sendCode({ emailAddress: targetEmail })
+      if (sendError) {
+        setError(emailDeliveryError(sendError))
         return
       }
 
-      const targetEmail = normalizeEmail(resetEmail)
       setEmail(targetEmail)
-      setPassword("")
-      setResetEmail(targetEmail)
-      setResetCode("")
-      setNewPassword("")
-      setConfirmPassword("")
-      setNotice("Нууц үг шинэчлэгдлээ. Шинэ нууц үгээрээ нэвтэрнэ үү.")
-      setStep("login")
-    } catch (caught) {
-      setError(clerkMessage(caught))
+      setCode("")
+      setStep("verify")
+      setCooldown(RESEND_COOLDOWN_SECONDS)
+      setNotice("")
+    } catch {
+      setError("Код илгээж чадсангүй. Түр хүлээгээд дахин оролдоно уу.")
     } finally {
+      requestInFlight.current = false
       setBusy(false)
     }
   }
 
-  if (step === "resetEmail") {
-    return (
-      <ResetEmailForm
-        resetEmail={resetEmail}
-        busy={busy}
-        isLoaded={isLoaded}
-        error={error}
-        onResetEmail={setResetEmail}
-        onSubmit={startReset}
-        onBack={() => {
-          setError("")
-          setNotice("")
-          setStep("login")
-        }}
-      />
-    )
+  async function resendCode() {
+    if (busy || requestInFlight.current || cooldown > 0 || fetchStatus === "fetching") return
+
+    requestInFlight.current = true
+    setBusy(true)
+    setError("")
+    setNotice("")
+
+    try {
+      const { error: sendError } = await signIn.emailCode.sendCode()
+      if (sendError) {
+        setError(emailDeliveryError(sendError))
+        return
+      }
+
+      setCooldown(RESEND_COOLDOWN_SECONDS)
+      setNotice("Баталгаажуулах кодыг дахин илгээлээ.")
+    } catch {
+      setError("Код дахин илгээж чадсангүй. Түр хүлээгээд оролдоно уу.")
+    } finally {
+      requestInFlight.current = false
+      setBusy(false)
+    }
   }
 
-  if (step === "resetVerify") {
+  async function verifyCode(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (busy || requestInFlight.current || fetchStatus === "fetching") return
+
+    const submittedCode = code.trim()
+    if (!/^\d{6}$/.test(submittedCode)) {
+      setError("6 оронтой баталгаажуулах код оруулна уу.")
+      return
+    }
+
+    requestInFlight.current = true
+    setBusy(true)
+    setError("")
+
+    try {
+      const { error: verificationError } = await signIn.emailCode.verifyCode({ code: submittedCode })
+      if (verificationError) {
+        setError(emailCodeError(verificationError))
+        return
+      }
+
+      if (signIn.status !== "complete" || !signIn.createdSessionId) {
+        setError("Нэвтрэлт дуусаагүй байна. Дахин оролдоно уу.")
+        return
+      }
+
+      const { error: finalizeError } = await signIn.finalize()
+      if (finalizeError) {
+        setError("Нэвтрэх session идэвхжүүлж чадсангүй. Дахин оролдоно уу.")
+        return
+      }
+
+      const token = await getToken({ skipCache: true })
+      if (!token) {
+        setError("Нэвтрэх session бэлэн болсонгүй. Дахин оролдоно уу.")
+        return
+      }
+
+      const synced = await syncClerkSession(token)
+      if (!synced.ok) {
+        setError("Нэвтрэлт баталгаажсан ч системтэй холбож чадсангүй. Дахин оролдоно уу.")
+        return
+      }
+
+      props.onDone(synced.user)
+    } catch {
+      setError("Нэвтрэх үед алдаа гарлаа. Түр хүлээгээд дахин оролдоно уу.")
+    } finally {
+      requestInFlight.current = false
+      setBusy(false)
+    }
+  }
+
+  async function changeEmail() {
+    if (busy || fetchStatus === "fetching") return
+    setError("")
+    setNotice("")
+    setCode("")
+    setCooldown(0)
+    await signIn.reset()
+    setStep("email")
+  }
+
+  const disabled = busy || fetchStatus === "fetching"
+
+  if (step === "verify") {
     return (
-      <ResetVerifyForm
-        resetCode={resetCode}
-        newPassword={newPassword}
-        confirmPassword={confirmPassword}
-        busy={busy}
-        isLoaded={isLoaded}
-        notice={notice}
-        error={error}
-        onResetCode={setResetCode}
-        onNewPassword={setNewPassword}
-        onConfirmPassword={setConfirmPassword}
-        onSubmit={finishReset}
-        onResend={resendResetCode}
-        onChangeEmail={() => {
-          setError("")
-          setNotice("")
-          setStep("resetEmail")
-        }}
-      />
+      <form onSubmit={verifyCode} className="grid gap-4">
+        <p className="m-0 text-sm font-semibold text-[#1d6b42]">Таны имэйл рүү баталгаажуулах код илгээлээ.</p>
+        <FloatingField
+          label="Код"
+          value={code}
+          onChange={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          required
+        />
+        {notice ? <p className="m-0 text-sm font-semibold text-[#1d6b42]">{notice}</p> : null}
+        {error ? <p className="m-0 rounded-[10px] bg-[#fff0ed] p-3 font-semibold text-[#9a3412]">{error}</p> : null}
+        <button className="btn btn-primary" disabled={disabled || code.length !== 6}>
+          {disabled ? "Шалгаж байна..." : "Нэвтрэх"}
+        </button>
+        <button
+          type="button"
+          className="text-sm font-bold text-[#7d4d34] underline"
+          onClick={() => void resendCode()}
+          disabled={disabled || cooldown > 0}
+        >
+          {cooldown > 0 ? `Код дахин авах (${cooldown})` : "Код дахин авах"}
+        </button>
+        <button type="button" className="btn btn-secondary" onClick={() => void changeEmail()} disabled={disabled}>
+          Имэйлээ өөрчлөх
+        </button>
+      </form>
     )
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-4">
-      <FloatingField label="Мэйл хаяг" value={email} onChange={setEmail} type="email" autoComplete="email" required />
-      <FloatingField label="Нууц үг" value={password} onChange={setPassword} type="password" autoComplete="current-password" required />
-      {notice ? <p className="m-0 text-sm font-semibold text-[#1d6b42]">{notice}</p> : null}
+    <form onSubmit={requestCode} className="grid gap-4">
+      <FloatingField label="Имэйл" value={email} onChange={setEmail} type="email" autoComplete="email" required />
       {error ? <p className="m-0 rounded-[10px] bg-[#fff0ed] p-3 font-semibold text-[#9a3412]">{error}</p> : null}
-      <button className="btn btn-primary" disabled={busy || !isLoaded}>{busy ? "Нэвтрэлт баталгаажиж байна..." : "Нэвтрэх"}</button>
-      <button type="button" className="text-sm font-bold text-[#7d4d34] underline" onClick={() => {
-        setError("")
-        setNotice("")
-        setResetEmail(email)
-        setStep("resetEmail")
-      }}>
-        Нууц үгээ мартсан уу?
+      <button className="btn btn-primary" disabled={disabled}>
+        {disabled ? "Илгээж байна..." : "Код авах"}
       </button>
     </form>
   )
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function clerkErrorCode(error: unknown): string {
+  if (!error || typeof error !== "object" || !("code" in error)) return ""
+  return typeof error.code === "string" ? error.code : ""
+}
+
+function emailDeliveryError(error: unknown): string {
+  const code = clerkErrorCode(error)
+  if (code === "form_identifier_not_found") {
+    return "Энэ имэйлээр нэвтрэх боломжгүй байна. Бүртгэл үүсгэх эсвэл имэйлээ шалгана уу."
+  }
+  if (code === "too_many_requests" || code.includes("rate_limit")) {
+    return "Хэт олон хүсэлт илгээлээ. Түр хүлээгээд дахин оролдоно уу."
+  }
+  return "Код илгээж чадсангүй. Имэйлээ шалгаад дахин оролдоно уу."
+}
+
+function emailCodeError(error: unknown): string {
+  const code = clerkErrorCode(error)
+  if (code.includes("expired")) return "Кодын хугацаа дууссан байна. Шинэ код авна уу."
+  if (code === "too_many_requests" || code.includes("rate_limit") || code.includes("attempt")) {
+    return "Хэт олон удаа оролдлоо. Түр хүлээгээд шинэ код авна уу."
+  }
+  return "Код буруу эсвэл хүчингүй байна. Дахин шалгана уу."
 }

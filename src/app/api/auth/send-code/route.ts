@@ -70,10 +70,9 @@ export async function POST(request: Request): Promise<NextResponse> {
         message: "Имэйл provider тохируулаагүй байна. Хэрэглэгч хадгалагдлаа, түр хугацаанд dev код ашиглаж нэвтэрнэ үү.",
       }, { status: 200 })
     }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Код илгээхэд алдаа гарлаа"
-    console.error("Failed to send login code", error)
-    return NextResponse.json({ message }, { status: 502 })
+  } catch {
+    console.error("Login-code delivery is unavailable.")
+    return NextResponse.json({ message: "Authentication service is temporarily unavailable." }, { status: 503 })
   }
 
   if (process.env.NODE_ENV !== "production") {

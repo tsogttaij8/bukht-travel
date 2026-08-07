@@ -42,8 +42,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ message: "Энэ хэрэглэгчийн эрх идэвхгүй байна" }, { status: 403 })
   }
 
+  let sessionToken: string
+  try {
+    sessionToken = createSessionToken(user.name, user.email, user.roles)
+  } catch {
+    console.error("Session signing is unavailable.")
+    return NextResponse.json({ message: "Authentication service is temporarily unavailable." }, { status: 503 })
+  }
+
   const response = NextResponse.json({ user: { name: user.name, email: user.email, role: user.role, roles: user.roles } }, { status: 200 })
-  response.cookies.set(sessionConfig.name, createSessionToken(user.name, user.email, user.roles), {
+  response.cookies.set(sessionConfig.name, sessionToken, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
