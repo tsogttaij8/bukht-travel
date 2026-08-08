@@ -1,8 +1,9 @@
 "use client"
 
-import { useClerk } from "@clerk/nextjs"
+import { useClerk, useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
+import bukhtLogo from "../../../../public/bukht-logo-full.png"
 import { usePathname } from "next/navigation"
 import { useCallback, useRef, useState } from "react"
 import { LogOut, MessageSquare, Package, Plane, Settings, Smartphone, Truck, UserRound, Users } from "lucide-react"
@@ -21,6 +22,7 @@ const navItems = [
 
 export default function OwnerSidebar({ user }: { user?: { name: string; email: string } }) {
   const { signOut } = useClerk()
+  const { user: clerkUser } = useUser()
   const pathname = usePathname()
   const [accountHovered, setAccountHovered] = useState(false)
   const [accountPinned, setAccountPinned] = useState(false)
@@ -45,7 +47,7 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
       <Link href="/owner" className="mb-5 border-b border-[#eadcca] px-2 pb-5">
         <div className="flex items-center gap-2">
           <div className="relative h-14 w-14 shrink-0">
-            <Image src="/icon.jpeg" alt="BUKHT logo" fill priority sizes="56px" className="object-contain mix-blend-multiply" />
+            <Image src={bukhtLogo} alt="BUKHT logo" fill priority sizes="56px" className="object-contain" />
           </div>
           <div className="grid gap-0 leading-[0.98]">
             <strong className="font-[var(--font-heading)] text-[0.96rem] tracking-[0.08em] text-[#241a12]">BUKHT</strong>
@@ -102,7 +104,11 @@ export default function OwnerSidebar({ user }: { user?: { name: string; email: s
             onClick={() => setAccountPinned((current) => !current)}
           >
             <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[#d8c5ad] bg-[#fff8ef]">
-              <Image src="/icon.jpeg" alt="Account" fill sizes="36px" className="object-contain mix-blend-multiply" />
+              {clerkUser?.imageUrl ? (
+                <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${clerkUser.imageUrl})` }} aria-label="Account profile image" role="img" />
+              ) : (
+                <Image src={bukhtLogo} alt="BUKHT logo" fill sizes="36px" className="object-contain" />
+              )}
             </span>
             <span className="min-w-0">
               <strong className="block truncate text-sm text-[#241a12]">{user.name}</strong>

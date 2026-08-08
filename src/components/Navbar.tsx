@@ -3,6 +3,7 @@
 import { useClerk, useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "@/src/components/ui/TrackedLink"
+import bukhtHeaderLogo from "../../public/bukht-header-logo.png"
 import { Moon, Search, Sun } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { getCurrentUser, logoutUser, type SessionUser } from "../lib/auth"
@@ -69,7 +70,9 @@ export default function Navbar({ showSearch = false }: { showSearch?: boolean })
     <header className="home-header">
       <div className="home-shell home-header__inner">
         <Link href="/" className="home-brand" aria-label="BUKHT нүүр хуудас">
-          <Image src="/bukht-logo-full.png" alt="" width={64} height={64} priority />
+          <span className="home-brand__logo">
+            <Image src={bukhtHeaderLogo} alt="" fill priority sizes="(max-width: 520px) 48px, 64px" />
+          </span>
           <span className="home-brand__copy">
             <strong>BUKHT</strong>
             <small>Trade, travel, cargo</small>
