@@ -1,83 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+BUKHT is a web platform designed to bring travel, e-commerce, cargo, and eSIM services together in one place.
 
-## Getting Started
+Core Features
 
-First, run the development server:
+User registration and authentication
+Email verification using one-time codes
+Product listing and management
+Shopping cart
+Order management
+Real-time chat between buyers and sellers
+Image and video attachments
+Responsive user interface for mobile, tablet, and desktop devices
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Next.js
+TypeScript
+React
+Tailwind CSS
+Supabase PostgreSQL
+Supabase Storage
+Supabase Realtime
+Resend / SMTP
+Vercel
 
-## Email Login
+Project Status
 
-Login code email ilgeeh bol `.env.local` deer dorh huvisagchuudaas negiig ni tohiruulna.
+The core features have been implemented. The project is currently undergoing system testing, user interface refinement, and production environment setup.
 
-Production-d ashiglah zuv songolt ni `Resend`:
+---
 
-```bash
-# Recommended: Resend
-MAIL_FROM=no-reply@your-domain.com
-RESEND_API_KEY=re_xxx
+BUKHT нь аялал, цахим худалдаа, карго болон eSIM үйлчилгээг нэг дор нэгтгэх зорилготой веб платформ юм.
 
-# Easiest for local testing: Gmail SMTP
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=yourgmail@gmail.com
-SMTP_PASS=your-google-app-password
+Үндсэн боломжууд
 
-# Alternative: custom JSON mail API
-MAILRUN_API_URL=https://your-mail-service.example/send
-MAILRUN_API_KEY=optional-key
-```
+Хэрэглэгчийн бүртгэл, нэвтрэлт
+Имэйлээр баталгаажуулах код илгээх
+Бүтээгдэхүүн нэмэх болон удирдах
+Бүтээгдэхүүний сагс
+Захиалгын систем
+Худалдан авагч, борлуулагчийн шууд чат
+Зураг болон видео файл илгээх
+Гар утас, таблет, компьютерын дэлгэцэд тохирох интерфэйс
 
-Hervee edgeer ni hooson bol app ni development deer kodig server log deer hevledeg bogood login huudas deer `DEV код` haruulna.
+Ашигласан технологи
 
-## Production Email Checklist
+Next.js
+TypeScript
+React
+Tailwind CSS
+Supabase PostgreSQL
+Supabase Storage
+Supabase Realtime
+Resend / SMTP
+Vercel
 
-1. Domain-aa avna. Jishee ni `bukht.mn`.
-2. Resend deer domain-aa `verify` hiine.
-3. DNS deer Resend-ees uguh `SPF` bolon `DKIM` record-uudiig nemeh.
-4. Deploy environment deer dorh huvisagchuudiig tohiruulna:
+Төслийн төлөв
 
-```bash
-MAIL_FROM=no-reply@bukht.mn
-RESEND_API_KEY=re_xxx
-SESSION_SECRET=long-random-secret
-ADMIN_EMAILS=admin@bukht.mn
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
-```
-
-5. App-aa redeploy hiine.
-6. Uuriin email ruu code avch test hiine.
-7. Spam folder ruu orj baigaa эсэхийг shalgana.
-
-Delgerengui checklist: `docs/email-production-checklist.md`
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Төслийн үндсэн боломжуудыг хөгжүүлсэн. Одоогоор системийн туршилт, хэрэглэгчийн интерфэйсийн сайжруулалт болон production орчны тохиргоог үргэлжлүүлэн хийж байна.
